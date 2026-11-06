@@ -912,7 +912,7 @@ function hitCagesAt(x, y, r, dmg) { for (const c of cages) if (!c.broken && Math
 function breakCage(c) {
   c.broken = true; burst(c.x, c.y - 6, 26, '#b8b4c4', 120, 0.7, 2); burst(c.x, c.y - 6, 12, PET[c.pet].col, 90, 0.7, 2); ring(c.x, c.y - 6, '#ffffff', 28, 0.4); ring(c.x, c.y - 6, PET[c.pet].col, 40, 0.5);
   shake = Math.max(shake, 4); sfx(200, 0.25, 'sawtooth', 0.07, -100); setTimeout(() => { sfx(660, 0.12, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.2, 'square', 0.05, 200), 100); }, 120);
-  if (pets.length >= 5) pets.shift();
+  if (pets.length >= 3) pets.shift();
   pets.push({ type: c.pet, ev: 1, xp: 0, x: c.x, y: c.y + 2, hw: 4, hh: 3, face: 1, cd: 0.5, ph: Math.random() * 6, atk: 0 });
   say('PET JOINED', PET[c.pet].n + ' 동료가 합류했습니다');
 }
@@ -1145,7 +1145,7 @@ const cam = { x: 0, y: 0 };
 let fadeA = 0, flashA = 0, state = 'menu', shake = 0, time = 0, banner = null, ambT = 0;
 const need = l => Math.round(30 * Math.pow(l, 1.35));
 /* ---------- 장비 / 아이템 카탈로그 ---------- */
-const RAR = [{ n: '일반', c: '#b8b0a8', rgb: '184,176,168' }, { n: '고급', c: '#6bd36b', rgb: '107,211,107' }, { n: '희귀', c: '#4b8cf2', rgb: '75,140,242' }, { n: '영웅', c: '#b06bff', rgb: '176,107,255' }, { n: '전설', c: '#ffb32d', rgb: '255,179,45' }];
+const RAR = [{ n: '일반', c: '#b8b0a8', rgb: '184,176,168' }, { n: '고급', c: '#6bd36b', rgb: '107,211,107' }, { n: '희귀', c: '#4b8cf2', rgb: '75,140,242' }, { n: '영웅', c: '#b06bff', rgb: '176,107,255' }, { n: '전설', c: '#ffb32d', rgb: '255,179,45' }, { n: '초월', c: '#5ff3ff', rgb: '95,243,255' }];
 const SLASH = ['#dfe6f5', '#9fffa8', '#8fc0ff', '#e0b0ff', '#ffe9a0'];
 const WT = { sword: { n: '검', cd: 0.4, reach: 30, arc: 1.05 }, axe: { n: '도끼', cd: 0.62, reach: 28, arc: 1.75 }, dagger: { n: '단검', cd: 0.24, reach: 23, arc: 0.85 }, staff: { n: '지팡이', cd: 0.5, ranged: true }, bow: { n: '활', cd: 0.5, ranged: true } };
 const GEAR = {};
@@ -1200,6 +1200,20 @@ const CLS = {
 let selCls = 'novice';
 const awkB = k => !P.awk ? 0 : k === 'atk' && P.awk >= 2 ? (10 + (P.lvl - 1) * 3) * 0.05 : k === 'hp' && P.awk >= 4 ? Math.round(P.bHp * 0.1) : 0;
 const clsB = k => awkB(k) + ((CLS[P.cls] && CLS[P.cls].b[k]) || 0) + ((P.job2 && JOB2[P.job2] && JOB2[P.job2].b[k]) || 0);
+/* ---------- 초월 무기: 전설 무기를 +15까지 강화하면 변신 ---------- */
+const TRANS = {}, TRANS_START = 10;
+['cf12', 'cf13', 'cf14', 'cf15', 'cf16'].forEach((id, i) => {
+  const g = GEAR[id], nid = 'tx' + (i + 1), t = Object.assign({}, g, { id: nid, n: '초월: ' + g.n, rar: 5, cost: g.cost * 3, atk: Math.round(g.atk * 1.7 + 10), craft: true, trans: true });
+  for (const k in g) if (!['id', 'n', 'rar', 'cost', 'atk', 'slot', 'type', 'craft'].includes(k) && typeof g[k] === 'number') t[k] = +(g[k] * 1.6).toFixed(3);
+  GEAR[nid] = t; TRANS[id] = nid;
+});
+function transcend(id) {
+  const nid = TRANS[id]; if (!nid) return; const i = P.owned.indexOf(id); if (i >= 0) P.owned[i] = nid; else P.owned.push(nid);
+  if (P.eq.weapon === id) P.eq.weapon = nid; delete P.enh[id]; P.enh[nid] = TRANS_START; recalc();
+  say('초월!', GEAR[nid].n); flashA = Math.max(flashA, 0.7); shake = Math.max(shake, 6); ring(P.x, P.y - 8, '#5ff3ff', 80, 1); ring(P.x, P.y - 8, '#ff4ad8', 50, 0.8); burst(P.x, P.y - 9, 60, '#5ff3ff', 160, 1.2);
+  sfx(262, 0.3, 'sawtooth', 0.07, 500); setTimeout(() => sfx(523, 0.3, 'sawtooth', 0.07, 500), 150); setTimeout(() => sfx(1046, 0.6, 'sawtooth', 0.07, 400), 300);
+  return nid;
+}
 const enhLv = id => (P.enh && P.enh[id]) || 0;
 const enhB = k => { const l = enhLv(P.eq.weapon); if (!l) return 0; return k === 'atk' ? l * (2 + gw().rar * 0.5) : k === 'mag' ? l * 0.03 : k === 'crit' ? l * 0.004 : 0; };
 const gname = id => GEAR[id].n + (enhLv(id) ? ' +' + enhLv(id) : '');
@@ -1226,8 +1240,8 @@ function tintOf(img, col) {
   return img._t[col];
 }
 /* 장비 스프라이트: 손잡이가 (ax, ay), 오른쪽으로 뻗음 */
-const WPAL = [['#c9ced8', '#8a909e', '#8a6a3a'], ['#e8ebf6', '#a9aec8', '#f0a22a'], ['#cfe0ff', '#7fa0d8', '#c0c8e8'], ['#a8fff0', '#2fd0b8', '#b06bff'], ['#ffe9a0', '#e0a830', '#b03030']];
-const WOOD = ['#8a5a2a', '#6b8a3a', '#3a7ab0', '#8a4ab0', '#e0a830'], GEM = ['#9aa0b4', '#6bd36b', '#7fe8ff', '#e0a8ff', '#ffd24a'];
+const WPAL = [['#c9ced8', '#8a909e', '#8a6a3a'], ['#e8ebf6', '#a9aec8', '#f0a22a'], ['#cfe0ff', '#7fa0d8', '#c0c8e8'], ['#a8fff0', '#2fd0b8', '#b06bff'], ['#ffe9a0', '#e0a830', '#b03030'], ['#e8ffff', '#5ff3ff', '#ff4ad8']];
+const WOOD = ['#8a5a2a', '#6b8a3a', '#3a7ab0', '#8a4ab0', '#e0a830', '#5ff3ff'], GEM = ['#9aa0b4', '#6bd36b', '#7fe8ff', '#e0a8ff', '#ffd24a', '#ff4ad8'];
 const sprCache = {}, iconCache = {};
 const SPK = { warrior: SP.knight, novice: SP.knight }; for (const k in CLS) if (CLS[k].pal) SPK[k] = [0, 1, 2, 3].map(f => knightSpr(f, CLS[k].pal));
 function gearSpr(id) {
@@ -1823,8 +1837,8 @@ function updPlayer(dt) {
 
 /* ---------- 몬스터 ---------- */
 function spawnMonster(type, x, y) {
-  const d = DEF[type], hm = 1 + 0.14 * (wave.n - 1), dm = 1 + 0.07 * (wave.n - 1);
-  const m = { type, x, y, hp: Math.round(d.hp * hm), maxHp: Math.round(d.hp * hm), dmg: d.dmg * dm, spd: d.spd, r: d.r, hw: d.hw, hh: d.hh, h: d.h, cOff: d.cOff, kbMul: d.kb, kx: 0, ky: 0, flash: 0, cd: rnd(0.4, 1), state: 'chase', t: 0, face: 1, anim: Math.random() * 5, spawnT: 0.55, idleDur: rnd(0.3, 0.8), moving: false, hx: 0, hy: 0, summoned: false, bt: d.base || type, boss: !!d.boss, sc: d.sc || 1, ai: d.ai || type };
+  const d = DEF[type], hm = (1 + 0.14 * (wave.n - 1)) * (1.3 + 0.12 * (floorNum - 1)), dm = (1 + 0.07 * (wave.n - 1)) * (1.25 + 0.08 * (floorNum - 1));
+  const m = { type, x, y, hp: Math.round(d.hp * hm), maxHp: Math.round(d.hp * hm), dmg: d.dmg * dm, spd: d.spd * 1.08, r: d.r, hw: d.hw, hh: d.hh, h: d.h, cOff: d.cOff, kbMul: d.kb, kx: 0, ky: 0, flash: 0, cd: rnd(0.4, 1), state: 'chase', t: 0, face: 1, anim: Math.random() * 5, spawnT: 0.55, idleDur: rnd(0.3, 0.8), moving: false, hx: 0, hy: 0, summoned: false, bt: d.base || type, boss: !!d.boss, sc: d.sc || 1, ai: d.ai || type };
   monsters.push(m); ring(x, y - 4, '#4af0d8', 18, 0.5); burst(x, y - 4, 8, '#4af0d8', 40, 0.5);
   return m;
 }
@@ -2028,7 +2042,7 @@ function killMonster(m) {
 function makeList(n) {
   const boss = n % 4 === 0, L = []; wave.theme = '';
   if (boss) { if (n % 8 === 0) { L.push('lich'); if (n >= 16) L.push('demon'); } else L.push('demon'); }
-  let cnt = Math.max(4, Math.min(4 + n * 2, 26) - (boss ? Math.floor(n * 0.8) : 0));
+  let cnt = Math.ceil(Math.max(4, Math.min(4 + n * 2, 26) - (boss ? Math.floor(n * 0.8) : 0)) * 1.3);
   const w = { slime: Math.max(1, 7 - n), skeleton: n >= 2 ? 2 + n * 0.6 : 0, orc: n >= 3 ? 0.5 + n * 0.5 : 0, bat: n >= 2 ? 1 + n * 0.4 : 0, archer: n >= 3 ? 1 + n * 0.4 : 0, bomber: n >= 4 ? 0.8 + n * 0.3 : 0, mage: n >= 5 ? 0.5 + n * 0.3 : 0, brute: n >= 6 ? 0.3 + n * 0.25 : 0 };
   const bias = palOf().bias; for (const k in bias) w[k] *= bias[k];
   { const fm = FLOOR_MAP[floorTheme(floorNum)], w2 = {}; for (const k in w) { const t = fm[k] || k; w2[t] = (w2[t] || 0) + w[k]; } for (const k in w) delete w[k]; Object.assign(w, w2); }
@@ -2227,7 +2241,7 @@ function drawPlayer() {
   ctx.globalAlpha = blink ? 0.45 : 1;
   blit(spr, P.x, P.y + bob, 10, 23, P.face < 0);
   // 무기
-  const hx = P.x + P.face * 6, hy = P.y - 8 + bob, wg = gw(), ws = gearSpr(wg.id);
+  const hx = P.x + P.face * 6, hy = P.y - 8 + bob, wg = gw(), ws = gearSpr(wg.id); if (wg.rar >= 5) { glow(hx, hy, 11 + Math.sin(time * 6), '95,243,255', 0.35); if (Math.random() < 0.12) parts.push({ x: hx + rnd(-6, 6), y: hy + rnd(-8, 4), vx: rnd(-6, 6), vy: -rnd(8, 18), life: 0.5, max: 0.5, col: Math.random() < 0.5 ? '#5ff3ff' : '#ff4ad8', size: 1, g: 0 }); }
   if (WT[wg.type].ranged) {
     const aa = aimAng(), rec = P.swing > 0 ? 2 * P.swing / P.swingMax : 0;
     weapon(ws, P.x + Math.cos(aa) * (5 - rec), P.y - P.cOff + Math.sin(aa) * (5 - rec) + bob, aa, 0, ws.ax, ws.ay);
@@ -2659,7 +2673,7 @@ function loadGame(sv) {
   P.x = fl.start[0] * TS + 8; P.y = fl.start[1] * TS + 8; P.vx = P.vy = P.kx = P.ky = 0; P.dash = 0; P.inv = 0.8; P.shield = P.parry = P.swift = P.guard = P.crit = P.buff = 0; P.jobT = null; P.dashHit = null; updAwk(true);
   for (const c in P.cd) P.cd[c] = 0;
   P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = Math.min(P.hp, P.maxHp); P.mp = Math.min(P.mp, P.maxMp);
-  pets = sv.pets.map(q => { const t = typeof q === 'string' ? q : q.type; return { type: t, ev: q.ev || 1, xp: q.xp || 0, x: P.x + rnd(-14, 14), y: P.y + rnd(-8, 8), hw: 4, hh: 3, face: 1, cd: 0.5, ph: Math.random() * 6, atk: 0 }; });
+  pets = sv.pets.slice(0, 3).map(q => { const t = typeof q === 'string' ? q : q.type; return { type: t, ev: q.ev || 1, xp: q.xp || 0, x: P.x + rnd(-14, 14), y: P.y + rnd(-8, 8), hw: 4, hh: 3, face: 1, cd: 0.5, ph: Math.random() * 6, atk: 0 }; });
   wave.n = sv.waveN; wave.list = []; wave.spawnT = 0;
   if (sv.stairs) { wave.state = 'stairs'; portal = { x: fl.boss[0] * TS + 8, y: fl.boss[1] * TS + 8 }; } else { wave.state = 'break'; wave.t = 1.8; }
   cam.x = P.x - W / 2; cam.y = P.y - H / 2;
@@ -2796,6 +2810,7 @@ function doEnhance(id) {
       sfx(660, 0.12, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.15, 'square', 0.05, 200), 90); setTimeout(() => sfx(1320, 0.25, 'square', 0.05, 200), 190);
       if (great) say('GREAT SUCCESS', gname(id));
       if (id === P.eq.weapon) recalc();
+      if (TRANS[id] && P.enh[id] >= ENH_MAX) { const nid = transcend(id); msg = '★ 초월! ' + GEAR[id].n + ' → ' + GEAR[nid].n + ' (+' + TRANS_START + ' 로 시작)'; cls = 'great'; }
     } else {
       for (const k in need) P.mats[k] += Math.floor(need[k] / 2);
       if (l >= 7 && Math.random() < 0.3) { P.enh[id] = l - 1; msg = '강화 실패... 단계가 하락했습니다. +' + l + ' → +' + (l - 1) + ' (재료 절반 반환)'; cls = 'down'; sfx(120, 0.4, 'sawtooth', 0.07, -60); if (id === P.eq.weapon) recalc(); }
@@ -2805,7 +2820,7 @@ function doEnhance(id) {
   }, 650);
 }
 function doCraft(id) {
-  const r = RCP[id]; if (P.owned.includes(id) || P.gold < r.gold || !hasMats(r.mats)) return;
+  const r = RCP[id]; if (P.owned.includes(id) || P.owned.includes(TRANS[id]) || P.gold < r.gold || !hasMats(r.mats)) return;
   P.gold -= r.gold; for (const k in r.mats) P.mats[k] -= r.mats[k]; P.owned.push(id);
   setEnhMsg('제작 성공! ' + GEAR[id].n + ' 을(를) 얻었습니다. 인벤토리(I)에서 장착하세요.', 'great'); say('CRAFTED', GEAR[id].n);
   sfx(660, 0.12, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.15, 'square', 0.05, 200), 90); setTimeout(() => sfx(1320, 0.25, 'square', 0.05, 200), 190); renderEnh();
@@ -2820,12 +2835,12 @@ function renderEnh() {
   for (const id of ws) {
     const g = GEAR[id], l = enhLv(id), cost = enhCost(id), need = enhMats(id), max = l >= ENH_MAX, on = P.eq.weapon === id;
     const nxt = l ? ' · 현재 공격력 +' + Math.round(l * (2 + g.rar * 0.5)) + ' / 마법 +' + Math.round(l * 3) + '%' : '';
-    box.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: (on ? '[장착 중] ' : '') + gearDesc(g) + nxt + ' · 성공 ' + Math.round(enhChance(l) * 100) + '% · 필요: ' + (max ? '-' : matStr(need)),
+    box.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: (on ? '[장착 중] ' : '') + (TRANS[id] ? '[+15 달성 시 초월] ' : '') + gearDesc(g) + nxt + ' · 성공 ' + Math.round(enhChance(l) * 100) + '% · 필요: ' + (max ? '-' : matStr(need)),
       btns: [{ t: max ? 'MAX' : '강화 ' + cost + 'G', dis: max || P.gold < cost || !hasMats(need) || enhBusy, fn: () => doEnhance(id) }], re: renderEnh }));
   }
   const cb = $('craftList'); cb.textContent = '';
   for (const id in RCP) {
-    const g = GEAR[id], r = RCP[id], own = P.owned.includes(id);
+    const g = GEAR[id], r = RCP[id], own = P.owned.includes(id) || P.owned.includes(TRANS[id]);
     cb.appendChild(card({ pic: gearIcon(id), name: g.n, rar: g.rar, desc: gearDesc(g) + ' · 재료: ' + matStr(r.mats),
       btns: [{ t: own ? '제작 완료' : '제작 ' + r.gold + 'G', dis: own || P.gold < r.gold || !hasMats(r.mats), fn: () => doCraft(id) }], re: renderEnh }));
   }
