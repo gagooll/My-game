@@ -809,7 +809,7 @@ const ITEM = {
 const ITEM_COL = { hp: '255,90,100', mp: '90,150,255', rune: '190,120,255' };
 const MAT = {
   jelly: { n: '슬라임 젤리', col: '#7be12f', rgb: '123,225,47' }, bone: { n: '뼛조각', col: '#e6dcc2', rgb: '230,220,194' }, wing: { n: '박쥐 날개', col: '#b06bff', rgb: '176,107,255' },
-  hide: { n: '오크 가죽', col: '#c8883a', rgb: '200,136,58' }, shard: { n: '마력 파편', col: '#7fe8ff', rgb: '127,232,255' }, core: { n: '악마의 핵', col: '#ff5a6a', rgb: '255,90,106' },
+  hide: { n: '오크 가죽', col: '#c8883a', rgb: '200,136,58' }, shard: { n: '마력 파편', col: '#7fe8ff', rgb: '127,232,255' }, core: { n: '악마의 핵', col: '#ff5a6a', rgb: '255,90,106' }, myth: { n: '신화의 정수', col: '#ff4a4a', rgb: '255,74,74' },
 };
 const MATSPR = {
   jelly: mk(10, 10, g => { ell(g, 5, 6, 4, 3, '#3a8a1a'); ell(g, 5, 5, 3, 3, '#7be12f'); rect(g, '#e8ffc0', 3, 3, 2, 1); }),
@@ -817,6 +817,7 @@ const MATSPR = {
   wing: mk(10, 10, g => { rect(g, '#5a2a8a', 1, 3, 8, 5); rect(g, '#8a4ac8', 1, 3, 8, 3); rect(g, '#b06bff', 2, 3, 6, 1); g.clearRect(2, 7, 2, 1); g.clearRect(6, 7, 2, 1); rect(g, '#2a104a', 4, 3, 1, 5); }),
   hide: mk(10, 10, g => { rect(g, '#7a4a1a', 1, 2, 8, 6); rect(g, '#c8883a', 2, 2, 6, 5); rect(g, '#e8b060', 3, 3, 3, 1); rect(g, '#7a4a1a', 4, 5, 2, 1); }),
   shard: mk(10, 10, g => { for (let y = 0; y < 8; y++) { const hw = y < 4 ? y : 7 - y; rect(g, '#2a78c8', 5 - hw - 1, 1 + y, hw * 2 + 2, 1); rect(g, '#7fe8ff', 5 - hw, 1 + y, hw * 2, 1); } rect(g, '#ffffff', 4, 3, 1, 2); }),
+  myth: mk(10, 10, g => { for (let y = 0; y < 9; y++) { const hw = y < 4 ? y : 8 - y; rect(g, '#7a0a12', 5 - hw - 1, 1 + y, hw * 2 + 2, 1); rect(g, '#ff4a4a', 5 - hw, 1 + y, hw * 2, 1); } rect(g, '#ffd24a', 4, 3, 2, 3); rect(g, '#ffffff', 4, 3, 1, 1); }),
   core: mk(10, 10, g => { ell(g, 5, 5, 4, 4, '#6a1020'); ell(g, 5, 5, 3, 3, '#d8404f'); ell(g, 5, 5, 1, 1, '#ffd0d8'); rect(g, '#ff9aa6', 3, 3, 1, 1); }),
 };
 const mat = id => (P.mats && P.mats[id]) || 0;
@@ -1332,9 +1333,26 @@ const cam = { x: 0, y: 0 };
 let fadeA = 0, flashA = 0, state = 'menu', shake = 0, time = 0, banner = null, ambT = 0;
 const need = l => Math.round(30 * Math.pow(l, 1.35));
 /* ---------- 장비 / 아이템 카탈로그 ---------- */
-const RAR = [{ n: '일반', c: '#b8b0a8', rgb: '184,176,168' }, { n: '고급', c: '#6bd36b', rgb: '107,211,107' }, { n: '희귀', c: '#4b8cf2', rgb: '75,140,242' }, { n: '영웅', c: '#b06bff', rgb: '176,107,255' }, { n: '전설', c: '#ffb32d', rgb: '255,179,45' }, { n: '초월', c: '#5ff3ff', rgb: '95,243,255' }];
-const SLASH = ['#dfe6f5', '#9fffa8', '#8fc0ff', '#e0b0ff', '#ffe9a0'];
-const WT = { sword: { n: '검', cd: 0.4, reach: 30, arc: 1.05 }, axe: { n: '도끼', cd: 0.62, reach: 28, arc: 1.75 }, dagger: { n: '단검', cd: 0.24, reach: 23, arc: 0.85 }, staff: { n: '지팡이', cd: 0.5, ranged: true }, bow: { n: '활', cd: 0.5, ranged: true }, tome: { n: '마도서', cd: 0.45, ranged: true } };
+const RAR = [{ n: '일반', c: '#b8b0a8', rgb: '184,176,168' }, { n: '고급', c: '#6bd36b', rgb: '107,211,107' }, { n: '희귀', c: '#4b8cf2', rgb: '75,140,242' }, { n: '영웅', c: '#b06bff', rgb: '176,107,255' }, { n: '전설', c: '#ffb32d', rgb: '255,179,45' }, { n: '초월', c: '#5ff3ff', rgb: '95,243,255' }, { n: '신화', c: '#ff4a4a', rgb: '255,74,74' }];
+const SLASH = ['#dfe6f5', '#9fffa8', '#8fc0ff', '#e0b0ff', '#ffe9a0', '#9ffcff', '#ff7a6a'];
+const WT = { sword: { n: '검', cd: 0.4, reach: 30, arc: 1.05 }, axe: { n: '도끼', cd: 0.62, reach: 28, arc: 1.75 }, dagger: { n: '단검', cd: 0.24, reach: 23, arc: 0.85 }, staff: { n: '지팡이', cd: 0.5, ranged: true }, bow: { n: '활', cd: 0.5, ranged: true }, tome: { n: '마도서', cd: 0.45, ranged: true },
+  pistol: { n: '권총', cd: 0.26, ranged: true, gun: true }, rifle: { n: '소총', cd: 0.42, ranged: true, gun: true }, sniper: { n: '저격총', cd: 1.1, ranged: true, gun: true }, shotgun: { n: '산탄총', cd: 0.8, ranged: true, gun: true }, mg: { n: '기관총', cd: 0.12, ranged: true, gun: true }, gl: { n: '유탄 발사기', cd: 0.9, ranged: true, gun: true },
+  smg: { n: '기관단총', cd: 0.2, ranged: true, gun: true }, magnum: { n: '핸드캐논', cd: 0.7, ranged: true, gun: true }, flame: { n: '화염방사기', cd: 0.07, ranged: true, gun: true },
+  rail: { n: '레일건', cd: 1.4, ranged: true, gun: true }, rocket: { n: '로켓 발사기', cd: 1.3, ranged: true, gun: true }, arc: { n: '전격총', cd: 0.3, ranged: true, gun: true } };
+const GUN = {
+  pistol: { d: '공격 속도가 빠름', spd: 340, life: 0.7, mul: 0.65, kb: 18 },
+  rifle: { d: '공격력과 사거리가 균형', spd: 400, life: 1.2, mul: 1.1, kb: 24 },
+  sniper: { d: '공격 속도는 느리지만 관통하는 높은 피해', spd: 580, life: 1.2, mul: 3.4, kb: 50, pierce: true },
+  shotgun: { d: '가까운 거리에서 강력한 피해', spd: 300, life: 0.28, mul: 0.42, kb: 44, cnt: 6, spread: 0.14 },
+  mg: { d: '빠른 연속 사격', spd: 350, life: 0.8, mul: 0.3, kb: 8, jitter: 0.07 },
+  gl: { d: '폭발하는 광역 공격', spd: 200, life: 1.0, mul: 2.0, kb: 40, boom: true, am: 0.1 },
+  smg: { d: '2발씩 끊어 쏘는 빠른 점사', spd: 330, life: 0.6, mul: 0.26, kb: 10, cnt: 2, spread: 0.1, jitter: 0.04 },
+  magnum: { d: '느리지만 묵직하고 치명타가 잘 터지는 한 발', spd: 420, life: 0.85, mul: 1.9, kb: 46, cb: 0.2 },
+  flame: { d: '짧은 사거리의 불꽃을 뿜어 적을 태웁니다', spd: 170, life: 0.3, mul: 0.2, kb: 6, jitter: 0.2, pierce: true, kind: 'flame', r: 5, burn: true },
+  rail: { d: '아주 느리지만 일직선을 꿰뚫는 초고속 광선탄', spd: 900, life: 0.55, mul: 4.2, kb: 60, pierce: true, kind: 'rail', r: 7 },
+  rocket: { d: '크게 폭발하는 로켓탄', spd: 165, life: 1.5, mul: 3.0, kb: 55, boom: true, am: 0.5 },
+  arc: { d: '맞은 적에게서 주변 적에게 전기가 튑니다', spd: 360, life: 0.8, mul: 0.45, kb: 14, kind: 'arc', chain: 2 },
+};
 const GEAR = {};
 [
   ['sw0', '낡은 검', 0, 0, 'sword', 0], ['sw1', '강철 검', 1, 90, 'sword', 6], ['sw2', '기사의 장검', 2, 260, 'sword', 13], ['sw3', '룬 블레이드', 3, 600, 'sword', 24], ['sw4', '성스러운 왕검', 4, 1300, 'sword', 38, { crit: 0.1 }],
@@ -1344,6 +1362,22 @@ const GEAR = {};
   ['bw1', '사냥 활', 0, 80, 'bow', 7], ['bw2', '장궁', 1, 170, 'bow', 13], ['bw3', '엘프 활', 2, 320, 'bow', 21, { crit: 0.1 }], ['bw4', '천둥 활', 3, 660, 'bow', 33], ['bw5', '별 꿰는 활', 4, 1450, 'bow', 48, { crit: 0.15 }],
   ['dg0', '낡은 단검', 0, 0, 'dagger', 2, { crit: 0.1 }], ['st0', '견습 지팡이', 0, 0, 'staff', 1, { mag: 0.15 }], ['bw0', '연습용 활', 0, 0, 'bow', 5],
 ].forEach(([id, n, rar, cost, type, atk, o]) => { GEAR[id] = Object.assign({ id, slot: 'weapon', n, rar, cost, type, atk }, o); });
+GEAR.gn0 = { id: 'gn0', slot: 'weapon', n: '낡은 권총', rar: 0, cost: 0, type: 'pistol', atk: 3, gun: true };
+[['pistol', 'pi', ['연습용 권총', '리볼버', '자동 권총', '은빛 매그넘', '황금 데저트 이글'], 0],
+ ['rifle', 'ri', ['구식 소총', '병사의 소총', '돌격 소총', '정밀 소총', '전설의 카빈'], 0],
+ ['sniper', 'sn', ['사냥용 저격총', '장거리 저격총', '정밀 저격총', '스나이퍼 라이플', '관통의 대물 저격총'], 0.1],
+ ['shotgun', 'sh', ['단발 산탄총', '펌프 산탄총', '더블 배럴', '전투 산탄총', '용의 숨결 산탄총'], 0],
+ ['mg', 'mg', ['경기관총', '중기관총', '개틀링', '분대 지원 화기', '폭풍의 미니건'], 0],
+ ['gl', 'gl', ['유탄 발사기', '연발 유탄기', '폭발 유탄포', '집속 유탄포', '파멸의 유탄포'], 0],
+ ['smg', 'sm', ['소형 기관단총', '경량 기관단총', '전술 기관단총', '특수부대 기관단총', '질풍의 기관단총'], 0.03],
+ ['magnum', 'mn', ['구형 핸드캐논', '강철 핸드캐논', '사냥꾼의 마그넘', '코끼리 사냥총', '심판의 핸드캐논'], 0.05],
+ ['flame', 'fl', ['시험용 화염방사기', '정비병의 화염방사기', '중장 화염방사기', '용암 화염방사기', '지옥불 화염방사기'], 0],
+ ['rail', 'rl', ['시제 레일건', '전자기 레일건', '가속 레일건', '이중 레일건', '초전도 레일건'], 0.05],
+ ['rocket', 'rk', ['소형 로켓포', '보병 로켓포', '대전차 로켓포', '다연장 로켓포', '운석 로켓포'], 0],
+ ['arc', 'ac', ['시제 전격총', '테슬라 전격총', '연쇄 전격총', '뇌우 전격총', '폭풍신의 전격총'], 0.03]].forEach(([type, pre, names, cr]) => names.forEach((n, i) => {
+  const id = pre + (i + 1); GEAR[id] = { id, slot: 'weapon', n, rar: i, cost: [70, 170, 330, 680, 1450][i], type, atk: [5, 10, 17, 27, 40][i], gun: true };
+  if (cr) GEAR[id].crit = +(cr + 0.05 * i).toFixed(2);
+}));
 [
   ['ar0', '기본 갑옷', 0, 0, '#7a7d96', { red: 0 }], ['ar1', '천 로브', 0, 30, '#9a7ad0', { red: 0.05, mp: 10 }], ['ar2', '가죽 갑옷', 0, 80, '#8a5a2a', { red: 0.1 }],
   ['ar3', '사슬 갑옷', 1, 150, '#8e94a8', { red: 0.16 }], ['ar4', '강철 갑옷', 1, 220, '#a2a4c8', { red: 0.2 }], ['ar5', '마도사 법의', 2, 300, '#4b6ad8', { red: 0.12, mp: 30, mag: 0.15 }],
@@ -1362,6 +1396,23 @@ const RECIPES = [
   ['cf9', '심연의 지팡이', 3, 800, 'staff', 8, { mag: 1.3, mpr: 4 }, { core: 3, shard: 8 }, 420], ['cf10', '어둠 비수', 3, 780, 'dagger', 26, { crit: 0.35 }, { core: 2, wing: 7 }, 400], ['cf11', '용사의 장궁', 3, 820, 'bow', 40, { crit: 0.15 }, { core: 3, hide: 7, shard: 3 }, 420],
   ['cf12', '화룡의 대검', 4, 1800, 'sword', 52, { crit: 0.1, ls: 0.05 }, { core: 5, hide: 8, shard: 6 }, 700], ['cf13', '폭풍의 전투도끼', 4, 1900, 'axe', 62, { ls: 0.1 }, { core: 6, bone: 12 }, 760],
   ['cf14', '성좌의 지팡이', 4, 1800, 'staff', 11, { mag: 2, mpr: 6 }, { core: 5, shard: 12 }, 740], ['cf15', '그림자 송곳니', 4, 1750, 'dagger', 38, { crit: 0.5 }, { core: 4, wing: 12 }, 720], ['cf16', '천공의 장궁', 4, 1850, 'bow', 54, { crit: 0.25 }, { core: 5, hide: 10, shard: 6 }, 740],
+  ['mx1', '태초의 성검 아르카나', 6, 4000, 'sword', 120, { crit: 0.12, ls: 0.08 }, { myth: 5, core: 8, hide: 10 }, 3000],
+  ['mx2', '세계 파괴자 라그나', 6, 4200, 'axe', 142, { ls: 0.12, crit: 0.1 }, { myth: 5, core: 9, bone: 16 }, 3200],
+  ['mx3', '월식의 단검 에클립스', 6, 3900, 'dagger', 90, { crit: 0.65, spd: 0.1 }, { myth: 5, core: 8, wing: 16 }, 3000],
+  ['mx4', '창세의 지팡이 제네시스', 6, 4000, 'staff', 14, { mag: 3.2, mpr: 9, mp: 60 }, { myth: 5, core: 8, shard: 16 }, 3000],
+  ['mx5', '유성궁 아스트라', 6, 4100, 'bow', 112, { crit: 0.35, spd: 0.06 }, { myth: 5, core: 8, hide: 12, shard: 6 }, 3000],
+  ['mx6', '신화의 권총 오로라', 6, 3800, 'pistol', 72, { crit: 0.25, spd: 0.05, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx7', '신화의 소총 발할라', 6, 3800, 'rifle', 72, { crit: 0.15, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx8', '신화의 저격총 니르바나', 6, 4000, 'sniper', 72, { crit: 0.5, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx9', '신화의 산탄총 카오스', 6, 3800, 'shotgun', 72, { ls: 0.06, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx10', '신화의 기관총 라그나로크', 6, 3900, 'mg', 72, { crit: 0.1, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx12', '신화의 기관단총 스톰', 6, 3800, 'smg', 72, { crit: 0.12, spd: 0.05, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx13', '신화의 핸드캐논 타이탄', 6, 4000, 'magnum', 72, { crit: 0.3, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx14', '신화의 화염방사기 이프리트', 6, 3900, 'flame', 72, { ls: 0.05, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx15', '신화의 레일건 제우스', 6, 4000, 'rail', 72, { crit: 0.4, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx16', '신화의 로켓포 메테오', 6, 3900, 'rocket', 72, { ls: 0.05, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx17', '신화의 전격총 라이트닝', 6, 3900, 'arc', 72, { crit: 0.12, spd: 0.05, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
+  ['mx11', '신화의 유탄포 이그니스', 6, 3900, 'gl', 72, { ls: 0.05, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
 ];
 const RCP = {};
 RECIPES.forEach(([id, n, rar, cost, type, atk, o, mats, gold]) => { GEAR[id] = Object.assign({ id, slot: 'weapon', n, rar, cost, type, atk, craft: true }, o); RCP[id] = { mats, gold }; });
@@ -1383,6 +1434,7 @@ const CLS = {
   mage: { n: '마법사', icon: '법', d: '강력한 마법. 마나가 많고 빠르게 회복합니다.', hp: 80, mp: 100, w: 'st0', a: 'ar1', b: { mag: 0.2, mpr: 1.5 }, sig: 'KeyQ', pal: { red: '#3a56c8', redD: '#22307a', redL: '#6a86f0', shield: '#5a3a8a', shieldD: '#3a2260', shieldL: '#7a5ab0', steelM: '#7a5ab0', steelL: '#a98ae0', steelD: '#4a3278', gold: '#7fe8ff', goldL: '#bff6ff' } },
   assassin: { n: '암살자', icon: '암', d: '빠르고 치명적입니다. 치명타와 이동이 높습니다.', hp: 90, mp: 45, w: 'dg0', a: 'ar0', b: { crit: 0.1, spd: 0.1 }, sig: 'KeyQ', pal: { red: '#3a3050', redD: '#241c34', redL: '#5a4a78', shield: '#241c34', shieldD: '#16111d', shieldL: '#3a3050', steelM: '#4a4658', steelL: '#7a768c', steelD: '#2e2a3a', gold: '#d8404f', goldL: '#ff8a96' } },
   archer: { n: '궁수', icon: '궁', d: '거리를 두고 싸웁니다. 원거리 연사가 특기입니다.', hp: 95, mp: 55, w: 'bw0', a: 'ar0', b: { spd: 0.05 }, sig: 'KeyQ', pal: { red: '#3a8a4a', redD: '#235a2e', redL: '#6ac47a', shield: '#6a4a2a', shieldD: '#4a3220', shieldL: '#8a6a3a', steelM: '#8a6a3a', steelL: '#b8905a', steelD: '#5a4020', gold: '#e8e0c8', goldL: '#ffffff' } },
+  gunner: { n: '거너', icon: '총', d: '총으로 싸우는 원거리 전투가. 권총부터 유탄 발사기까지 다양한 총을 씁니다.', hp: 100, mp: 50, w: 'gn0', a: 'ar0', b: { crit: 0.05, spd: 0.03 }, sig: 'KeyQ', pal: { red: '#6a6a3a', redD: '#44441e', redL: '#9a9a5a', shield: '#4a3a2a', shieldD: '#2e2418', shieldL: '#6a5a3a', steelM: '#8a8a7a', steelL: '#bcbca8', steelD: '#4a4a40', gold: '#ffd24a', goldL: '#fff2a0' } },
 };
 let selCls = 'novice';
 const awkB = k => !P.awk ? 0 : k === 'atk' && P.awk >= 2 ? (10 + (P.lvl - 1) * 3) * 0.05 : k === 'hp' && P.awk >= 4 ? Math.round(P.bHp * 0.1) : 0;
@@ -1454,8 +1506,8 @@ function recalc() {
 function wpick(arr, wf) { let t = 0; for (const a of arr) t += wf(a); let r = Math.random() * t; for (const a of arr) { r -= wf(a); if (r <= 0) return a; } return arr[arr.length - 1]; }
 const rarW = () => { const n = wave.n; return [60, 30 + n * 2, n >= 2 ? 10 + n * 1.5 : 0, n >= 4 ? 2 + n * 0.6 : 0, n >= 6 ? 0.5 + n * 0.25 : 0]; };
 function rollGear(minR) {
-  const rw = rarW(); let pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && g.rar >= minR && rw[g.rar] > 0);
-  if (!pool.length) pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && g.rar >= minR);
+  const rw = rarW(); let pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && (!g.gun || P.cls === 'gunner') && (P.cls !== 'gunner' || g.slot !== 'weapon' || g.gun) && g.rar >= minR && rw[g.rar] > 0);
+  if (!pool.length) pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && (!g.gun || P.cls === 'gunner') && (P.cls !== 'gunner' || g.slot !== 'weapon' || g.gun) && g.rar >= minR);
   return wpick(pool, g => rw[g.rar] || 0.1).id;
 }
 function tintOf(img, col) {
@@ -1464,8 +1516,8 @@ function tintOf(img, col) {
   return img._t[col];
 }
 /* 장비 스프라이트: 손잡이가 (ax, ay), 오른쪽으로 뻗음 */
-const WPAL = [['#c9ced8', '#8a909e', '#8a6a3a'], ['#e8ebf6', '#a9aec8', '#f0a22a'], ['#cfe0ff', '#7fa0d8', '#c0c8e8'], ['#a8fff0', '#2fd0b8', '#b06bff'], ['#ffe9a0', '#e0a830', '#b03030'], ['#e8ffff', '#5ff3ff', '#ff4ad8']];
-const WOOD = ['#8a5a2a', '#6b8a3a', '#3a7ab0', '#8a4ab0', '#e0a830', '#5ff3ff'], GEM = ['#9aa0b4', '#6bd36b', '#7fe8ff', '#e0a8ff', '#ffd24a', '#ff4ad8'];
+const WPAL = [['#c9ced8', '#8a909e', '#8a6a3a'], ['#e8ebf6', '#a9aec8', '#f0a22a'], ['#cfe0ff', '#7fa0d8', '#c0c8e8'], ['#a8fff0', '#2fd0b8', '#b06bff'], ['#ffe9a0', '#e0a830', '#b03030'], ['#e8ffff', '#5ff3ff', '#ff4ad8'], ['#ffe0d8', '#ff4a4a', '#ffd24a']];
+const WOOD = ['#8a5a2a', '#6b8a3a', '#3a7ab0', '#8a4ab0', '#e0a830', '#5ff3ff', '#8a1a1a'], GEM = ['#9aa0b4', '#6bd36b', '#7fe8ff', '#e0a8ff', '#ffd24a', '#ff4ad8', '#ff4a4a'];
 const sprCache = {}, iconCache = {};
 const HW_K = [0, 40, 100, 180, 290, 430, 620, 860, 1160, 1500];
 const HW = {
@@ -1508,6 +1560,22 @@ function gearSpr(id) {
       else { ay = 6; s = mk(15, 13, c => { rect(c, '#120828', 0, 1, 14, 11); rect(c, '#3a1a6a', 1, 1, 13, 11); rect(c, '#ffd24a', 0, 1, 14, 1); rect(c, '#ffd24a', 0, 11, 14, 1); rect(c, '#ffd24a', 0, 1, 1, 11); rect(c, '#7a4ac8', 3, 3, 9, 7); rect(c, '#5ff3ff', 6, 4, 3, 5); rect(c, '#5ff3ff', 5, 5, 5, 3); rect(c, '#ffffff', 7, 6, 1, 1); rect(c, '#ffe9a0', 2, 2, 1, 1); rect(c, '#ffe9a0', 12, 2, 1, 1); rect(c, '#ffe9a0', 2, 10, 1, 1); rect(c, '#ffe9a0', 12, 10, 1, 1); rect(c, '#c98aff', 7, 0, 1, 1); rect(c, '#c98aff', 3, 0, 1, 1); rect(c, '#c98aff', 11, 0, 1, 1); }); }
     }
     s.ax = id === 'tms' ? 1 : 2; s.ay = ay; return (sprCache[id] = s);
+  }
+  if (g.gun) {
+    const M = p[0], D = p[1], A = p[2], W = '#6b4a2a', W2 = '#4a3220'; let ax = 2;
+    if (g.type === 'pistol') { ay = 4; ax = 2; s = mk(11, 7, c => { rect(c, D, 0, 1, 9, 3); rect(c, M, 1, 1, 8, 1); rect(c, M, 9, 2, 2, 1); rect(c, W, 1, 4, 3, 3); rect(c, W2, 1, 6, 3, 1); rect(c, A, 5, 4, 1, 1); }); }
+    else if (g.type === 'rifle') { ay = 3; ax = 7; s = mk(22, 6, c => { rect(c, W, 0, 2, 6, 3); rect(c, W2, 0, 4, 6, 1); rect(c, D, 6, 1, 9, 3); rect(c, M, 6, 1, 9, 1); rect(c, M, 15, 2, 7, 1); rect(c, D, 15, 3, 6, 1); rect(c, A, 10, 4, 2, 2); rect(c, D, 8, 4, 1, 2); }); }
+    else if (g.type === 'sniper') { ay = 4; ax = 7; s = mk(27, 7, c => { rect(c, W, 0, 3, 6, 3); rect(c, D, 6, 2, 9, 3); rect(c, M, 6, 2, 9, 1); rect(c, M, 15, 3, 12, 1); rect(c, D, 15, 4, 11, 1); rect(c, '#2a2f3a', 8, 0, 7, 2); rect(c, '#7fe8ff', 14, 0, 1, 2); rect(c, A, 9, 0, 1, 1); rect(c, D, 18, 5, 1, 2); rect(c, D, 22, 5, 1, 2); }); }
+    else if (g.type === 'shotgun') { ay = 3; ax = 7; s = mk(23, 6, c => { rect(c, W, 0, 2, 6, 3); rect(c, W2, 0, 4, 6, 1); rect(c, D, 6, 1, 5, 4); rect(c, M, 6, 1, 5, 1); rect(c, M, 11, 1, 12, 1); rect(c, D, 11, 2, 12, 1); rect(c, '#8a5a2a', 13, 3, 6, 2); rect(c, W2, 13, 5, 6, 1); }); }
+    else if (g.type === 'mg') { ay = 3; ax = 6; s = mk(24, 9, c => { rect(c, W, 0, 2, 5, 3); rect(c, D, 5, 1, 11, 4); rect(c, M, 5, 1, 11, 1); rect(c, M, 16, 2, 8, 1); rect(c, D, 16, 3, 7, 1); rect(c, '#5a5f4a', 8, 5, 6, 4); rect(c, A, 9, 6, 4, 1); rect(c, D, 20, 3, 1, 3); }); }
+    else if (g.type === 'smg') { ay = 3; ax = 4; s = mk(16, 8, c => { rect(c, W, 0, 2, 4, 2); rect(c, D, 3, 1, 9, 4); rect(c, M, 3, 1, 9, 1); rect(c, M, 12, 2, 4, 1); rect(c, D, 12, 3, 3, 1); rect(c, '#5a5f4a', 6, 5, 3, 3); rect(c, A, 7, 6, 1, 1); rect(c, W, 4, 5, 2, 3); }); }
+    else if (g.type === 'magnum') { ay = 4; ax = 2; s = mk(14, 8, c => { rect(c, D, 0, 1, 12, 4); rect(c, M, 1, 1, 11, 1); rect(c, M, 12, 2, 2, 2); rect(c, W, 1, 5, 4, 3); rect(c, W2, 1, 7, 4, 1); rect(c, A, 6, 5, 2, 1); rect(c, A, 3, 2, 1, 1); rect(c, D, 8, 5, 1, 2); }); }
+    else if (g.type === 'flame') { ay = 4; ax = 5; s = mk(23, 10, c => { rect(c, '#8a2a1a', 0, 2, 6, 7); rect(c, '#c0301a', 1, 2, 5, 6); rect(c, A, 2, 3, 2, 2); rect(c, W, 6, 5, 3, 3); rect(c, D, 6, 2, 12, 3); rect(c, M, 6, 2, 12, 1); rect(c, '#222', 18, 1, 4, 5); rect(c, '#ff8a3a', 22, 3, 1, 1); rect(c, D, 9, 6, 1, 3); }); }
+    else if (g.type === 'rail') { ay = 4; ax = 6; s = mk(27, 9, c => { rect(c, W, 0, 3, 6, 3); rect(c, D, 6, 1, 18, 2); rect(c, M, 6, 1, 18, 1); rect(c, D, 6, 6, 18, 2); rect(c, M, 6, 6, 18, 1); rect(c, A, 8, 3, 14, 3); rect(c, '#ffffff', 10, 4, 10, 1); rect(c, M, 24, 1, 3, 7); rect(c, '#2a2f3a', 12, 0, 4, 1); }); }
+    else if (g.type === 'rocket') { ay = 5; ax = 8; s = mk(24, 11, c => { rect(c, W, 3, 5, 3, 5); rect(c, D, 2, 1, 18, 5); rect(c, M, 2, 1, 18, 1); rect(c, M, 20, 0, 2, 7); rect(c, '#8a2a1a', 22, 2, 2, 3); rect(c, A, 8, 6, 3, 1); rect(c, '#2a2f3a', 11, 0, 5, 1); rect(c, '#ff8a3a', 0, 2, 2, 3); rect(c, D, 12, 6, 1, 3); }); }
+    else if (g.type === 'arc') { ay = 4; ax = 3; s = mk(19, 9, c => { rect(c, W, 0, 4, 4, 4); rect(c, D, 3, 2, 9, 4); rect(c, M, 3, 2, 9, 1); for (let i = 0; i < 4; i++) rect(c, A, 5 + i * 2, 1, 1, 6); rect(c, M, 12, 1, 6, 1); rect(c, M, 12, 6, 6, 1); rect(c, '#ffffff', 17, 3, 2, 2); rect(c, A, 13, 3, 4, 2); }); }
+    else { ay = 3; ax = 5; s = mk(20, 9, c => { rect(c, W, 0, 2, 4, 3); rect(c, D, 4, 1, 8, 4); rect(c, M, 4, 1, 8, 1); rect(c, M, 12, 0, 8, 5); rect(c, D, 12, 3, 8, 2); rect(c, '#1a1a22', 18, 1, 2, 3); rect(c, A, 6, 5, 5, 4); rect(c, D, 7, 6, 3, 2); rect(c, '#ffffff', 13, 1, 1, 1); }); }
+    s.ax = ax; s.ay = ay; return (sprCache[id] = s);
   }
   if (g.type === 'sword') s = id === 'sw0' ? SP.rusty : swordSpr(p[0], p[1], p[2], 11 + g.rar);
   else if (g.type === 'dagger') s = swordSpr(p[0], p[1], p[2], 7 + (g.rar > 2 ? 1 : 0));
@@ -1646,7 +1714,25 @@ function swingSword() {
   for (const c of cages) if (!c.broken) { const dx = c.x - pcx, dy = c.y - 6 - pcy, d = Math.hypot(dx, dy); if (d < reach + 10 && (angDiff(Math.atan2(dy, dx), a) < t.arc || d < 16)) { hit = true; hitCage(c, pDmg() * dmgMul()); } }
   if (hit) shake = Math.max(shake, w.type === 'axe' ? 3 : 1.5);
 }
+function shootGun(w) {
+  const G = GUN[w.type], a = aimAng(), dual = P.job2 === 'gunslinger' && (w.type === 'pistol' || w.type === 'magnum' || w.type === 'smg');
+  P.atkCd = WT[w.type].cd / ((1 + RB.aspd) * limM()); P.swing = P.swingMax = 0.1;
+  const base = pDmg() * dmgMul() * G.mul * (dual ? 0.8 : 1), n = G.cnt || 1;
+  for (const side of (dual ? [-1, 1] : [0])) {
+    for (let i = 0; i < n; i++) {
+      const b = a + (n > 1 ? (i - (n - 1) / 2) * G.spread : 0) + (G.jitter ? rnd(-G.jitter, G.jitter) : 0) + side * 0.04;
+      const px = P.x + Math.cos(b) * 9 - Math.sin(a) * side * 3, py = P.y - P.cOff + Math.sin(b) * 9 + Math.cos(a) * side * 3;
+      if (G.boom) projs.push({ kind: 'fire', x: px, y: py, vx: Math.cos(b) * G.spd, vy: Math.sin(b) * G.spd, dmg: base, life: G.life, r: 5, friendly: true, am: (G.am || 0.1) + (P.job2 === 'demolisher' ? 0.35 : 0) });
+      else projs.push({ kind: G.kind || 'bullet', x: px, y: py, vx: Math.cos(b) * G.spd, vy: Math.sin(b) * G.spd, a: b, dmg: base, life: G.life, r: G.r || 3, friendly: true, hit: [], pierce: !!G.pierce, cb: G.cb || 0, chain: G.chain || 0, pz: !!G.burn });
+    }
+  }
+  const c = Math.cos(a), s = Math.sin(a); P.kx -= c * G.kb; P.ky -= s * G.kb;
+  burst(P.x + c * 12, P.y - P.cOff + s * 12, w.type === 'shotgun' || w.type === 'gl' || w.type === 'rocket' ? 7 : 3, w.type === 'flame' ? '#ff8a3a' : w.type === 'arc' || w.type === 'rail' ? '#bff6ff' : '#ffe9a0', 70, 0.2);
+  const f = { pistol: [260, 0.06, 'square', 0.04, -200], rifle: [200, 0.08, 'square', 0.05, -180], sniper: [120, 0.25, 'sawtooth', 0.08, -60], shotgun: [110, 0.2, 'sawtooth', 0.07, -80], mg: [300, 0.04, 'square', 0.03, -150], gl: [150, 0.3, 'sawtooth', 0.07, 200], smg: [280, 0.05, 'square', 0.035, -160], magnum: [100, 0.22, 'sawtooth', 0.08, -70], flame: [90, 0.05, 'sawtooth', 0.03, 40], rail: [700, 0.3, 'sawtooth', 0.07, -500], rocket: [130, 0.35, 'sawtooth', 0.08, 220], arc: [900, 0.12, 'square', 0.04, -300] }[w.type]; sfx(...f);
+  if (w.type === 'sniper' || w.type === 'shotgun' || w.type === 'rail' || w.type === 'rocket' || w.type === 'magnum') shake = Math.max(shake, 1.5);
+}
 function shoot(w) {
+  if (WT[w.type].gun) return shootGun(w);
   const bow = w.type === 'bow', a = aimAng(), c = Math.cos(a), s = Math.sin(a), sp = bow ? 290 : 170;
   P.atkCd = WT[w.type].cd / ((1 + RB.aspd) * limM()); P.swing = P.swingMax = 0.12;
   projs.push({ kind: bow ? 'arrow' : 'orb', x: P.x + c * 9, y: P.y - P.cOff + s * 9, vx: c * sp, vy: s * sp, a, dmg: pDmg() * dmgMul() * (bow ? 1.1 : 0.9 * (1 + gsum('mag') * 0.4)), life: bow ? 0.9 : 1.1, r: bow ? 3 : 4, friendly: true });
@@ -1741,7 +1827,7 @@ function toggleForm() {
   setForm(to); say(jobName(), L[0] === to ? '원래 모습으로 돌아왔습니다' : '변신했습니다');
 }
 function applyJob2(id) {
-  if (P.job2 && JOB2[P.job2].hidden) { P.baseJ2 = id; P.fs = P.fs || {}; P.fs[id] = P.fs[id] || { learned: {}, nodes: {} }; return; }
+  if (P.job2 && JOB2[P.job2].hidden) { P.baseJ2 = id; P.fs = P.fs || {}; P.fs[id] = P.fs[id] || { learned: {}, nodes: {} }; say('2차 전직 완료', JOB2[id].n + ' — G키로 룬의 창조자와 바꿀 수 있습니다'); return; }
   refundSlots(['KeyR', 'Digit3', 'Digit4'], false);
   P.job2 = id; setClassSkills(P.cls, id); recalcHp();
 }
@@ -1762,9 +1848,9 @@ function openAscend() {
   const go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.style.cssText = 'position:sticky;top:78px;z-index:1';
   const picks = [];
   const ent = [];
-  const CN = { novice: '초보자', warrior: '전사', mage: '마법사', assassin: '암살자', archer: '궁수' };
+  const CN = { novice: '초보자', warrior: '전사', mage: '마법사', assassin: '암살자', archer: '궁수', gunner: '거너' };
   const secs = [];
-  for (const k of ['novice', 'warrior', 'mage', 'assassin', 'archer']) {
+  for (const k of ['novice', 'warrior', 'mage', 'assassin', 'archer', 'gunner']) {
     const list = [];
     CSK[k].forEach((d, i) => { if (d) list.push({ id: k + ':' + i, def: d, tag: k === 'novice' ? '초보자' : CN[k] + ' 1차' }); });
     Object.keys(JOB2).filter(j => JOB2[j].cls === k && !JOB2[j].hidden).forEach(j => JOB2[j].sk.forEach(x => { if (x[0] !== 9 && !x[2].awk) list.push({ id: j + ':' + x[0], def: [x[1], x[2]], tag: JOB2[j].n }); }));
@@ -1821,16 +1907,18 @@ function openJob(stage) {
   const row = $('jobRow'); row.textContent = '';
   $('jobTitle').textContent = stage === 1 ? '1차 전직' : '2차 전직';
   $('jobSub').textContent = stage === 1 ? '직업을 선택하세요. 지금까지 쓴 스킬 포인트는 돌려받고, 직업 스킬 세트로 바뀝니다.' : '전문 직업을 선택하세요. 3가지 스킬(R·3·4)이 강화된 스킬로 바뀌고, 해당 스킬에 쓴 포인트는 돌려받습니다.';
-  const list = stage === 1 ? ['warrior', 'mage', 'assassin', 'archer'] : Object.keys(JOB2).filter(k => JOB2[k].cls === P.cls && !JOB2[k].hidden);
+  const list = stage === 1 ? ['warrior', 'mage', 'assassin', 'archer', 'gunner'] : Object.keys(JOB2).filter(k => JOB2[k].cls === P.cls && !JOB2[k].hidden);
   for (const k of list) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'jobcard';
     const c = document.createElement('canvas'); c.width = 20; c.height = 24; c.getContext('2d').drawImage(stage === 1 ? SPK[k][0] : SPJ[k][0], 0, 0);
     const t = document.createElement('b'), d = document.createElement('span'), sl = document.createElement('small');
-    if (stage === 1) { t.textContent = CLS[k].n; d.textContent = CLS[k].d; sl.textContent = '시작 스킬 ' + (CSK[k][0][1].n || TPL[CSK[k][0][0]].n); }
+    if (stage === 1) { t.textContent = CLS[k].n; d.textContent = CLS[k].d; sl.textContent = '시작 스킬 ' + (CSK[k][0][1].n || TPL[CSK[k][0][0]].n);
+      if (k === 'gunner') { const w = document.createElement('em'); w.textContent = '⚠ 총만 사용할 수 있습니다. 검·도끼·단검·지팡이·활 등 다른 무기는 장착할 수 없습니다.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); } }
     else { t.textContent = JOB2[k].n; d.textContent = JOB2[k].d; sl.textContent = JOB2[k].sk.map(x => x[2].n).join(' · '); }
     b.append(c, t, d, sl);
     b.addEventListener('click', () => {
       if (state !== 'job') return;
+      if (stage === 1 && k === 'gunner' && !b.dataset.armed) { b.dataset.armed = '1'; sl.textContent = '정말 거너로 전직할까요? 한 번 더 누르면 확정 (총 외 무기 사용 불가)'; sl.style.color = '#ff8a7a'; sfx(300, 0.1, 'square', 0.04, 100); return; }
       if (stage === 1) applyJob1(k); else applyJob2(k);
       P.jobT = null; state = 'play'; showOv(null);
       ring(P.x, P.y - 8, '#ffd24a', 50, 0.7); ring(P.x, P.y - 8, '#4af0d8', 30, 0.5); burst(P.x, P.y - 9, 26, '#ffd24a', 110, 0.9); flashA = Math.max(flashA, 0.25);
@@ -1912,6 +2000,16 @@ const CSK = {
   assassin: [['volley', { n: '표창 투척', ic: 'shuriken', mp: 10, cd: 2.2, col: '#a8a4c0', d: '표창 3발을 던져 적을 관통합니다.', p: VOL({ n: 3, spread: 0.14, spd: 290, life: 0.6, mul: 0.9 }) }], ['backstab', { ic: 'backstab' }], ['storm', { n: '독 안개', ic: 'fog', col: '#6bff4a', d: '조준한 곳에 독 안개를 피워 범위 안의 적에게 지속 피해를 줍니다.', p: { kind: 'fog' } }], ['swiftheal', { ic: 'swift' }], ['dash', { n: '그림자 대시', ic: 'dash' }], ['flurry', { ic: 'flurry' }], ['shield', { n: '회피 태세', ic: 'shield' }], ['execute', { ic: 'execute' }], ['shock', { n: '암흑 파동', ic: 'shock' }]],
   archer: [['volley', { ic: 'arrows', p: VOL({ n: 3, spread: 0.13, spd: 310, life: 0.9, mul: 0.95 }), d: '화살 3발을 연달아 쏘아 적을 관통합니다.' }], ['volley', { n: '독 화살', ic: 'poison', mp: 20, cd: 5, col: '#6bff4a', d: '강력한 독 화살 한 발. 맞은 적은 독에 중독됩니다.', p: VOL({ n: 1, spread: 0, spd: 320, life: 1.0, mul: 2.2, pierce: false, poison: true }), nodes: GN(['c1', '맹독', '피해 +60%', 2, 'b', 'c2', { dmg: 0.6 }], ['c2', '독화살 연사', '화살 +2발', 2, 'b', 'c1', { n: 2 }]) }], ['storm', { n: '화살비', ic: 'rain', col: '#d8c8a0', d: '조준한 곳에 화살비를 퍼부어 범위 안의 적을 맞힙니다.', p: { kind: 'rain' } }], ['swiftheal', { n: '신속의 바람', ic: 'swift' }], ['dash', { n: '구르기', ic: 'dash' }], ['volley', { n: '산탄 사격', ic: 'scatter', mp: 22, cd: 6, col: '#ffe9a0', d: '근거리에서 화살 7발을 넓게 흩뿌립니다.', p: VOL({ n: 7, spread: 0.13, spd: 280, life: 0.35, mul: 0.9, pierce: false }) }], ['shield', { n: '바람 장막', ic: 'shield' }], ['fireball', { n: '폭발 화살', ic: 'fireball', d: '맞은 곳에서 폭발하는 화염 화살.' }], ['volley', { n: '속사', ic: 'rapid', mp: 28, cd: 12, col: '#bff6ff', d: '짧은 시간 동안 화살을 8발 연속으로 쏩니다.', p: VOL({ n: 1, spread: 0, spd: 330, life: 0.9, mul: 0.95, rep: 8, gap: 0.11, pierce: false }), nodes: GN(['c1', '난사', '연사 횟수 +4', 2, 'b', 'c2', { rep: 4 }], ['c2', '강력한 속사', '피해 +50%', 2, 'b', 'c1', { dmg: 0.5 }]) }]],
 };
+CSK.gunner = [
+  ['volley', { n: '연발 사격', ic: 'rapid', mp: 10, cd: 2.2, col: '#ffe9a0', d: '총알 3발을 연달아 쏩니다.', p: VOL({ kind: 'bullet', n: 1, spread: 0, spd: 360, life: 0.8, mul: 0.8, rep: 3, gap: 0.09, pierce: false }) }],
+  ['volley', { n: '산탄 사격', ic: 'scatter', mp: 22, cd: 6, col: '#ffe9a0', d: '근거리에서 산탄 7발을 넓게 흩뿌립니다.', p: VOL({ kind: 'bullet', n: 7, spread: 0.13, spd: 300, life: 0.3, mul: 0.8, pierce: false }) }],
+  ['volley', { n: '저격', ic: 'arrows', mp: 28, cd: 8, col: '#ffe08a', d: '모든 것을 관통하는 강력한 한 발.', p: VOL({ kind: 'bullet', n: 1, spread: 0, spd: 520, life: 1.2, mul: 4 }) }],
+  ['heal', { n: '응급 처치', ic: 'heal' }],
+  ['dash', { n: '구르기', ic: 'dash' }],
+  ['fireball', { n: '수류탄', ic: 'fireball', mp: 24, cd: 7, col: '#9aa07a', d: '던진 곳에서 폭발하는 수류탄.' }],
+  ['shield', { n: '방탄 방벽', ic: 'shield' }],
+  ['swiftheal', { n: '아드레날린', ic: 'swift' }],
+  ['shock', { n: '섬광탄', ic: 'shock', d: '주변 적을 기절시키는 섬광탄.' }]];
 function ascDef(id) {
   const [k, i] = id.split(':'), n = +i;
   if (JOB2[k]) { const x = JOB2[k].sk.find(q => q[0] === n); return x ? [x[1], x[2]] : null; }
@@ -2003,6 +2101,20 @@ JOB2.creator = { cls: 'mage', hidden: true, n: '룬의 창조자', d: '룬의 �
   [7, 'runefuse', { n: '룬 융합', ic: 'runefuse', mp: 35, cd: 25, col: '#7ad0ff', d: '장착한 룬의 에너지를 하나로 합쳐 10초간 모든 룬 효과가 1.5배가 됩니다.' }],
   [8, 'runecopy', { n: '룬 복제', ic: 'runecopy', mp: 30, cd: 12, col: '#ffd24a', d: '직전에 쓴 스킬을 복제해 즉시 한 번 더 발동합니다. (룬 창에서는 룬도 복제할 수 있습니다)' }],
   [9, 'runecreate', { n: '룬 창조', ic: 'runecreate', mp: 90, cd: 70, col: '#ffd24a', awk: true, nodes: [], d: '룬의 에너지를 모두 해방해 주변 모든 적에게 큰 피해를 주고, 새로운 룬을 하나 창조합니다.' }]] };
+JOB2.gunslinger = { cls: 'gunner', n: '건슬링어', d: '쌍권총으로 쉴 새 없이 쏘아대는 총잡이. 권총을 두 정씩 쏩니다.', b: { crit: 0.1, spd: 0.08 }, sk: [
+  [2, 'volley', { n: '쌍권총 난사', ic: 'rapid', mp: 34, cd: 9, col: '#ffe9a0', d: '양손의 권총으로 총알 12발을 연달아 쏩니다.', p: VOL({ kind: 'bullet', n: 2, spread: 0.12, spd: 380, life: 0.8, mul: 0.7, rep: 6, gap: 0.08, pierce: false }) }],
+  [7, 'volley', { n: '헤드샷', ic: 'arrows', mp: 28, cd: 6, col: '#ffd24a', d: '치명적인 한 발. 모든 것을 관통합니다.', p: VOL({ kind: 'bullet', n: 1, spread: 0, spd: 560, life: 1.0, mul: 4.5 }) }],
+  [8, 'swiftheal', { n: '건 카타', ic: 'swift', col: '#bff6ff', d: '몸을 회전시키며 총알을 피해 체력을 조금 회복하고, 빨라지며 잠시 무적이 됩니다.', pm: { dur: 0.5, heal: 0.1, inv: 0.5 } }],
+  [9, 'volley', { n: '데드 아이', ic: 'rapid', mp: 90, cd: 70, col: '#ffd24a', awk: true, nodes: [], d: '눈에 보이는 모든 곳으로 총알을 난사하는 궁극기.', p: VOL({ kind: 'bullet', n: 5, spread: 0.25, spd: 420, life: 0.9, mul: 0.9, rep: 14, gap: 0.07, pierce: true }) }]] };
+JOB2.demolisher = { cls: 'gunner', n: '데몰리셔', d: '로켓과 폭발물로 전장을 날려버리는 폭파 전문가. 유탄 발사기의 폭발이 더 커집니다.', b: { hp: 50, red: 0.06, crit: 0.04 }, sk: [
+  [2, 'fireball', { n: '로켓 발사', ic: 'fireball', mp: 34, cd: 6, col: '#ff8a3a', d: '크게 폭발하는 로켓 3발을 쏩니다.', pm: { n: 2, aoe: 0.5, dmg: 0.3 } }],
+  [7, 'meteor', { n: '융단 폭격', ic: 'meteor', mp: 50, cd: 13, col: '#ff5a1a', d: '지정한 곳에 폭탄을 퍼붓습니다. 맞은 적은 화상을 입습니다.', pm: { n: 3, burn: 1 } }],
+  [8, 'shock', { n: '폭탄 설치', ic: 'shock', mp: 32, cd: 10, col: '#ffd24a', d: '주변을 폭파시켜 적을 기절시킵니다.', pm: { aoe: 0.5 } }],
+  [9, 'meteor', { n: '핵폭발', ic: 'meteor', mp: 100, cd: 70, col: '#ffd24a', awk: true, nodes: [], d: '불타는 폭탄 8개가 쏟아지는 궁극기.', pm: { n: 7, burn: 1, aoe: 0.6, dmg: 0.8 } }]] };
+JOBLOOK.gunslinger = { pal: { red: '#5a3a2a', redD: '#38241a', redL: '#8a5a3a', shield: '#38241a', shieldD: '#22150e', shieldL: '#5a3a2a', steelM: '#8a7a6a', steelL: '#c8b8a0', steelD: '#4a3e34', gold: '#d8404f', goldL: '#ff8a96' },
+  deco: (g, C) => { rect(g, '#2a1a10', 2, 3, 17, 2); rect(g, '#3a2418', 5, 0, 11, 4); rect(g, '#d8404f', 5, 3, 11, 1); rect(g, '#ffd24a', 10, 1, 1, 1); rect(g, '#d8404f', 3, 11, 1, 5); rect(g, '#d8404f', 16, 11, 1, 5); } };
+JOBLOOK.demolisher = { pal: { red: '#c07a20', redD: '#7a4a10', redL: '#f0a838', shield: '#4a4a52', shieldD: '#2e2e34', shieldL: '#6a6a74', steelM: '#8a8a94', steelL: '#bcbcc8', steelD: '#4a4a54', gold: '#ffd24a', goldL: '#fff2a0' },
+  deco: (g, C) => { rect(g, '#e8a020', 4, 0, 13, 4); rect(g, '#ffd24a', 5, 0, 11, 1); rect(g, '#2a2a30', 5, 4, 11, 2); rect(g, '#7fe8ff', 6, 4, 3, 1); rect(g, '#7fe8ff', 12, 4, 3, 1); rect(g, '#d8404f', 9, 12, 3, 4); rect(g, '#ffd24a', 10, 11, 1, 1); } };
 const SPJ = {}; for (const id in JOB2) { const L = JOBLOOK[id]; SPJ[id] = [0, 1, 2, 3].map(fr => knightSpr(fr, Object.assign({}, CLS[JOB2[id].cls].pal || {}, L.pal), L.deco)); }
 const curSpr = () => (P.job2 && SPJ[P.job2]) || SPK[P.cls] || SP.knight;
 const awkMod = (code, k) => { if (!SK[code].awk || !P.awk) return 0; const a = P.awk; return ({ dmg: (a >= 3 ? 0.4 : 0) + (a >= 5 ? 0.6 : 0), cd: (a >= 3 ? -0.15 : 0) + (a >= 5 ? -0.15 : 0), aoe: a >= 5 ? 0.3 : 0, mp: a >= 5 ? -0.2 : 0 })[k] || 0; };
@@ -2010,6 +2122,15 @@ const sm = (code, k) => { if (!SK[code]) return 0; let v = ((SK[code].pm && SK[c
 const sMp = code => Math.max(1, Math.round(SK[code].mp * (1 + sm(code, 'mp'))));
 const sCd = code => Math.max(0.3, SK[code].cd * (1 + sm(code, 'cd')) * (1 - RB.cd));
 const sDmg = code => 1 + sm(code, 'dmg');
+function zap(from, dmg, n) {
+  const cand = monsters.filter(t => t !== from && !t.dead && t.spawnT <= 0 && Math.hypot(t.x - from.x, t.y - from.y) < 80).sort((a, b) => Math.hypot(a.x - from.x, a.y - from.y) - Math.hypot(b.x - from.x, b.y - from.y)).slice(0, n);
+  let px = from.x, py = from.y - from.cOff;
+  for (const t of cand) {
+    const tx = t.x, ty = t.y - t.cOff;
+    for (let k = 0; k <= 6; k++) parts.push({ x: px + (tx - px) * k / 6 + rnd(-3, 3), y: py + (ty - py) * k / 6 + rnd(-3, 3), vx: 0, vy: 0, life: 0.18, max: 0.18, col: k % 2 ? '#ffffff' : '#7fe8ff', size: 1, g: 0 });
+    hitMonster(t, dmg * rnd(0.9, 1.1), Math.atan2(ty - py, tx - px), 60, false); burst(tx, ty, 5, '#bff6ff', 60, 0.25); px = tx; py = ty;
+  }
+}
 function explode(x, y, dmg, am) {
   const R = 38 * (1 + (am || 0));
   for (const m of monsters) {
@@ -2560,6 +2681,7 @@ function killMonster(m) {
   burst(m.x, m.y - m.cOff, m.boss ? 40 : 14, m.bt === 'slime' ? '#58c326' : m.boss ? '#a02843' : m.bt === 'orc' ? '#4b8a2d' : '#e6dcc2', m.boss ? 140 : 90, 0.7, 2);
   ring(m.x, m.y - m.cOff, '#ffffff', m.boss ? 70 : 20, 0.3);
   sfx(m.boss ? 70 : 110, m.boss ? 0.6 : 0.18, 'sawtooth', 0.07, -40);
+  if (m.boss || Math.random() < 0.008) items.push({ type: 'mat', mid: 'myth', x: m.x + rnd(-8, 8), y: m.y + rnd(-5, 5), t: 0, ttl: 30 });
   { const md = MAT_DROP[m.ai] || []; md.forEach((id, i) => { if (m.boss || Math.random() < (m.ai === 'bat' ? 0.4 : m.ai === 'king' || m.ai === 'brute' ? 0.8 : 0.55)) items.push({ type: 'mat', mid: id, x: m.x + rnd(-8, 8), y: m.y + rnd(-5, 5), t: 0, ttl: 30 }); }); }
   if (m.boss) { shake = 10; for (let i = 0; i < 3; i++) dropItem(i === 1 ? 'mp' : 'hp', m.x, m.y); dropItem('rune', m.x, m.y); dropGear(m.x, m.y, 2); dropGear(m.x, m.y, 2); giveRune(m.x, m.y, 2, 0.1); if (Math.random() < 0.4) giveRune(m.x + 6, m.y, 1, 0.05); say('BOSS DOWN!', d.n + ' 처치'); }
   else {
@@ -2655,6 +2777,10 @@ function projTrail(p) {
   } else if (p.kind === 'ice') { if (Math.random() < 0.7) P2(Math.random() < 0.5 ? '#bff6ff' : '#ffffff', rnd(-10, 10), rnd(-4, 12), 0.4, Math.random() < 0.4 ? 2 : 1, 10); }
   else if (p.kind === 'orb') { if (Math.random() < 0.7) P2('#b06bff', rnd(-8, 8), rnd(-8, 8), 0.3, 2, 0); }
   else if (p.kind === 'arrow') { if (Math.random() < 0.4) P2('#ffffff', 0, 0, 0.15, 1, 0); }
+  else if (p.kind === 'bullet') { if (Math.random() < 0.35) P2('#ffd24a', 0, 0, 0.12, 1, 0); }
+  else if (p.kind === 'flame') { P2(['#ff5a2a', '#ffb03a', '#ffe35a'][(Math.random() * 3) | 0], rnd(-10, 10), rnd(-22, -4), rnd(0.2, 0.35), Math.random() < 0.5 ? 2 : 3, -20); }
+  else if (p.kind === 'rail') { P2(Math.random() < 0.5 ? '#bff6ff' : '#ffffff', 0, 0, 0.2, 2, 0); }
+  else if (p.kind === 'arc') { P2(Math.random() < 0.5 ? '#7fe8ff' : '#ffffff', rnd(-12, 12), rnd(-12, 12), 0.15, 1, 0); }
   else if (p.kind === 'wave') { if (Math.random() < 0.8) P2(Math.random() < 0.5 ? '#7fa8ff' : '#ffffff', rnd(-10, 10), rnd(-10, 10), 0.25, 2, 0); }
   else if (Math.random() < 0.6) P2('#4af0d8', rnd(-8, 8), rnd(-8, 8), 0.25, 2, 0);
 }
@@ -2688,12 +2814,12 @@ function update(dt) {
         if (m.spawnT > 0 || m.dead || (p.hit && p.hit.includes(m))) continue;
         if (Math.hypot(m.x - p.x, (m.y - m.cOff) - p.y) < m.r + p.r) {
           if (p.kind === 'fire') { hitSrc = p.pet ? 'pet' : 'p'; explode(p.x, p.y, p.dmg, p.am); hitSrc = 'p'; p.life = 0; break; }
-          const crit = Math.random() < critCh();
-          hitSrc = p.pet ? 'pet' : 'p'; hitMonster(m, p.dmg * rnd(0.9, 1.1) * (crit ? 1.8 : 1), Math.atan2(p.vy, p.vx), 110, crit); hitSrc = 'p';
+          const crit = Math.random() < critCh() + (p.cb || 0);
+          hitSrc = p.pet ? 'pet' : 'p'; hitMonster(m, p.dmg * rnd(0.9, 1.1) * (crit ? 1.8 : 1), Math.atan2(p.vy, p.vx), 110, crit); if (p.chain) zap(m, p.dmg * 0.6, p.chain); hitSrc = 'p';
           if (p.pz) { m.burn = Math.max(m.burn || 0, 4); m.bd = Math.max(2, p.dmg * 0.2); m.pz = true; }
           if (p.kind === 'ice') { disable(m, 'frz', p.fz || 2.2); p.hit.push(m); burst(m.x, m.y - m.cOff, 10, '#bff6ff', 70, 0.4); ring(m.x, m.y - m.cOff, '#7fe8ff', 18, 0.3); continue; }
           if (p.pierce) { p.hit.push(m); burst(m.x, m.y - m.cOff, 6, '#e8f0ff', 70, 0.3); continue; }
-          const col = p.kind === 'orb' ? '#d9a8ff' : p.kind === 'arrow' ? '#e8e0c8' : '#4af0d8';
+          const col = p.kind === 'orb' ? '#d9a8ff' : p.kind === 'arrow' ? '#e8e0c8' : p.kind === 'bullet' ? '#ffe9a0' : '#4af0d8';
           ring(p.x, p.y, col, 16, 0.25); burst(p.x, p.y, 8, col, 80, 0.3); p.life = 0; break;
         }
       }
@@ -2780,10 +2906,11 @@ function drawPlayer() {
   ctx.globalAlpha = blink ? 0.45 : 1;
   blit(spr, P.x, P.y + bob, 10, 23, P.face < 0);
   // 무기
-  const hx = P.x + P.face * 6, hy = P.y - 8 + bob, wg = gw(), ws = gearSpr(wg.id); if (wg.aura) { glow(hx, hy, 10 + Math.sin(time * 5) * 1.5, wg.aura, 0.32); if (Math.random() < 0.1) parts.push({ x: hx + rnd(-5, 5), y: hy + rnd(-8, 2), vx: rnd(-5, 5), vy: -rnd(8, 18), life: 0.5, max: 0.5, col: '#e8d0ff', size: 1, g: 0 }); } if (wg.rar >= 5) { glow(hx, hy, 11 + Math.sin(time * 6), '95,243,255', 0.35); if (Math.random() < 0.12) parts.push({ x: hx + rnd(-6, 6), y: hy + rnd(-8, 4), vx: rnd(-6, 6), vy: -rnd(8, 18), life: 0.5, max: 0.5, col: Math.random() < 0.5 ? '#5ff3ff' : '#ff4ad8', size: 1, g: 0 }); }
+  const hx = P.x + P.face * 6, hy = P.y - 8 + bob, wg = gw(), ws = gearSpr(wg.id); if (wg.aura) { glow(hx, hy, 10 + Math.sin(time * 5) * 1.5, wg.aura, 0.32); if (Math.random() < 0.1) parts.push({ x: hx + rnd(-5, 5), y: hy + rnd(-8, 2), vx: rnd(-5, 5), vy: -rnd(8, 18), life: 0.5, max: 0.5, col: '#e8d0ff', size: 1, g: 0 }); } if (wg.rar >= 5) { const my = wg.rar >= 6; glow(hx, hy, 11 + Math.sin(time * 6) * (my ? 2 : 1) + (my ? 3 : 0), RAR[wg.rar].rgb, my ? 0.45 : 0.35); if (Math.random() < (my ? 0.25 : 0.12)) parts.push({ x: hx + rnd(-6, 6), y: hy + rnd(-8, 4), vx: rnd(-6, 6), vy: -rnd(8, 18), life: 0.5, max: 0.5, col: my ? (Math.random() < 0.5 ? '#ff4a4a' : '#ffd24a') : Math.random() < 0.5 ? '#5ff3ff' : '#ff4ad8', size: 1, g: 0 }); }
   if (WT[wg.type].ranged) {
     const aa = aimAng(), rec = P.swing > 0 ? 2 * P.swing / P.swingMax : 0;
-    weapon(ws, P.x + Math.cos(aa) * (5 - rec), P.y - P.cOff + Math.sin(aa) * (5 - rec) + bob, aa, 0, ws.ax, ws.ay);
+    if (wg.gun && Math.cos(aa) < 0) { ctx.save(); ctx.translate(Math.round(P.x + Math.cos(aa) * (5 - rec)), Math.round(P.y - P.cOff + Math.sin(aa) * (5 - rec) + bob)); ctx.rotate(aa); ctx.scale(1, -1); ctx.drawImage(ws, -ws.ax, -ws.ay); ctx.restore(); }
+    else weapon(ws, P.x + Math.cos(aa) * (5 - rec), P.y - P.cOff + Math.sin(aa) * (5 - rec) + bob, aa, 0, ws.ax, ws.ay);
   } else if (P.swing > 0) {
     const p = 1 - P.swing / P.swingMax, e = p * (2 - p), dir = P.combo ? 1 : -1;
     weapon(ws, P.x, P.y - P.cOff, P.swingAng + dir * (-1.35 + 2.7 * e), 0, ws.ax, ws.ay);
@@ -2932,6 +3059,16 @@ function render() {
     } else if (p.kind === 'ice') {
       ctx.save(); ctx.translate(x, y); ctx.rotate(p.a);
       rect(ctx, '#3a78c8', -7, -1, 3, 3); rect(ctx, '#7fe8ff', -4, -2, 8, 5); rect(ctx, '#bff6ff', 4, -1, 3, 3); rect(ctx, '#ffffff', -3, -1, 7, 1);
+      ctx.restore();
+    } else if (p.kind === 'flame') {
+      const f = Math.floor(time * 30 + p.x) % 3; rect(ctx, '#c0301a', x - 3, y - 3, 6, 6); rect(ctx, '#ff8a3a', x - 2, y - 2 + (f - 1), 4, 4); rect(ctx, '#ffe35a', x - 1, y - 1, 2, 2);
+    } else if (p.kind === 'rail') {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(p.a); rect(ctx, '#3a78c8', -14, -1, 24, 3); rect(ctx, '#bff6ff', -12, 0, 22, 1); rect(ctx, '#ffffff', -4, 0, 12, 1); ctx.restore();
+    } else if (p.kind === 'arc') {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(p.a); rect(ctx, '#7fe8ff', -5, -1 + (Math.random() < 0.5 ? 1 : 0), 7, 1); rect(ctx, '#ffffff', -2, 0, 6, 1); rect(ctx, '#bff6ff', 2, -1, 2, 3); ctx.restore();
+    } else if (p.kind === 'bullet') {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(p.a);
+      rect(ctx, '#ff9a3a', -6, 0, 4, 1); rect(ctx, '#ffe9a0', -3, -1, 4, 3); rect(ctx, '#ffffff', 0, 0, 3, 1);
       ctx.restore();
     } else if (p.kind === 'arrow' || p.kind === 'earrow') {
       ctx.save(); ctx.translate(x, y); ctx.rotate(p.a);
@@ -3312,6 +3449,7 @@ function iconCv(src) {
 function gearDesc(g) {
   const a = [];
   if (g.slot === 'weapon') a.push(WT[g.type].n + (WT[g.type].ranged ? ' (원거리)' : ''));
+  if (g.gun) a.push(GUN[g.type].d);
   if (g.hwL) { const k = (P.hwk && P.hwk[g.id]) || 0; a.push('전용: ' + JOB2[g.job].n); a.push('무기 Lv.' + g.hwL + '/10' + (g.hwL < 10 ? ' (다음 단계까지 ' + (HW_K[g.hwL] - k) + '킬)' : ' (최종 단계)')); }
   if (g.atk) a.push('공격력 +' + g.atk);
   if (g.red) a.push('피해 -' + Math.round(g.red * 100) + '%');
@@ -3334,7 +3472,7 @@ function genStock() {
   stock = []; const rw = rarW(), taken = new Set();
   const addG = (slot, n) => {
     for (let i = 0; i < n; i++) {
-      const pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && g.slot === slot && !taken.has(g.id) && !P.owned.includes(g.id) && rw[g.rar] > 0);
+      const pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && (!g.gun || P.cls === 'gunner') && (P.cls !== 'gunner' || g.slot !== 'weapon' || g.gun) && g.slot === slot && !taken.has(g.id) && !P.owned.includes(g.id) && rw[g.rar] > 0);
       if (!pool.length) break; const g = wpick(pool, x => rw[x.rar]); taken.add(g.id);
       stock.push({ kind: 'gear', id: g.id, price: Math.max(5, Math.round(g.cost * rnd(0.9, 1.15) / 5) * 5), qty: 1 });
     }
@@ -3349,7 +3487,7 @@ function genStock() {
   const gs = stock.filter(x => x.kind === 'gear'); if (gs.length) { const sp = gs[(Math.random() * gs.length) | 0]; sp.sale = true; sp.price = Math.round(sp.price * 0.65 / 5) * 5; }
 }
 const sellVal = g => Math.round(g.cost * 0.45);
-function equip(id) { const g = GEAR[id]; if (g.job && P.job2 !== g.job) { say('전용 무기', JOB2[g.job].n + ' 전용 무기입니다'); sfx(140, 0.15, 'square', 0.05, -60); return; } P.eq[g.slot] = id; recalc(); }
+function equip(id) { const g = GEAR[id]; if (g.gun && P.cls !== 'gunner') { say('거너 전용', '총은 거너만 사용할 수 있습니다'); sfx(140, 0.15, 'square', 0.05, -60); return; } if (P.cls === 'gunner' && g.slot === 'weapon' && !g.gun) { say('거너 전용 제한', '거너는 총만 장착할 수 있습니다'); sfx(140, 0.15, 'square', 0.05, -60); return; } if (g.job && P.job2 !== g.job) { say('전용 무기', JOB2[g.job].n + ' 전용 무기입니다'); sfx(140, 0.15, 'square', 0.05, -60); return; } P.eq[g.slot] = id; recalc(); }
 function renderShop() {
   const keep = ov.shop.scrollTop; $('shopGold').textContent = P.gold; $('shopWave').textContent = wave.n;
   const rc = 25 + 15 * rerolls, rr = $('rerollBtn'); rr.textContent = '재고 새로고침 ' + rc + 'G'; rr.disabled = P.gold < rc;
@@ -3366,7 +3504,7 @@ function renderShop() {
   });
   const order = { weapon: 0, armor: 1, ring: 2 }, nm = { weapon: '무기', armor: '방어구', ring: '반지' };
   P.owned.slice().sort((x, y) => order[GEAR[x].slot] - order[GEAR[y].slot] || GEAR[y].rar - GEAR[x].rar).forEach(id => {
-    const g = GEAR[id], on = P.eq[g.slot] === id, btns = [{ t: on ? '장착 중' : '장착', dis: on, fn: () => equip(id) }];
+    const g = GEAR[id], on = P.eq[g.slot] === id, nog = P.cls === 'gunner' && g.slot === 'weapon' && !g.gun, btns = [{ t: on ? '장착 중' : nog ? '거너 사용 불가' : '장착', dis: on || nog, fn: () => equip(id) }];
     if (!on && g.cost > 0) btns.push({ t: '판매 ' + sellVal(g) + 'G', alt: true, fn: () => { P.gold += sellVal(g); P.owned.splice(P.owned.indexOf(id), 1); } });
     box.my.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: nm[g.slot] + ' · ' + gearDesc(g), btns }));
   });
@@ -3432,6 +3570,7 @@ function renderEnh() {
   }
   const cb = $('craftList'); cb.textContent = '';
   for (const id in RCP) {
+    if (!!GEAR[id].gun !== (P.cls === 'gunner')) continue;
     const g = GEAR[id], r = RCP[id], own = P.owned.includes(id) || P.owned.includes(TRANS[id]);
     cb.appendChild(card({ pic: gearIcon(id), name: g.n, rar: g.rar, desc: gearDesc(g) + ' · 재료: ' + matStr(r.mats),
       btns: [{ t: own ? '제작 완료' : '제작 ' + r.gold + 'G', dis: own || P.gold < r.gold || !hasMats(r.mats), fn: () => doCraft(id) }], re: renderEnh }));
@@ -3472,7 +3611,7 @@ function renderInv() {
   const bag = $('invBag'); bag.textContent = '';
   const order = { weapon: 0, armor: 1, ring: 2 }, others = P.owned.filter(id => P.eq[GEAR[id].slot] !== id).sort((x, y) => order[GEAR[x].slot] - order[GEAR[y].slot] || GEAR[y].rar - GEAR[x].rar);
   if (!others.length) { const e = document.createElement('p'); e.className = 'empty-note'; e.textContent = '교체할 장비가 없습니다. 몬스터를 잡거나 상점에서 구하세요.'; bag.appendChild(e); }
-  others.forEach(id => { const g = GEAR[id]; bag.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: nm[g.slot] + ' · ' + gearDesc(g), btns: [{ t: '장착', fn: () => equip(id) }], re: renderInv })); });
+  others.forEach(id => { const g = GEAR[id]; bag.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: nm[g.slot] + ' · ' + gearDesc(g), btns: [(P.cls === 'gunner' && g.slot === 'weapon' && !g.gun) ? { t: '거너 사용 불가', dis: true, fn: () => {} } : { t: '장착', fn: () => equip(id) }], re: renderInv })); });
   const pe = $('invPets'); pe.textContent = ''; if (!pets.length) { const e = document.createElement('p'); e.className = 'empty-note'; e.textContent = '아직 동료가 없습니다. 던전의 철창을 공격해 부수세요.'; pe.appendChild(e); }
   pets.forEach(p => { const sp = document.createElement('span'); sp.style.setProperty('--rc', PET[p.type].col); sp.append(iconCv(PSPR[p.type][0]), document.createTextNode(petName(p) + ' ' + '★'.repeat(p.ev || 1) + ' · ' + PET[p.type].d + ((p.ev || 1) < 3 ? ' · 진화까지 처치 ' + Math.max(0, PET_EV_XP[p.ev || 1] - (p.xp || 0)) : ' · 최종 단계'))); pe.appendChild(sp); });
   matChips($('invMats'));
@@ -3789,10 +3928,9 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
     body.textContent = '';
     const g0 = sec('BASE 초보자 (시작)'); const N = CLS.novice;
     g0.appendChild(card(SPK.novice[0], N.n, N.d, 'HP ' + N.hp + ' · MP ' + N.mp, CSK.novice.map((q, i) => q ? [SLOTS[i][1], sname(q)] : null).filter(Boolean), false));
-    g0.appendChild(card(SPK.novice[0], '초월자', '전직하지 않고 Lv25에 도달하면 될 수 있습니다. 모든 직업의 스킬 중 8개를 골라 자신만의 스킬 세트를 만듭니다.', '조건: 초보자 Lv25 (전직 없음)', [['—', '모든 직업 스킬 중 8개 선택']], true));
     const g1 = sec('JOB 1 · 1차 전직 (Lv5)');
-    ['warrior', 'mage', 'assassin', 'archer'].forEach(k => { const K = CLS[k]; g1.appendChild(card(SPK[k][0], K.n, K.d, 'HP ' + K.hp + ' · MP ' + K.mp + (bonus(K.b) ? ' · ' + bonus(K.b) : ''), CSK[k].map((q, i) => q ? [SLOTS[i][1], sname(q) + ' (Lv' + SLOTS[i][2] + ')'] : null).filter(Boolean), false)); });
-    ['warrior', 'mage', 'assassin', 'archer'].forEach(k => {
+    ['warrior', 'mage', 'assassin', 'archer', 'gunner'].forEach(k => { const K = CLS[k]; g1.appendChild(card(SPK[k][0], K.n, K.d, 'HP ' + K.hp + ' · MP ' + K.mp + (bonus(K.b) ? ' · ' + bonus(K.b) : ''), CSK[k].map((q, i) => q ? [SLOTS[i][1], sname(q) + ' (Lv' + SLOTS[i][2] + ')'] : null).filter(Boolean), false)); });
+    ['warrior', 'mage', 'assassin', 'archer', 'gunner'].forEach(k => {
       const g = sec('JOB 2 · 2차 전직 (Lv25) — ' + CLS[k].n + ' 계열');
       Object.keys(JOB2).filter(j => JOB2[j].cls === k && !JOB2[j].hidden).forEach(j => { const J = JOB2[j]; g.appendChild(card(SPJ[j][0], J.n, J.d, '추가 능력: ' + (bonus(J.b) || '-'), J.sk.map(x => [SLOTS[x[0]][1], x[2].n, x[0] === 9]), true)); });
     });
@@ -3805,6 +3943,21 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.50', d: '11/08', t: '거너 총 종류 확대', i: [
+    '거너가 쓸 수 있는 총이 6종에서 12종으로 늘었습니다. 새 총: 기관단총(2발 점사) · 핸드캐논(느리지만 치명타가 잘 터지는 묵직한 한 발) · 화염방사기(짧은 사거리, 관통하며 불태움) · 레일건(느리지만 일직선 관통 고피해) · 로켓 발사기(대형 폭발) · 전격총(주변 적에게 전기가 튑니다).',
+    '새 총도 각각 5등급이 있고, 상점·몬스터 드롭과 신화 무기 제작에서 얻을 수 있습니다.',
+    '건슬링어의 쌍권총은 권총 외에 기관단총·핸드캐논도 두 정씩 쏩니다. 데몰리셔는 유탄 발사기와 로켓 발사기의 폭발이 더 커집니다.' ] },
+  { v: '1.49', d: '11/08', t: '거너 무기 제한', i: [
+    '거너는 총만 장착할 수 있습니다. 검·도끼·단검·지팡이·활 등 다른 무기는 "거너 사용 불가"로 표시되고 장착되지 않습니다.',
+    '1차 전직 창의 거너 카드에 이 제한이 안내되고, 선택하려면 한 번 더 눌러 확정해야 합니다.' ] },
+  { v: '1.48', d: '11/08', t: '신화 등급 무기', i: [
+    '새 무기 등급 "신화"(붉은색)가 추가됐습니다. 초월 등급보다 강합니다.',
+    '검·도끼·단검·지팡이·활 신화 무기가 각각 하나씩, 거너용 신화 총 6종이 있습니다. 무기 제작(강화 창)에서 만들 수 있습니다.',
+    '제작에는 새 재료 "신화의 정수"가 필요합니다. 보스가 반드시 떨어뜨리고, 일반 몬스터도 아주 낮은 확률로 떨어뜨립니다.' ] },
+  { v: '1.47', d: '11/08', t: '신규 직업: 거너', i: [
+    '새 1차 직업 "거너" 추가. 총을 쓰는 원거리 전투가로, 1차 전직 창에서 고를 수 있습니다.',
+    '총은 거너만 상점과 몬스터 드롭에서 얻을 수 있고 거너만 장착할 수 있습니다. 권총(빠른 공격) · 소총(균형) · 저격총(느리지만 관통 고피해) · 산탄총(근거리 강력) · 기관총(빠른 연사) · 유탄 발사기(폭발 광역).',
+    '2차 전직: 건슬링어(쌍권총 — 권총을 두 정씩 발사), 데몰리셔(로켓과 폭발물 — 유탄 발사기 폭발 범위 증가).' ] },
   { v: '1.46', d: '11/08', t: '초보자 스킬 추가', i: [
     '초보자에게 새 스킬 3개 추가: 빠른 발걸음(E, Lv2) — 8초간 이동속도 증가.',
     '투지(R, Lv3) — 10초간 체력이 낮을수록 공격력이 올라갑니다. (최대 +100%)',
