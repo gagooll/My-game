@@ -335,6 +335,7 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
   .stats div { align-items: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+.btn.on { background: #f4b32e; color: #1a1208; box-shadow: 0 4px 0 #a8700e; }
 </style>
 
 <main class="shell">
@@ -358,6 +359,7 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
       <div><dt>FLOOR</dt><dd id="floor">1</dd></div>
       <div><dt>WAVE</dt><dd id="wave">1</dd></div>
       <div><dt>KILLS</dt><dd id="kills">0</dd></div>
+      <div id="titleChip" class="buff" hidden></div>
       <div id="buffChip" class="buff" hidden>ATK UP</div>
     </dl>
     <div class="inv" aria-label="보유 물약">
@@ -366,7 +368,7 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
       <div class="chip"><small>방어구</small><b id="eqA">-</b></div>
       <div class="chip"><small>반지</small><b id="eqR">-</b></div>
     </div>
-    <div class="skillbar" id="skillbar" aria-label="스킬"><button id="invBtn" class="treebtn" type="button"><kbd>I</kbd> 인벤토리</button><button id="formBtn" class="treebtn" type="button" hidden><kbd>G</kbd> <span></span></button><span id="lordChip" class="buff" hidden></span><button id="runeBtn" class="treebtn" type="button"><kbd>U</kbd> 룬</button><button id="treeBtn" class="treebtn" type="button"><kbd>K</kbd> 스킬트리 <b id="spChip">SP 1</b></button></div>
+    <div class="skillbar" id="skillbar" aria-label="스킬"><button id="invBtn" class="treebtn" type="button"><kbd>I</kbd> 인벤토리</button><button id="achBtn" class="treebtn" type="button"><kbd>J</kbd> 업적</button><button id="formBtn" class="treebtn" type="button" hidden><kbd>G</kbd> <span></span></button><span id="lordChip" class="buff" hidden></span><button id="runeBtn" class="treebtn" type="button"><kbd>U</kbd> 룬</button><button id="treeBtn" class="treebtn" type="button"><kbd>K</kbd> 스킬트리 <b id="spChip">SP 1</b></button></div>
   </section>
 
   <section class="stage">
@@ -480,6 +482,19 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
   </section>
 </main>
 
+<div class="shopov" id="ovAch" hidden role="dialog" aria-label="업적과 보석 상점">
+  <div class="shopwrap">
+    <div class="shophead">
+      <div><h2>ACHIEVEMENTS</h2><p>업적을 달성하면 칭호와 보석을 받습니다. 보석으로 특수 보석 상점에서 이로운 효과를 살 수 있습니다. 시간이 멈춥니다.</p></div>
+      <div class="purse"><small>GEMS</small><span id="achGems">0</span></div>
+    </div>
+    <div class="enhmsg" id="achMsg" role="status" aria-live="polite">칭호를 고르거나 보석 상점에서 효과를 구매하세요.</div>
+    <section class="shopsec"><h3>TITLE 칭호 (업적 달성 시 획득)</h3><div class="potrow" id="achTitles"></div></section>
+    <section class="shopsec"><h3>GEM SHOP 특수 보석 상점</h3><div class="goods" id="achShop"></div></section>
+    <section class="shopsec"><h3>ACHIEVEMENTS 업적</h3><div class="goods" id="achList"></div></section>
+    <div class="shopfoot"><button class="btn" id="achClose" type="button">닫기 (J)</button></div>
+  </div>
+</div>
 <div class="shopov" id="ovEnh" hidden role="dialog" aria-label="무기 강화">
   <div class="shopwrap">
     <div class="shophead">
@@ -1518,9 +1533,9 @@ const limM = () => (P.lim > 0 ? 1.2 : 1);
 const gsum = k => { const v = gsum0(k); return P.lim > 0 && (k === 'hp' || k === 'mp') ? v + 0.2 * ((k === 'hp' ? P.bHp : P.bMp) + v) : v; };
 const pDmg = () => (10 + (P.lvl - 1) * 3 + gsum('atk')) * (1 + RB.atk) * limM();
 const pBolt = () => (16 + (P.lvl - 1) * 4) * (1 + gsum('mag')) * (1 + RB.atk) * limM();
-const critCh = () => (0.15 + gsum('crit') + (P.crit > 0 ? 0.3 : 0)) * limM();
+const critCh = () => (0.15 + gsum('crit') + (P.crit > 0 ? 0.3 : 0) + (P.bcrt > 0 ? 0.25 : 0)) * limM();
 const gritM = () => (P.grit > 0 && P.maxHp ? 1 + Math.max(0, 1 - P.hp / P.maxHp) : 1);
-const dmgMul = () => (P.buff > 0 ? 1.5 : 1) * gritM();
+const dmgMul = () => (P.buff > 0 ? 1.5 : 1) * (P.batk > 0 ? 1.5 : 1) * gritM();
 function recalc() {
   calcRB(); const oh = P.maxHp, om = P.maxMp; P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp');
   if (P.maxHp > oh) P.hp += P.maxHp - oh; if (P.maxMp > om) P.mp += P.maxMp - om;
@@ -1763,7 +1778,7 @@ function shoot(w) {
 }
 function hurtPlayer(d, sx, sy, kb) {
   if (P.inv > 0 || state !== 'play') return;
-  const red = Math.min(0.92, gsum('red') + (P.guard > 0 ? 0.4 : 0) + (P.shield > 0 ? 0.7 : 0) + (P.parry > 0 ? 0.5 : 0));
+  const red = Math.min(0.92, gsum('red') + (P.guard > 0 ? 0.4 : 0) + (P.shield > 0 ? 0.7 : 0) + (P.parry > 0 ? 0.5 : 0) + (P.bdef > 0 ? 0.3 : 0));
   if (P.parry > 0 && SK[P.parryQ]) { const q = P.parryQ; for (const m of monsters) if (!m.dead && m.spawnT <= 0 && Math.hypot(m.x - P.x, m.y - P.y) < 52) { const dm = pDmg() * 2.2 * sDmg(q) * dmgMul(); hitMonster(m, dm, Math.atan2(m.y - P.y, m.x - P.x), 240, false); if (sm(q, 'stun')) disable(m, 'stun', 1.2); } fxs.push({ k: 'shock', t: 0, d: 0.35, r: 52, x: P.x, y: P.y - 4 }); ring(P.x, P.y - 8, '#ffd24a', 52, 0.35); addText(P.x, P.y - 36, 'PARRY!', '#ffd24a', 7); sfx(500, 0.1, 'square', 0.06, -200); }
   if (P.shield > 0 && smf('shield', 'refl')) { for (const m of monsters) if (!m.dead && m.spawnT <= 0 && Math.hypot(m.x - P.x, m.y - P.y) < 46) hitMonster(m, pBolt() * 1.5, Math.atan2(m.y - P.y, m.x - P.x), 200, false); ring(P.x, P.y - 8, '#bff6ff', 46, 0.35); }
   d = Math.max(1, Math.round(d * (1 - red) / limM())); P.hp -= d; P.inv = 0.7; P.flash = 0.15;
@@ -1984,6 +1999,7 @@ function updAwk(silent) {
   say(first ? '각성!' : '각성 LV ' + t, (first ? '궁극기 [T] 해금! ' : '') + (AWK_RW[t] || '각성 레벨 상승')); sfx(330, 0.2, 'sawtooth', 0.06, 400); setTimeout(() => sfx(660, 0.3, 'sawtooth', 0.06, 400), 140); setTimeout(() => sfx(990, 0.5, 'sawtooth', 0.06, 300), 300);
 }
 function gainXp(n) {
+  if (P.bxp > 0) n *= 2;
   P.xp += n;
   while (P.xp >= need(P.lvl)) {
     P.xp -= need(P.lvl); P.lvl++; const gsp = 1 + (P.lvl % 3 === 0 ? 1 : 0); P.sp += gsp; P.bHp += 15; P.bMp += 8; calcRB(); P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp');
@@ -2771,7 +2787,7 @@ function killMonster(m) {
   m.dead = true; const d = DEF[m.type];
   if (m.type === 'runekeeper') { if (vault) vault.done = true; unlockCreator(); }
   const gold = rint(d.gold[0], d.gold[1]) * (1 + Math.floor(wave.n / 3) * 0.2) | 0;
-  P.gold += gold; P.kills++; petGain(m.boss ? 8 : 1); gainXp(d.xp);
+  P.gold += gold * (P.bgold > 0 ? 2 : 1) | 0; P.kills++; achKill(m); petGain(m.boss ? 8 : 1); gainXp(d.xp);
   if (!m.byPet) hwKill();
   if (P.job2 === 'shadow' && !P.lordUnlocked && !m.byPet) { P.shK = (P.shK || 0) + 1; if (P.shK >= LORD_KILLS) unlockLord(); }
   addText(m.x, m.y - m.h - 10, '+' + gold + 'G', '#f6b32d'); addText(m.x, m.y - m.h - 19, '+' + d.xp + ' XP', '#9fd0ff', 7);
@@ -2888,7 +2904,8 @@ function projTrail(p) {
 }
 function update(dt) {
   time += dt;
-  if (state === 'play') { P.chkT = (P.chkT || 0) - dt; if (P.chkT <= 0) { P.chkT = 1; spCheck(); wmCheck(); } }
+  for (const k of GBUFFS) if (P[k] > 0) P[k] = Math.max(0, P[k] - dt);
+  if (state === 'play') { P.chkT = (P.chkT || 0) - dt; if (P.chkT <= 0) { P.chkT = 1; spCheck(); wmCheck(); achTick(); } }
   { const jn = jobNext(); if (jn && P.hp > 0) { P.jobT = (P.jobT == null ? 1.4 : P.jobT) - dt; if (P.jobT <= 0) { openJob(jn); return; } } }
   flowT -= dt;
   const pk = clamp(Math.floor(P.y / TS), 0, MH - 1) * MW + clamp(Math.floor(P.x / TS), 0, MW - 1);
@@ -3343,6 +3360,8 @@ function hud() {
     if (hc[id] !== v) { hc[id] = v; n.textContent = v; n.style.color = g ? RAR[g.rar].c : ''; }
   }
   const bl = []; if (P.buff > 0) bl.push('ATK ' + Math.ceil(P.buff) + 's'); if (P.swift > 0) bl.push('SPD ' + Math.ceil(P.swift) + 's'); if (P.guard > 0) bl.push('GUARD ' + Math.ceil(P.guard) + 's'); if (P.crit > 0) bl.push('CRIT ' + Math.ceil(P.crit) + 's'); if (P.grit > 0) bl.push('GRIT ' + Math.ceil(P.grit) + 's'); if (P.lim > 0) bl.push('LIMIT ' + Math.ceil(P.lim) + 's'); if (P.fuseT > 0) bl.push('FUSE ' + Math.ceil(P.fuseT) + 's');
+  for (const [k, t] of GBUFF_TXT) if (P[k] > 0) bl.push(t + ' ' + Math.floor(P[k] / 60) + ':' + String(Math.ceil(P[k]) % 60).padStart(2, '0'));
+  { const tc = $('titleChip'), tv = ACH.title && TITLES[ACH.title] ? '[' + TITLES[ACH.title] + ']' : ''; if (hc.title !== tv) { hc.title = tv; tc.hidden = !tv; tc.textContent = tv; } }
   const bc = $('buffChip'), bv = bl.join(' · '); if (hc.buff !== bv) { hc.buff = bv; bc.hidden = !bv; bc.textContent = bv; }
   for (const code in SK) {
     const e = skEls[code], cd = P.cd[code], lv = !!P.learned[code];
@@ -3440,7 +3459,7 @@ function refreshSkillUI() {
   for (const k in hc) if (/^sk[lmhnt]/.test(k)) delete hc[k];
 }
 /* ---------- 상태 전환 ---------- */
-const ov = { rune: $('ovRune'), rec: $('ovRec'), enh: $('ovEnh'), inv: $('ovInv'), tree: $('ovTree'), start: $('ovStart'), pause: $('ovPause'), over: $('ovOver'), shop: $('ovShop'), pot: $('ovPot'), job: $('ovJob') };
+const ov = { rune: $('ovRune'), rec: $('ovRec'), enh: $('ovEnh'), inv: $('ovInv'), tree: $('ovTree'), start: $('ovStart'), pause: $('ovPause'), over: $('ovOver'), shop: $('ovShop'), ach: $('ovAch'), pot: $('ovPot'), job: $('ovJob') };
 function showOv(k) { for (const n in ov) ov[n].hidden = n !== k; }
 (function clsInit() {
   selCls = 'novice'; setClassSkills('novice');
@@ -3735,6 +3754,74 @@ function renderInv() {
   CONS.forEach(c => { const sp = document.createElement('span'); sp.className = P.bag[c.k] ? '' : 'empty'; sp.style.setProperty('--rc', RAR[c.rar].c); sp.append(iconCv(ITEM[c.k]), document.createTextNode(c.n + ' × ' + P.bag[c.k])); pr.appendChild(sp); });
   ov.inv.scrollTop = keep;
 }
+/* ---------- 업적 / 칭호 / 보석 ---------- */
+const ACH_KEY = 'dungeon-adventure-ach-v1';
+const ACH = { kills: 0, bosses: 0, myth: 0, done: {}, gems: 0, title: null };
+try { const o = JSON.parse(localStorage.getItem(ACH_KEY) || 'null'); if (o && typeof o === 'object') Object.assign(ACH, o, { done: o.done || {} }); } catch (e) { }
+const achSave = () => { try { localStorage.setItem(ACH_KEY, JSON.stringify(ACH)); } catch (e) { } };
+const ACHS = [];
+[[500, 10, '초보 사냥꾼'], [1000, 20, '숙련 사냥꾼'], [1500, 30, '던전의 학살자'], [2000, 45, '던전의 재앙'], [2500, 60, '파괴의 화신'], [3000, 80, '학살의 군주']].forEach(([t, g, ti]) => ACHS.push({ id: 'k' + t, k: 'kills', t, g, ti, n: '몬스터 ' + t + '마리 처치', d: '몬스터를 누적 ' + t + '마리 처치합니다.' }));
+[[10, 30, '보스 슬레이어'], [15, 45, '거인 사냥꾼'], [20, 60, '군주 토벌자'], [25, 80, '전설의 토벌대'], [30, 110, '보스의 천적']].forEach(([t, g, ti]) => ACHS.push({ id: 'b' + t, k: 'bosses', t, g, ti, n: '보스 ' + t + '마리 처치', d: '보스를 누적 ' + t + '마리 처치합니다.' }));
+[[7, 60, '신화 수집가'], [8, 80, '신화의 계승자'], [9, 100, '신화 군주'], [10, 140, '신화의 지배자']].forEach(([t, g, ti]) => ACHS.push({ id: 'm' + t, k: 'myth', t, g, ti, n: '신화 무기 ' + t + '개 수집', d: '신화 등급 무기를 ' + t + '종 수집합니다. (가장 많이 모은 기록 기준)' }));
+const TITLES = {}; ACHS.forEach(a => { TITLES[a.id] = a.ti; });
+const GBUFFS = ['bxp', 'batk', 'bdef', 'bgold', 'bcrt'];
+const GBUFF_TXT = [['bxp', 'EXP×2'], ['batk', 'ATK×1.5'], ['bdef', 'DEF+30%'], ['bgold', 'GOLD×2'], ['bcrt', 'CRIT+25%']];
+const GSHOP = [
+  { id: 'bxp', n: '경험치 2배 (5분)', gem: 30, d: '5분 동안 얻는 경험치가 2배가 됩니다. 다시 사면 시간이 늘어납니다.' },
+  { id: 'batk', n: '공격력 1.5배 (5분)', gem: 40, d: '5분 동안 주는 피해가 1.5배가 됩니다.' },
+  { id: 'bdef', n: '받는 피해 30% 감소 (5분)', gem: 35, d: '5분 동안 받는 피해가 30% 줄어듭니다.' },
+  { id: 'bgold', n: '골드 2배 (5분)', gem: 30, d: '5분 동안 얻는 골드가 2배가 됩니다.' },
+  { id: 'bcrt', n: '치명타 확률 +25% (5분)', gem: 35, d: '5분 동안 치명타 확률이 25%p 늘어납니다.' },
+  { id: 'heal', n: '완전 회복', gem: 15, d: '체력과 마나를 즉시 모두 회복합니다.' },
+  { id: 'cd', n: '재사용 대기 초기화', gem: 20, d: '모든 스킬의 재사용 대기시간을 즉시 없앱니다.' },
+];
+const GEMSPR = mk(10, 10, g => { for (let y = 0; y < 9; y++) { const hw = y < 4 ? y : 8 - y; rect(g, '#0a6a4a', 5 - hw - 1, 1 + y, hw * 2 + 2, 1); rect(g, '#3affb0', 5 - hw, 1 + y, hw * 2, 1); } rect(g, '#d8fff0', 4, 3, 1, 2); });
+const achProg = a => Math.min(a.t, ACH[a.k] || 0);
+function achGive(a) {
+  ACH.done[a.id] = true; ACH.gems += a.g; if (!ACH.title) ACH.title = a.id; achSave();
+  say('업적 달성!', a.n + ' · 칭호 [' + a.ti + '] · 보석 +' + a.g); sfx(660, 0.15, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.25, 'square', 0.05, 200), 120);
+}
+function achCheck() { for (const a of ACHS) if (!ACH.done[a.id] && (ACH[a.k] || 0) >= a.t) { achGive(a); break; } }
+function achKill(m) { ACH.kills++; if (m.boss) ACH.bosses++; if (ACH.kills % 10 === 0 || m.boss) achSave(); achCheck(); }
+function achTick() {
+  const n = (P.owned || []).filter(id => GEAR[id] && GEAR[id].rar === 6 && GEAR[id].slot === 'weapon').length;
+  if (n > (ACH.myth || 0)) { ACH.myth = n; achSave(); } achCheck();
+}
+function achMsg(t, cls) { const m = $('achMsg'); m.textContent = t; m.className = 'enhmsg ' + (cls || ''); }
+function renderAch() {
+  const keep = ov.ach.scrollTop; $('achGems').textContent = ACH.gems;
+  const tb = $('achTitles'); tb.textContent = '';
+  const owned = ACHS.filter(a => ACH.done[a.id]);
+  const none = document.createElement('button'); none.type = 'button'; none.className = 'btn' + (ACH.title ? '' : ' on'); none.textContent = '칭호 없음'; none.addEventListener('click', () => { ACH.title = null; achSave(); renderAch(); }); tb.appendChild(none);
+  owned.forEach(a => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (ACH.title === a.id ? ' on' : ''); b.textContent = (ACH.title === a.id ? '✔ ' : '') + a.ti; b.addEventListener('click', () => { ACH.title = a.id; achSave(); renderAch(); sfx(500, 0.08, 'square', 0.04, 200); }); tb.appendChild(b); });
+  const sb = $('achShop'); sb.textContent = '';
+  GSHOP.forEach(it => {
+    const left = GBUFFS.includes(it.id) ? Math.ceil(P[it.id] || 0) : 0;
+    sb.appendChild(card({ pic: GEMSPR, name: it.n, rar: 3, desc: it.d + (left ? ' (남은 시간 ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0') + ')' : ''),
+      btns: [{ t: '보석 ' + it.gem, dis: ACH.gems < it.gem, fn: () => gemBuy(it) }], re: renderAch }));
+  });
+  const lb = $('achList'); lb.textContent = '';
+  ACHS.forEach(a => {
+    const done = !!ACH.done[a.id], p = achProg(a), rar = a.k === 'myth' ? 6 : a.t >= (a.k === 'kills' ? 2000 : a.k === 'bosses' ? 25 : 99) ? 4 : a.t >= (a.k === 'kills' ? 1000 : a.k === 'bosses' ? 15 : 99) ? 3 : 2;
+    lb.appendChild(card({ pic: GEMSPR, name: (done ? '✔ ' : '') + a.n, rar, desc: a.d + ' · 진행 ' + p + '/' + a.t + ' · 보상: 칭호 [' + a.ti + '] + 보석 ' + a.g, btns: [{ t: done ? '달성 완료' : '진행 중', dis: true, fn() { } }], re: renderAch }));
+  });
+  ov.ach.scrollTop = keep;
+}
+function gemBuy(it) {
+  if (ACH.gems < it.gem) return; ACH.gems -= it.gem;
+  if (GBUFFS.includes(it.id)) { P[it.id] = (P[it.id] || 0) + 300; achMsg(it.n + ' 효과가 적용되었습니다.', 'ok'); }
+  else if (it.id === 'heal') { P.hp = P.maxHp; P.mp = P.maxMp; achMsg('체력과 마나를 모두 회복했습니다.', 'ok'); }
+  else if (it.id === 'cd') { for (const k in P.cd) P.cd[k] = 0; achMsg('모든 스킬의 재사용 대기시간이 초기화되었습니다.', 'ok'); }
+  achSave(); renderAch();
+}
+function openAch() {
+  if (state !== 'play') return;
+  for (const k in keys) keys[k] = false; for (const k in virt) virt[k] = false; mouse.down = mouse.right = false;
+  achTick(); state = 'ach'; renderAch(); showOv('ach'); ov.ach.scrollTop = 0; sfx(420, 0.06, 'square', 0.03); setTimeout(() => $('achClose').focus({ preventScroll: true }), 30);
+}
+function closeAch() { if (state !== 'ach') return; state = 'play'; showOv(null); sfx(300, 0.05, 'square', 0.03); }
+$('achBtn').addEventListener('click', () => { audioInit(); if (state === 'play') openAch(); });
+$('achClose').addEventListener('click', closeAch);
 function openInv() {
   if (state !== 'play') return;
   for (const k in keys) keys[k] = false; for (const k in virt) virt[k] = false; mouse.down = mouse.right = false;
@@ -3927,6 +4014,8 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyK' && (state === 'play' || state === 'tree')) { e.preventDefault(); if (!e.repeat) { if (state === 'play') openTree(); else closeTree(); } return; }
   if ((e.code === 'KeyI' || e.code === 'KeyC') && (state === 'play' || state === 'inv')) { e.preventDefault(); if (!e.repeat) { if (state === 'play') openInv(); else closeInv(); } return; }
   if (e.code === 'Enter' && state === 'play' && wave.state === 'clear') { e.preventDefault(); skipFarm(); return; }
+  if (e.code === 'KeyJ' && (state === 'play' || state === 'ach')) { e.preventDefault(); if (!e.repeat) { if (state === 'play') openAch(); else closeAch(); } return; }
+  if (state === 'ach') { if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); closeAch(); } return; }
   if (e.code === 'KeyG' && state === 'play') { e.preventDefault(); if (!e.repeat) toggleForm(); return; }
   if (e.code === 'KeyU' && (state === 'play' || state === 'rune')) { e.preventDefault(); if (!e.repeat) { if (state === 'play') openRune(); else closeRune(); } return; }
   if (state === 'rune') { if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); closeRune(); } return; }
@@ -4060,6 +4149,11 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.54', d: '11/08', t: '업적 · 칭호 · 보석 상점', i: [
+    'J키(또는 상단 \'업적\' 버튼)로 업적 창을 엽니다. 몬스터 500~3000마리 처치(6단계), 보스 10~30마리 처치(5단계), 신화 무기 7~10종 수집(4단계) 업적이 있습니다.',
+    '업적을 달성하면 칭호와 보석을 받습니다. 칭호는 업적 창에서 골라 장착하면 화면 상단에 표시됩니다. 업적 기록과 보석은 새 게임을 시작해도 유지됩니다.',
+    '특수 보석 상점에서 보석으로 5분짜리 효과를 살 수 있습니다: 경험치 2배 · 공격력 1.5배 · 받는 피해 30% 감소 · 골드 2배 · 치명타 확률 +25%. 완전 회복과 스킬 재사용 초기화도 살 수 있습니다.',
+  ] },
   { v: '1.53', d: '11/08', t: '천공의 파편 활용과 천공 습격', i: [
     '천공의 파편이 강화 재료로 쓰입니다. 무기를 +9 이상으로 강화할 때 필요하며 단계가 오를수록 더 많이 듭니다.',
     '신화 무기를 제작할 때도 천공의 파편이 4개 필요합니다.',
