@@ -809,7 +809,7 @@ const ITEM = {
 const ITEM_COL = { hp: '255,90,100', mp: '90,150,255', rune: '190,120,255' };
 const MAT = {
   jelly: { n: '슬라임 젤리', col: '#7be12f', rgb: '123,225,47' }, bone: { n: '뼛조각', col: '#e6dcc2', rgb: '230,220,194' }, wing: { n: '박쥐 날개', col: '#b06bff', rgb: '176,107,255' },
-  hide: { n: '오크 가죽', col: '#c8883a', rgb: '200,136,58' }, shard: { n: '마력 파편', col: '#7fe8ff', rgb: '127,232,255' }, core: { n: '악마의 핵', col: '#ff5a6a', rgb: '255,90,106' }, myth: { n: '신화의 정수', col: '#ff4a4a', rgb: '255,74,74' },
+  hide: { n: '오크 가죽', col: '#c8883a', rgb: '200,136,58' }, shard: { n: '마력 파편', col: '#7fe8ff', rgb: '127,232,255' }, core: { n: '악마의 핵', col: '#ff5a6a', rgb: '255,90,106' }, skyshard: { n: '천공의 파편', col: '#bfe8ff', rgb: '191,232,255' }, myth: { n: '신화의 정수', col: '#ff4a4a', rgb: '255,74,74' },
 };
 const MATSPR = {
   jelly: mk(10, 10, g => { ell(g, 5, 6, 4, 3, '#3a8a1a'); ell(g, 5, 5, 3, 3, '#7be12f'); rect(g, '#e8ffc0', 3, 3, 2, 1); }),
@@ -817,6 +817,7 @@ const MATSPR = {
   wing: mk(10, 10, g => { rect(g, '#5a2a8a', 1, 3, 8, 5); rect(g, '#8a4ac8', 1, 3, 8, 3); rect(g, '#b06bff', 2, 3, 6, 1); g.clearRect(2, 7, 2, 1); g.clearRect(6, 7, 2, 1); rect(g, '#2a104a', 4, 3, 1, 5); }),
   hide: mk(10, 10, g => { rect(g, '#7a4a1a', 1, 2, 8, 6); rect(g, '#c8883a', 2, 2, 6, 5); rect(g, '#e8b060', 3, 3, 3, 1); rect(g, '#7a4a1a', 4, 5, 2, 1); }),
   shard: mk(10, 10, g => { for (let y = 0; y < 8; y++) { const hw = y < 4 ? y : 7 - y; rect(g, '#2a78c8', 5 - hw - 1, 1 + y, hw * 2 + 2, 1); rect(g, '#7fe8ff', 5 - hw, 1 + y, hw * 2, 1); } rect(g, '#ffffff', 4, 3, 1, 2); }),
+  skyshard: mk(10, 10, g => { for (let y = 0; y < 9; y++) { const hw = y < 4 ? y : 8 - y; rect(g, '#5aa0e0', 5 - hw - 1, 1 + y, hw * 2 + 2, 1); rect(g, '#d8f4ff', 5 - hw, 1 + y, hw * 2, 1); } rect(g, '#ffffff', 4, 3, 1, 2); rect(g, '#ffe35a', 6, 5, 1, 2); }),
   myth: mk(10, 10, g => { for (let y = 0; y < 9; y++) { const hw = y < 4 ? y : 8 - y; rect(g, '#7a0a12', 5 - hw - 1, 1 + y, hw * 2 + 2, 1); rect(g, '#ff4a4a', 5 - hw, 1 + y, hw * 2, 1); } rect(g, '#ffd24a', 4, 3, 2, 3); rect(g, '#ffffff', 4, 3, 1, 1); }),
   core: mk(10, 10, g => { ell(g, 5, 5, 4, 4, '#6a1020'); ell(g, 5, 5, 3, 3, '#d8404f'); ell(g, 5, 5, 1, 1, '#ffd0d8'); rect(g, '#ff9aa6', 3, 3, 1, 1); }),
 };
@@ -829,6 +830,8 @@ SP.bat = [0, 1].map(batSpr);
 SP.archer = SP.skeleton.map(f => shadeOf(f, '#3a8ad8', 0.5)); SP.mage = SP.skeleton.map(f => shadeOf(f, '#b06bff', 0.6));
 SP.bomber = SP.slime.map(f => shadeOf(f, '#ff6a1a', 0.65)); SP.king = SP.slime.map(f => shadeOf(f, '#e0c030', 0.4));
 SP.brute = SP.orc.map(f => shadeOf(f, '#d8404f', 0.42)); SP.lich = SP.demon.map(f => shadeOf(f, '#4b8cf2', 0.5)); SP.runekeeper = SP.demon.map(f => shadeOf(f, '#c98aff', 0.6)); MAT_DROP.runekeeper = MAT_DROP.demon;
+SP.skylord = SP.demon.map(f => shadeOf(f, '#8ad8ff', 0.6)); SP.frostlord = SP.demon.map(f => shadeOf(f, '#e0f6ff', 0.55)); SP.infernal = SP.demon.map(f => shadeOf(f, '#ff7a1a', 0.6)); SP.abyssal = SP.demon.map(f => shadeOf(f, '#3a1a6a', 0.7)); SP.titan = SP.demon.map(f => shadeOf(f, '#9a7a40', 0.55));
+for (const k of ['skylord', 'frostlord', 'infernal', 'abyssal', 'titan']) MAT_DROP[k] = MAT_DROP.demon;
 const CHEST_PAL = [['#6a4126', '#8a5a36', '#b89a62'], ['#56607a', '#a8b4cc', '#e8f0ff'], ['#a8782a', '#e0b040', '#fff2b0']];
 const chestSpr = (open, tier) => mk(16, 14, g => {
   const [w, wl, bnd] = CHEST_PAL[tier];
@@ -1105,7 +1108,8 @@ function carveArena() {
   }
 }
 let vault = null, vaultFail = -1;
-const lairOk = () => !P.runeLord && P.cls === 'mage' && (P.fuseN || 0) >= 10 && (P.runes || []).filter(q => q.r === 5).length >= 3;
+const isMageLine = () => P.cls === 'mage' || (P.cls === 'novice' && !!P.asc && P.asc.some(x => x && (String(x).startsWith('mage:') || (JOB2[String(x).split(':')[0]] && JOB2[String(x).split(':')[0]].cls === 'mage' && !JOB2[String(x).split(':')[0]].hidden))));
+const lairOk = () => !P.runeLord && isMageLine() && (P.fuseN || 0) >= 10 && (P.runes || []).filter(q => q.r === 5).length >= 3;
 function tryVault() {
   if (vault || vaultFail === floorNum || !secrets.length || !lairOk()) return;
   vaultFail = floorNum;
@@ -1286,6 +1290,11 @@ const DEF = {
   brute: { n: '오크 대장', hp: 260, dmg: 30, spd: 36, r: 9, hw: 7, hh: 4, h: 30, cOff: 14, xp: 60, gold: [20, 35], kb: 0.35, base: 'orc' },
   king: { n: '왕 슬라임', hp: 320, dmg: 14, spd: 26, r: 11, hw: 8, hh: 5, h: 26, cOff: 10, xp: 70, gold: [25, 40], kb: 0.4, base: 'slime', sc: 2 },
   lich: { n: '죽음의 군주', hp: 1000, dmg: 30, spd: 26, r: 13, hw: 9, hh: 5, h: 44, cOff: 22, xp: 300, gold: [160, 220], kb: 0.08, base: 'demon', boss: true },
+  skylord: { n: '천공의 군주', hp: 1300, dmg: 30, spd: 30, r: 13, hw: 9, hh: 5, h: 44, cOff: 22, xp: 340, gold: [180, 240], kb: 0.08, base: 'demon', boss: true },
+  frostlord: { n: '서리 군주', hp: 1250, dmg: 29, spd: 26, r: 13, hw: 9, hh: 5, h: 44, cOff: 22, xp: 330, gold: [170, 230], kb: 0.08, base: 'demon', boss: true },
+  infernal: { n: '염옥의 군주', hp: 1150, dmg: 34, spd: 32, r: 13, hw: 9, hh: 5, h: 44, cOff: 22, xp: 330, gold: [170, 230], kb: 0.08, base: 'demon', boss: true },
+  abyssal: { n: '심연의 군주', hp: 1400, dmg: 31, spd: 27, r: 13, hw: 9, hh: 5, h: 44, cOff: 22, xp: 360, gold: [190, 250], kb: 0.08, base: 'demon', boss: true },
+  titan: { n: '대지의 거신', hp: 1700, dmg: 36, spd: 22, r: 14, hw: 10, hh: 5, h: 46, cOff: 23, xp: 380, gold: [200, 260], kb: 0.05, base: 'demon', boss: true },
   runekeeper: { n: '룬의 수호자', hp: 1600, dmg: 30, spd: 28, r: 13, hw: 9, hh: 5, h: 44, cOff: 22, xp: 400, gold: [200, 260], kb: 0.08, base: 'demon', boss: true },
 };
 /* ---------- 층별 몬스터 ---------- */
@@ -1325,6 +1334,19 @@ const FLOOR_MAP = [
 ];
 const floorTheme = f => (f - 1) % 4;
 for (const [id, ai, , col, amt] of VARS) SP[id] = SP[ai].map(f => shadeOf(f, col, amt));
+// 천공의 군주의 부하들
+const SKY = [
+  ['cloudwisp', 'bat', '구름 정령', '#e8f6ff', 0.6, 1, 1.2, 1.15, 1.4, '구름처럼 떠다니다 번개처럼 달려듭니다. 천공의 파편을 떨어뜨립니다.'],
+  ['skyguard', 'skeleton', '하늘 수호병', '#bfe0ff', 0.55, 1.4, 1.25, 1, 1.5, '천공의 군주를 지키는 병사. 단단합니다. 천공의 파편을 떨어뜨립니다.'],
+  ['skyarcher', 'archer', '번개 궁수', '#8ad8ff', 0.55, 1.15, 1.25, 1, 1.4, '번개를 두른 화살을 쏩니다. 천공의 파편을 떨어뜨립니다.'],
+  ['stormcaller', 'mage', '폭풍 술사', '#6ac8ff', 0.65, 1.1, 1.3, 1, 1.5, '폭풍의 마법탄을 3갈래로 쏩니다. 천공의 파편을 떨어뜨립니다.'],
+  ['cloudgolem', 'brute', '구름 거인', '#d8ecff', 0.5, 1.3, 1.3, 1.05, 1.6, '구름으로 이루어진 거인. 돌진이 강력하고 파편을 많이 떨어뜨립니다.'],
+];
+const SKY_IDS = SKY.map(x => x[0]);
+for (const [id, ai, n, col, amt, hx, dx, sx, xx, note] of SKY) {
+  const b = DEF[ai]; DEF[id] = Object.assign({}, b, { n, hp: Math.round(b.hp * hx), dmg: Math.round(b.dmg * dx), spd: Math.round(b.spd * sx), xp: Math.round(b.xp * xx), base: b.base || ai, ai });
+  MAT_DROP[id] = MAT_DROP[ai]; VAR_NOTE[id] = note; SP[id] = SP[ai].map(f => shadeOf(f, col, amt));
+}
 
 const P = {};
 let monsters = [], items = [], projs = [], parts = [], texts = [], fxs = [], teles = [], decals = [], storms = [], meteors = [];
@@ -1416,6 +1438,7 @@ const RECIPES = [
 ];
 const RCP = {};
 RECIPES.forEach(([id, n, rar, cost, type, atk, o, mats, gold]) => { GEAR[id] = Object.assign({ id, slot: 'weapon', n, rar, cost, type, atk, craft: true }, o); RCP[id] = { mats, gold }; });
+for (const id in RCP) if (GEAR[id].rar === 6) RCP[id].mats = Object.assign({}, RCP[id].mats, { skyshard: 4 });
 const CONS = [
   { k: 'hp', n: '체력 물약', desc: '체력 40% 회복 (최소 40)', cost: 40, rar: 0 },
   { k: 'mp', n: '마나 물약', desc: '마나 60% 회복', cost: 30, rar: 0 },
@@ -1506,8 +1529,8 @@ function recalc() {
 function wpick(arr, wf) { let t = 0; for (const a of arr) t += wf(a); let r = Math.random() * t; for (const a of arr) { r -= wf(a); if (r <= 0) return a; } return arr[arr.length - 1]; }
 const rarW = () => { const n = wave.n; return [60, 30 + n * 2, n >= 2 ? 10 + n * 1.5 : 0, n >= 4 ? 2 + n * 0.6 : 0, n >= 6 ? 0.5 + n * 0.25 : 0]; };
 function rollGear(minR) {
-  const rw = rarW(); let pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && (!g.gun || P.cls === 'gunner') && (P.cls !== 'gunner' || g.slot !== 'weapon' || g.gun) && g.rar >= minR && rw[g.rar] > 0);
-  if (!pool.length) pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && (!g.gun || P.cls === 'gunner') && (P.cls !== 'gunner' || g.slot !== 'weapon' || g.gun) && g.rar >= minR);
+  const rw = rarW(); let pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && wokPool(g) && g.rar >= minR && rw[g.rar] > 0);
+  if (!pool.length) pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && wokPool(g) && g.rar >= minR);
   return wpick(pool, g => rw[g.rar] || 0.1).id;
 }
 function tintOf(img, col) {
@@ -1754,7 +1777,10 @@ function hurtPlayer(d, sx, sy, kb) {
 }
 
 /* ---------- 전직 ---------- */
-const jobElig = () => (P.cls === 'novice' ? (P.asc ? 0 : P.lvl >= 5 ? 1 : 0) : (!(P.baseJ2 || (P.job2 && !JOB2[P.job2].hidden)) && P.lvl >= 25 ? 2 : 0));
+const WM_IDS = ['mx1','mx2','mx3','mx4','mx5','mx7','mx8','mx9','mx10','mx11','mx12','mx13','mx14','mx15','mx16','mx17'];
+const wmOn = () => P.job2 === 'weaponmaster';
+const wokPool = g => (!g.gun || P.cls === 'gunner' || wmOn()) && (P.cls !== 'gunner' || wmOn() || g.slot !== 'weapon' || g.gun);
+const jobElig = () => (P.cls === 'novice' ? (P.asc ? 0 : P.lvl >= 5 ? 1 : 0) : (!P.job2 && P.lvl >= 25 ? 2 : 0));
 const jobNext = () => {
   if (P.cls === 'novice' && !P.asc) { if (P.lvl >= 5 && P.skipJ !== 1) return 1; if (P.lvl >= 25 && P.skipJ === 1 && !P.skipA) return 3; return 0; }
   const e = jobElig(); return e && P.skipJ !== e ? e : 0;
@@ -1795,7 +1821,7 @@ function setForm(to) {
   else { const o = P.fs && P.fs[to]; if (o) { Object.assign(P.learned, o.learned); Object.assign(P.nodes, o.nodes); } }
   if ((P.awk || 0) >= 1) P.learned.KeyT = true;
   P.formT = 0; hwSync(); P.mp = Math.min(P.maxMp, P.mp);
-  const lord = to === 'shadowlord' || to === 'creator', c1 = to === 'creator' ? '#c98aff' : lord ? '#b06bff' : '#4af0d8';
+  const lord = to === 'shadowlord' || to === 'creator' || to === 'weaponmaster' || to === 'skysniper', c1 = to === 'skysniper' ? '#bfe8ff' : to === 'weaponmaster' ? '#ffd24a' : to === 'creator' ? '#c98aff' : lord ? '#b06bff' : '#4af0d8';
   flashA = Math.max(flashA, 0.45); shake = Math.max(shake, 5); ring(P.x, P.y - 8, c1, 70, 0.8); ring(P.x, P.y - 8, lord ? '#ff3a6a' : '#fff', 40, 0.6); burst(P.x, P.y - 9, 40, c1, 140, 1, 2);
   sfx(lord ? 110 : 330, 0.5, 'sawtooth', 0.07, lord ? 300 : 200); setTimeout(() => sfx(lord ? 220 : 495, 0.5, 'triangle', 0.07, 300), 150);
 }
@@ -1805,16 +1831,27 @@ function unlockLord() {
   ring(P.x, P.y - 8, '#ffd24a', 90, 1); burst(P.x, P.y - 9, 60, '#b06bff', 170, 1.2, 2); sfx(262, 0.4, 'sawtooth', 0.08, 500); setTimeout(() => sfx(523, 0.4, 'sawtooth', 0.08, 500), 150); setTimeout(() => sfx(1046, 0.7, 'sawtooth', 0.08, 400), 300);
   saveGame();
 }
-function formList() {
-  const cur = P.job2 && JOB2[P.job2].hidden ? (P.baseJ2 || null) : (P.job2 || null), L = [cur];
-  if (P.lordUnlocked && cur === 'shadow') L.push('shadowlord');
-  if (P.runeLord) L.push('creator');
-  return L;
-}
+function formList() { return [P.job2 || null]; }
 function unlockCreator() {
   if (P.runeLord) return; P.runeLord = true; giveHW('tms'); setForm('creator');
   say('히든 직업 해금!', JOB2.creator.n + '(으)로 변신했습니다'); flashA = 0.8; shake = 9;
   ring(P.x, P.y - 8, '#ffd24a', 90, 1); ring(P.x, P.y - 8, '#c98aff', 60, 0.8); burst(P.x, P.y - 9, 60, '#c98aff', 170, 1.2, 2); sfx(262, 0.4, 'sawtooth', 0.08, 500); setTimeout(() => sfx(523, 0.4, 'sawtooth', 0.08, 500), 150); setTimeout(() => sfx(1046, 0.7, 'sawtooth', 0.08, 400), 300);
+  saveGame();
+}
+function wmCheck() {
+  if (P.wmUnlocked || P.job2 === 'weaponmaster' || !P.owned) return;
+  if (WM_IDS.concat(['mx6']).filter(id => P.owned.includes(id) && enhLv(id) >= 3).length < 3) return;
+  P.wmUnlocked = true; setForm('weaponmaster');
+  say('히든 직업 해금!', JOB2.weaponmaster.n + '(으)로 변신했습니다'); flashA = 0.8; shake = 9;
+  ring(P.x, P.y - 8, '#ffd24a', 90, 1); ring(P.x, P.y - 8, '#ff5a4a', 60, 0.8); burst(P.x, P.y - 9, 60, '#ffd24a', 170, 1.2, 2); sfx(262, 0.4, 'sawtooth', 0.08, 500); setTimeout(() => sfx(523, 0.4, 'sawtooth', 0.08, 500), 150); setTimeout(() => sfx(1046, 0.7, 'sawtooth', 0.08, 400), 300);
+  saveGame();
+}
+function spCheck() {
+  if (P.spUnlocked || P.cls !== 'gunner' || (P.job2 && JOB2[P.job2].hidden) || P.lvl < 65 || mat('skyshard') < 20 || !P.owned) return;
+  if (!P.owned.some(id => GEAR[id] && GEAR[id].rar === 6 && GEAR[id].gun)) return;
+  P.spUnlocked = true; setForm('skysniper');
+  say('히든 조건 달성!', JOB2.skysniper.n + '(으)로 전직했습니다'); flashA = 0.8; shake = 9;
+  ring(P.x, P.y - 8, '#ffe35a', 90, 1); ring(P.x, P.y - 8, '#bfe8ff', 60, 0.8); burst(P.x, P.y - 9, 60, '#bfe8ff', 170, 1.2, 2); sfx(262, 0.4, 'sawtooth', 0.08, 500); setTimeout(() => sfx(523, 0.4, 'sawtooth', 0.08, 500), 150); setTimeout(() => sfx(1046, 0.7, 'sawtooth', 0.08, 400), 300);
   saveGame();
 }
 function toggleForm() {
@@ -1827,7 +1864,7 @@ function toggleForm() {
   setForm(to); say(jobName(), L[0] === to ? '원래 모습으로 돌아왔습니다' : '변신했습니다');
 }
 function applyJob2(id) {
-  if (P.job2 && JOB2[P.job2].hidden) { P.baseJ2 = id; P.fs = P.fs || {}; P.fs[id] = P.fs[id] || { learned: {}, nodes: {} }; say('2차 전직 완료', JOB2[id].n + ' — G키로 룬의 창조자와 바꿀 수 있습니다'); return; }
+  if (P.job2 && JOB2[P.job2].hidden) { P.baseJ2 = id; P.fs = P.fs || {}; P.fs[id] = P.fs[id] || { learned: {}, nodes: {} }; say('2차 전직 완료', JOB2[id].n); return; }
   refundSlots(['KeyR', 'Digit3', 'Digit4'], false);
   P.job2 = id; setClassSkills(P.cls, id); recalcHp();
 }
@@ -1973,6 +2010,8 @@ const SK = {};
 const GN = (c1, c2) => [N('a', '위력 강화', '피해 +30%', 1, null, null, { dmg: 0.3 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 }), N(...c1), N(...c2)];
 const TPL = {
   fireball: BASE.KeyQ, ice: BASE.KeyE, storm: BASE.KeyR, heal: BASE.KeyF, dash: BASE.Space, spin: BASE.Digit1, shield: BASE.Digit2, meteor: BASE.Digit3, shock: BASE.Digit4,
+  weaponrain: Object.assign({}, BASE.Digit3, { n: '천무: 만병강림', mp: 100, cd: 60, col: '#ffd24a', d: '모든 종류의 무기를 하늘에서 소환해 쏟아붓습니다.', nodes: [] }),
+  starfall: Object.assign({}, BASE.Digit3, { n: '유성 폭격', mp: 100, cd: 60, col: '#ffe35a', d: '하늘에서 유성탄을 쏟아붓습니다.', nodes: [] }),
   quickstep: { n: '빠른 발걸음', mp: 10, cd: 12, col: '#bff6ff', d: '8초간 이동속도가 크게 빨라집니다.', nodes: [N('a', '긴 질주', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
   grit: { n: '투지', mp: 15, cd: 16, col: '#ff5a4a', d: '10초간 체력이 낮을수록 공격력이 높아집니다. (체력이 바닥에 가까우면 최대 +100%)', nodes: [N('a', '긴 투지', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
   limit: { n: '한계돌파', mp: 30, cd: 40, col: '#ffd24a', d: '12초간 공격력·마법력·체력·마나·이동속도·공격속도·치명타·방어가 모두 20% 늘어납니다.', nodes: [N('a', '긴 폭발', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
@@ -2096,6 +2135,19 @@ JOB2.shadowlord = { cls: 'assassin', hidden: true, n: '그림자 군주', d: '�
   [9, 'meteor', { n: '암흑 유성우', ic: 'meteor', mp: 100, cd: 60, col: '#ff3a6a', awk: true, nodes: [], d: '어둠의 유성 8개가 쏟아지는 군주의 궁극기.', pm: { n: 7, aoe: 0.6, dmg: 0.8 } }]] };
 JOBLOOK.creator = { pal: { red: '#3a1a6a', redD: '#1e0c3a', redL: '#7a4ac8', shield: '#2a1450', shieldD: '#120828', shieldL: '#5a30a0', steelM: '#7ad0ff', steelL: '#c8f0ff', steelD: '#2a5a8a', gold: '#ffd24a', goldL: '#fff2a0' },
   deco: (g, C) => { rect(g, '#1e0c3a', 5, 1, 11, 4); for (const x of [6, 10, 14]) { rect(g, '#7ad0ff', x, 0, 1, 2); rect(g, '#fff', x, 0, 1, 1); } rect(g, '#ffd24a', 9, 2, 3, 1); rect(g, '#ffd24a', 10, 1, 1, 3); rect(g, '#c98aff', 3, 10, 2, 1); rect(g, '#7ad0ff', 2, 11, 2, 3); } };
+JOBLOOK.weaponmaster = { pal: { red: '#7a2a1a', redD: '#401408', redL: '#d0603a', shield: '#4a3a1a', shieldD: '#2a200a', shieldL: '#a08030', steelM: '#e0e4f0', steelL: '#ffffff', steelD: '#8088a0', gold: '#ffd24a', goldL: '#fff2a0' },
+  deco: (g, C) => { rect(g, '#401408', 5, 1, 11, 4); for (const x of [6, 10, 14]) { rect(g, '#ffd24a', x, 0, 1, 2); rect(g, '#fff', x, 0, 1, 1); } rect(g, '#ff5a4a', 9, 2, 3, 1); rect(g, '#e0e4f0', 2, 9, 1, 5); rect(g, '#ffd24a', 1, 11, 3, 1); } };
+JOB2.weaponmaster = { cls: 'warrior', hidden: true, n: '웨폰 마스터', d: '모든 신화 무기를 다룬 자. 총·검·활·지팡이 등 모든 종류의 무기를 자유롭게 장착합니다.', b: { crit: 0.1, spd: 0.06, hp: 40 }, sk: [
+  [8, 'leap', { n: '무기 도약', ic: 'leap', mp: 34, cd: 9, col: '#ffd24a', d: '도약해 착지 지점의 적을 넓게 기절시킵니다.', pm: { aoe: 0.5, stun: 1 } }],
+  [9, 'weaponrain', { n: '천무: 만병강림', ic: 'weaponrain', mp: 100, cd: 60, col: '#ffd24a', awk: true, nodes: [], d: '모든 종류의 무기를 하늘에서 소환해 쏟아붓는 웨폰 마스터의 궁극기.', pm: { aoe: 0.4, dmg: 0.6 } }]] };
+JOBLOOK.skysniper = { pal: { red: '#2a4a8a', redD: '#14284a', redL: '#6aa0e8', shield: '#2a3a5a', shieldD: '#141e30', shieldL: '#5a78a8', steelM: '#bfe8ff', steelL: '#ffffff', steelD: '#6a98c0', gold: '#ffe35a', goldL: '#fff8c0' },
+  deco: (g, C) => { rect(g, '#14284a', 5, 1, 11, 4); for (const x of [6, 10, 14]) { rect(g, '#bfe8ff', x, 0, 1, 2); rect(g, '#fff', x, 0, 1, 1); } rect(g, '#ffe35a', 9, 2, 3, 1); rect(g, '#bfe8ff', 2, 9, 1, 5); rect(g, '#fff', 1, 10, 3, 1); } };
+JOB2.skysniper = { cls: 'gunner', hidden: true, n: '천공의 사수', d: '천공의 파편을 손에 넣은 거너의 히든 직업. 빛의 탄환과 별빛으로 하늘을 지배합니다.', b: { crit: 0.14, spd: 0.06, hp: 30 }, sk: [
+  [2, 'volley', { n: '천공의 탄환', ic: 'skybullet', mp: 18, cd: 4, col: '#bfe8ff', d: '적을 관통하는 빛의 탄환을 발사합니다.', p: { n: 1, spread: 0, spd: 520, life: 1.1, mul: 2.4, kind: 'rail', pierce: true } }],
+  [4, 'dash', { n: '천상의 회피', ic: 'skydodge', mp: 20, cd: 7, col: '#e8f8ff', d: '순간적으로 이동하며 공격을 회피합니다. 지나가는 적에게 피해를 줍니다.', pm: { inv: 0.35, hit: 1 } }],
+  [7, 'volley', { n: '별빛 연사', ic: 'starburst', mp: 30, cd: 12, col: '#ffe35a', d: '별빛 총알 10발을 연속으로 발사합니다.', p: { n: 1, rep: 10, gap: 0.07, spread: 0, spd: 400, life: 0.9, mul: 0.95, kind: 'bullet' } }],
+  [8, 'volley', { n: '차원 저격', ic: 'dimsnipe', mp: 40, cd: 9, col: '#ffffff', d: '아주 먼 거리의 적까지 꿰뚫는 강력한 저격 한 발을 발사합니다.', p: { n: 1, spread: 0, spd: 620, life: 1.7, mul: 7.5, kind: 'rail', pierce: true } }],
+  [9, 'starfall', { n: '유성 폭격', ic: 'starfall', mp: 100, cd: 60, col: '#ffe35a', awk: true, nodes: [], d: '하늘에서 유성탄 여러 개를 쏟아부어 조준한 곳을 초토화합니다.', pm: { aoe: 0.2, dmg: 0.5 } }]] };
 JOB2.creator = { cls: 'mage', hidden: true, n: '룬의 창조자', d: '룬의 힘을 방출하고 융합하고 복제하는 히든 직업.', b: { mag: 0.2, mpr: 1, red: 0.05 }, sk: [
   [2, 'runeburst', { n: '룬 방출', ic: 'runeburst', mp: 40, cd: 9, col: '#c98aff', d: '장착한 룬의 에너지를 폭발시켜 주변 적에게 피해를 줍니다. 장착한 룬이 많고 등급이 높을수록 강해지며, 룬의 효과도 함께 적용됩니다.' }],
   [7, 'runefuse', { n: '룬 융합', ic: 'runefuse', mp: 35, cd: 25, col: '#7ad0ff', d: '장착한 룬의 에너지를 하나로 합쳐 10초간 모든 룬 효과가 1.5배가 됩니다.' }],
@@ -2115,6 +2167,36 @@ JOBLOOK.gunslinger = { pal: { red: '#5a3a2a', redD: '#38241a', redL: '#8a5a3a', 
   deco: (g, C) => { rect(g, '#2a1a10', 2, 3, 17, 2); rect(g, '#3a2418', 5, 0, 11, 4); rect(g, '#d8404f', 5, 3, 11, 1); rect(g, '#ffd24a', 10, 1, 1, 1); rect(g, '#d8404f', 3, 11, 1, 5); rect(g, '#d8404f', 16, 11, 1, 5); } };
 JOBLOOK.demolisher = { pal: { red: '#c07a20', redD: '#7a4a10', redL: '#f0a838', shield: '#4a4a52', shieldD: '#2e2e34', shieldL: '#6a6a74', steelM: '#8a8a94', steelL: '#bcbcc8', steelD: '#4a4a54', gold: '#ffd24a', goldL: '#fff2a0' },
   deco: (g, C) => { rect(g, '#e8a020', 4, 0, 13, 4); rect(g, '#ffd24a', 5, 0, 11, 1); rect(g, '#2a2a30', 5, 4, 11, 2); rect(g, '#7fe8ff', 6, 4, 3, 1); rect(g, '#7fe8ff', 12, 4, 3, 1); rect(g, '#d8404f', 9, 12, 3, 4); rect(g, '#ffd24a', 10, 11, 1, 1); } };
+// 히든 직업 전용 스킬 (나머지 키)
+JOB2.shadowlord.sk.push(
+  [0, 'volley', { n: '그림자 표창', ic: 'shuriken', mp: 12, cd: 1.8, col: '#b06bff', d: '그림자 표창 5발을 부채꼴로 던져 적을 관통합니다.', p: VOL({ n: 5, spread: 0.12, spd: 310, life: 0.6, mul: 0.85, kind: 'arrow', pierce: true }) }],
+  [1, 'backstab', { n: '어둠 암습', ic: 'backstab', col: '#8a4ae0' }],
+  [3, 'swiftheal', { n: '그림자 질주', ic: 'swift', col: '#7a3ac0' }],
+  [4, 'dash', { n: '암흑 점멸', ic: 'dash', col: '#b06bff' }],
+  [5, 'flurry', { n: '심연 난무', ic: 'flurry', col: '#ff3a6a' }],
+  [6, 'shield', { n: '어둠의 장막', ic: 'shield', col: '#8a4ae0' }]);
+JOB2.weaponmaster.sk.push(
+  [0, 'parry', { n: '무기 막기', ic: 'shield', col: '#ffd24a' }],
+  [1, 'roar', { n: '전쟁의 함성', ic: 'roar', col: '#ff5a4a' }],
+  [2, 'spin', { n: '천검 폭풍', ic: 'bladestorm', mp: 40, cd: 13, col: '#e0e4f0', d: '무기를 휘둘러 주변을 5번 연속으로 벱니다.', p: { times: 5, gap: 180 } }],
+  [3, 'heal', { n: '무장 회복', ic: 'heal', col: '#ffd24a' }],
+  [4, 'dash', { n: '무기 돌진', ic: 'dash', col: '#ffd24a' }],
+  [5, 'spin', { n: '무기 회전', ic: 'spin', col: '#e0e4f0' }],
+  [6, 'shield', { n: '무기 장벽', ic: 'shield', col: '#ffd24a' }],
+  [7, 'smash', { n: '신화 일격', ic: 'smash', mp: 30, cd: 8, col: '#ff5a4a', d: '신화 무기로 혼신의 일격을 내려쳐 막대한 피해를 줍니다.', p: { mul: 4.4 } }]);
+JOB2.skysniper.sk.push(
+  [0, 'volley', { n: '천공 속사', ic: 'rapid', mp: 10, cd: 2, col: '#bfe8ff', d: '빛의 탄환 3발을 연달아 쏩니다.', p: VOL({ n: 1, rep: 3, gap: 0.08, spd: 400, life: 0.8, mul: 0.9, pierce: false, kind: 'bullet' }) }],
+  [1, 'volley', { n: '성광 산탄', ic: 'scatter', mp: 22, cd: 6, col: '#ffe35a', d: '근거리에서 빛의 산탄 8발을 넓게 흩뿌립니다.', p: VOL({ n: 8, spread: 0.13, spd: 320, life: 0.35, mul: 0.85, pierce: false, kind: 'bullet' }) }],
+  [3, 'heal', { n: '천상의 수복', ic: 'heal', col: '#bfe8ff' }],
+  [5, 'fireball', { n: '성광탄', ic: 'fireball', mp: 24, cd: 7, col: '#ffe35a', d: '던진 곳에서 폭발하는 빛의 수류탄.' }],
+  [6, 'shield', { n: '빛의 방벽', ic: 'shield', col: '#bfe8ff' }]);
+JOB2.creator.sk.push(
+  [0, 'fireball', { n: '룬 화염', ic: 'fireball', col: '#ff9a3a' }],
+  [1, 'ice', { n: '룬 서리', ic: 'ice', col: '#7ad0ff' }],
+  [3, 'heal', { n: '룬의 치유', ic: 'heal', col: '#c98aff' }],
+  [4, 'dash', { n: '룬 점멸', ic: 'dash', col: '#c98aff' }],
+  [5, 'volley', { n: '룬 탄환', ic: 'orb', mp: 20, cd: 4, col: '#c98aff', d: '룬의 마탄 6발을 부채꼴로 쏩니다.', p: VOL({ n: 6, spread: 0.16, spd: 210, life: 1, mul: 0.9, base: 'mag', pierce: false, kind: 'orb' }) }],
+  [6, 'shield', { n: '룬 방벽', ic: 'shield', col: '#7ad0ff' }]);
 const SPJ = {}; for (const id in JOB2) { const L = JOBLOOK[id]; SPJ[id] = [0, 1, 2, 3].map(fr => knightSpr(fr, Object.assign({}, CLS[JOB2[id].cls].pal || {}, L.pal), L.deco)); }
 const curSpr = () => (P.job2 && SPJ[P.job2]) || SPK[P.cls] || SP.knight;
 const awkMod = (code, k) => { if (!SK[code].awk || !P.awk) return 0; const a = P.awk; return ({ dmg: (a >= 3 ? 0.4 : 0) + (a >= 5 ? 0.6 : 0), cd: (a >= 3 ? -0.15 : 0) + (a >= 5 ? -0.15 : 0), aoe: a >= 5 ? 0.3 : 0, mp: a >= 5 ? -0.2 : 0 })[k] || 0; };
@@ -2172,6 +2254,11 @@ function strikeAt(s) {
 }
 function meteorImpact(mt) {
   const R = mt.r;
+  if (mt.spr) {
+    for (const m of monsters) { if (m.dead || m.spawnT > 0) continue; const d = Math.hypot(m.x - mt.x, m.y - mt.y); if (d < R + m.r) { const crit = Math.random() < critCh(); hitMonster(m, mt.dmg * (1 - 0.3 * d / (R + m.r)) * rnd(0.92, 1.08) * (crit ? 1.8 : 1), Math.atan2(m.y - mt.y, m.x - mt.x), 200, crit); } }
+    hitCagesAt(mt.x, mt.y, R, mt.dmg * 0.5); fxs.push({ k: 'boom', x: mt.x, y: mt.y - 4, t: 0, d: 0.35, r: R }); burst(mt.x, mt.y - 4, 14, '#ffd24a', 110, 0.5, 2); ring(mt.x, mt.y, '#fff2a0', R, 0.3); shake = Math.max(shake, 3); sfx(180 + Math.random() * 120, 0.15, 'square', 0.05, -80);
+    return;
+  }
   for (const m of monsters) {
     if (m.dead || m.spawnT > 0) continue;
     const d = Math.hypot(m.x - mt.x, m.y - mt.y);
@@ -2234,6 +2321,16 @@ const LIB = {
   },
   shield(qq) {
     P.shield = 3 * (1 + sm(qq, 'dur')); ring(P.x, P.y - 8, '#bff6ff', 30, 0.4); burst(P.x, P.y - 9, 16, '#bff6ff', 70, 0.5); sfx(220, 0.3, 'triangle', 0.06, 300);
+  },
+  weaponrain(qq) {
+    const N = 24 + sm(qq, 'n'), ids = WM_IDS.concat(['mx6']), cx = P.x, cy = P.y;
+    for (let i = 0; i < N; i++) { const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * 130; meteors.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r * 0.7, t: -i * 0.12, d: 0.7, r: 24 * (1 + sm(qq, 'aoe')), dmg: pBolt() * 3.2 * sDmg(qq) * dmgMul(), spr: ids[i % ids.length] }); }
+    ring(P.x, P.y - 8, '#ffd24a', 60, 0.6); flashA = Math.max(flashA, 0.25); sfx(500, 0.6, 'sawtooth', 0.05, 400);
+  },
+  starfall(qq) {
+    const mx = mouse.x + cam.x, my = mouse.y + cam.y + 6, dx = mx - P.x, dy = my - P.y, d = Math.hypot(dx, dy) || 1, k = Math.min(1, 240 / d), tx = P.x + dx * k, ty = P.y + dy * k, n = 12 + sm(qq, 'n');
+    for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, r = i ? rnd(8, 72) : 0; meteors.push({ x: tx + Math.cos(a) * r, y: ty + Math.sin(a) * r * 0.7, t: -i * 0.12, d: 0.8, r: 30 * (1 + sm(qq, 'aoe')), dmg: pDmg() * 3 * sDmg(qq) * dmgMul(), burn: 0 }); }
+    ring(P.x, P.y - 8, '#ffe35a', 40, 0.5); sfx(500, 0.5, 'sawtooth', 0.05, -250);
   },
   meteor(qq) {
     const mx = mouse.x + cam.x, my = mouse.y + cam.y + 6, dx = mx - P.x, dy = my - P.y, d = Math.hypot(dx, dy) || 1, k = Math.min(1, 170 / d), tx = P.x + dx * k, ty = P.y + dy * k, n = 1 + sm(qq, 'n');
@@ -2555,7 +2652,7 @@ function updMonster(m, dt) {
       }
       break;
     }
-    case 'demon': case 'lich': case 'runekeeper': {
+    case 'demon': case 'lich': case 'runekeeper': case 'skylord': case 'frostlord': case 'infernal': case 'abyssal': case 'titan': {
       const enr = m.hp < m.maxHp * 0.3, sp = enr ? 1.45 : 1;
       if (m.state === 'chase') {
         if (d > 24) chase(m, sp, dt);
@@ -2564,11 +2661,11 @@ function updMonster(m, dt) {
           else {
             const opts = d < 70 ? ['slam', 'slam', 'nova', 'charge'] : ['cast', 'charge', 'nova', 'rain', 'rain'];
             let pk; for (let k = 0; k < 4; k++) { pk = opts[(Math.random() * opts.length) | 0]; if (pk !== m.last) break; } m.last = pk;
-            if (pk === 'slam') { m.state = 'slamW'; m.t = 0; teles.push({ x: m.x, y: m.y, r: 54, t: 0, d: 0.9, owner: m }); }
+            if (pk === 'slam') { m.state = 'slamW'; m.t = 0; teles.push({ x: m.x, y: m.y, r: m.type === 'titan' ? 76 : 54, t: 0, d: 0.9, owner: m }); }
             else if (pk === 'cast') { m.state = 'cast'; m.t = 0; }
             else if (pk === 'charge') { m.state = 'chargeW'; m.t = 0; m.ca = Math.atan2(P.y - m.y, P.x - m.x); for (let i = 1; i <= 6; i++) teles.push({ x: m.x + Math.cos(m.ca) * i * 20, y: m.y + Math.sin(m.ca) * i * 20, r: 12, t: 0, d: 0.85, owner: m }); sfx(120, 0.4, 'sawtooth', 0.05, 80); }
             else if (pk === 'nova') { m.state = 'nova'; m.t = 0; m.nv = 0; ring(m.x, m.y - 6, '#ffb03a', 46, 0.6); sfx(180, 0.5, 'triangle', 0.05, 200); }
-            else { m.state = 'rain'; m.t = 0; m.rn = []; const nn = enr ? 8 : 6; for (let i = 0; i < nn; i++) { const rx = P.x + (i < 2 ? rnd(-10, 10) : rnd(-80, 80)), ry = P.y + (i < 2 ? rnd(-10, 10) : rnd(-60, 60)); if (solidPx(rx, ry)) continue; m.rn.push({ x: rx, y: ry }); teles.push({ x: rx, y: ry, r: 20, t: 0, d: 1.0, owner: m }); } ring(m.x, m.y - 6, '#ff5a3a', 40, 0.6); sfx(260, 0.5, 'triangle', 0.05, -100); }
+            else { m.state = 'rain'; m.t = 0; m.rn = []; const nn = (enr ? 8 : 6) + (m.type === 'skylord' ? 5 : 0); for (let i = 0; i < nn; i++) { const rx = P.x + (i < 2 ? rnd(-10, 10) : rnd(-80, 80)), ry = P.y + (i < 2 ? rnd(-10, 10) : rnd(-60, 60)); if (solidPx(rx, ry)) continue; m.rn.push({ x: rx, y: ry }); teles.push({ x: rx, y: ry, r: 20, t: 0, d: 1.0, owner: m }); } ring(m.x, m.y - 6, '#ff5a3a', 40, 0.6); sfx(260, 0.5, 'triangle', 0.05, -100); }
           }
         }
       } else if (m.state === 'chargeW') {
@@ -2582,7 +2679,7 @@ function updMonster(m, dt) {
         if (wall || m.t >= 0.6) { if (wall) { shake = Math.max(shake, 7); burst(m.x, m.y - 6, 18, '#8a7560', 110, 0.6, 3); ring(m.x, m.y, '#ff8a6a', 30, 0.35); sfx(80, 0.3, 'sawtooth', 0.08, -40); } m.state = 'recover'; m.t = 0; m.cd = wall ? 2.6 : (enr ? 1.2 : 2); }
       } else if (m.state === 'nova') {
         m.t += dt; m.moving = false;
-        const ringShot = off => { const n = enr ? 18 : 14; for (let i = 0; i < n; i++) { const a = (i + off) / n * 6.283 + (m.nv || 0) * 0.2; projs.push({ x: m.x, y: m.y - 18, vx: Math.cos(a) * 74, vy: Math.sin(a) * 74, dmg: m.dmg * 0.5, life: 3.2, r: 4, friendly: false, kind: m.type === 'lich' ? 'eorb' : undefined }); } sfx(200, 0.25, 'sawtooth', 0.05, 150); ring(m.x, m.y - 10, '#ffb03a', 30, 0.3); };
+        const ringShot = off => { const n = (enr ? 18 : 14) + (m.type === 'infernal' ? 8 : 0); for (let i = 0; i < n; i++) { const a = (i + off) / n * 6.283 + (m.nv || 0) * 0.2; projs.push({ x: m.x, y: m.y - 18, vx: Math.cos(a) * 74, vy: Math.sin(a) * 74, dmg: m.dmg * 0.5, life: 3.2, r: 4, friendly: false, kind: m.type !== 'demon' && m.type !== 'titan' && m.type !== 'infernal' ? 'eorb' : undefined }); } sfx(200, 0.25, 'sawtooth', 0.05, 150); ring(m.x, m.y - 10, '#ffb03a', 30, 0.3); };
         if (m.nv === 0 && m.t >= 0.6) { ringShot(0); m.nv = 1; }
         else if (m.nv === 1 && m.t >= 1.1) { ringShot(0.5); m.nv = 2; }
         else if (m.nv === 2 && m.t >= 1.6) { m.state = 'recover'; m.t = 0; m.cd = enr ? 1.4 : 2.2; }
@@ -2595,21 +2692,21 @@ function updMonster(m, dt) {
       } else if (m.state === 'slamW') {
         m.t += dt;
         if (m.t >= 0.9) {
-          if (Math.hypot(P.x - m.x, P.y - m.y) < 54 + P.r * 0.5) hurtPlayer(m.dmg * 1.2, m.x, m.y, 280);
-          ring(m.x, m.y, '#ff8a6a', 54, 0.4); burst(m.x, m.y, 22, '#8a7560', 110, 0.6, 3); shake = 7; sfx(80, 0.35, 'sawtooth', 0.09, -40);
+          if (Math.hypot(P.x - m.x, P.y - m.y) < (m.type === 'titan' ? 76 : 54) + P.r * 0.5) hurtPlayer(m.dmg * 1.2, m.x, m.y, 280);
+          ring(m.x, m.y, '#ff8a6a', m.type === 'titan' ? 76 : 54, 0.4); burst(m.x, m.y, 22, '#8a7560', 110, 0.6, 3); shake = 7; sfx(80, 0.35, 'sawtooth', 0.09, -40);
           m.state = 'recover'; m.t = 0; m.cd = enr ? 1.2 : 2;
         }
       } else if (m.state === 'cast') {
         m.t += dt;
         if (m.t >= 0.6) {
-          const n = enr ? 7 : 5, base = Math.atan2(P.y - (m.y - 18) , P.x - m.x);
-          for (let i = 0; i < n; i++) { const a = base + (i - (n - 1) / 2) * 0.3; projs.push({ x: m.x, y: m.y - 18, vx: Math.cos(a) * 88, vy: Math.sin(a) * 88, dmg: m.dmg * 0.55, life: 3, r: 4, friendly: false, kind: m.type === 'lich' ? 'eorb' : undefined }); }
+          const n = (enr ? 7 : 5) + (m.type === 'frostlord' ? 4 : 0), base = Math.atan2(P.y - (m.y - 18) , P.x - m.x);
+          for (let i = 0; i < n; i++) { const a = base + (i - (n - 1) / 2) * 0.3; projs.push({ x: m.x, y: m.y - 18, vx: Math.cos(a) * 88, vy: Math.sin(a) * 88, dmg: m.dmg * 0.55, life: 3, r: 4, friendly: false, kind: m.type !== 'demon' && m.type !== 'titan' && m.type !== 'infernal' ? 'eorb' : undefined }); }
           sfx(220, 0.3, 'sawtooth', 0.06, 200); m.state = 'recover'; m.t = 0; m.cd = enr ? 1.6 : 2.6;
         }
       } else if (m.state === 'summon') {
         m.t += dt;
         if (m.t >= 0.8) {
-          for (let i = 0; i < 3; i++) { for (let k = 0; k < 10; k++) { const a = Math.random() * 6.283, x = m.x + Math.cos(a) * 34, y = m.y + Math.sin(a) * 34; if (!blocked(x, y, 5, 4)) { spawnMonster(m.type === 'lich' ? (Math.random() < 0.5 ? 'archer' : 'mage') : 'skeleton', x, y); break; } } }
+          for (let i = 0; i < (m.type === 'abyssal' ? 5 : 3); i++) { for (let k = 0; k < 10; k++) { const a = Math.random() * 6.283, x = m.x + Math.cos(a) * 34, y = m.y + Math.sin(a) * 34; if (!blocked(x, y, 5, 4)) { spawnMonster(m.type === 'skylord' ? SKY_IDS[(Math.random() * SKY_IDS.length) | 0] : m.type === 'lich' || m.type === 'abyssal' ? (Math.random() < 0.5 ? 'archer' : 'mage') : 'skeleton', x, y); break; } } }
           m.summoned = true; m.state = 'recover'; m.t = 0; m.cd = 1.5;
         }
       } else { m.t += dt; if (m.t > 0.5) m.state = 'chase'; }
@@ -2682,6 +2779,8 @@ function killMonster(m) {
   ring(m.x, m.y - m.cOff, '#ffffff', m.boss ? 70 : 20, 0.3);
   sfx(m.boss ? 70 : 110, m.boss ? 0.6 : 0.18, 'sawtooth', 0.07, -40);
   if (m.boss || Math.random() < 0.008) items.push({ type: 'mat', mid: 'myth', x: m.x + rnd(-8, 8), y: m.y + rnd(-5, 5), t: 0, ttl: 30 });
+  if (SKY_IDS.includes(m.type)) { const nn = m.type === 'cloudgolem' ? 3 : 1 + (Math.random() < 0.3 ? 1 : 0); if (Math.random() < 0.85) for (let i = 0; i < nn; i++) items.push({ type: 'mat', mid: 'skyshard', x: m.x + rnd(-8, 8), y: m.y + rnd(-5, 5), t: 0, ttl: 30 }); }
+  if (m.type === 'skylord') for (let i = 0; i < 6; i++) items.push({ type: 'mat', mid: 'skyshard', x: m.x + rnd(-12, 12), y: m.y + rnd(-8, 8), t: 0, ttl: 40 });
   { const md = MAT_DROP[m.ai] || []; md.forEach((id, i) => { if (m.boss || Math.random() < (m.ai === 'bat' ? 0.4 : m.ai === 'king' || m.ai === 'brute' ? 0.8 : 0.55)) items.push({ type: 'mat', mid: id, x: m.x + rnd(-8, 8), y: m.y + rnd(-5, 5), t: 0, ttl: 30 }); }); }
   if (m.boss) { shake = 10; for (let i = 0; i < 3; i++) dropItem(i === 1 ? 'mp' : 'hp', m.x, m.y); dropItem('rune', m.x, m.y); dropGear(m.x, m.y, 2); dropGear(m.x, m.y, 2); giveRune(m.x, m.y, 2, 0.1); if (Math.random() < 0.4) giveRune(m.x + 6, m.y, 1, 0.05); say('BOSS DOWN!', d.n + ' 처치'); }
   else {
@@ -2696,7 +2795,8 @@ function killMonster(m) {
 /* ---------- 웨이브 ---------- */
 function makeList(n) {
   const boss = n % 4 === 0, L = []; wave.theme = '';
-  if (boss) { if (n % 8 === 0) { L.push('lich'); if (n >= 16) L.push('demon'); } else L.push('demon'); }
+  if (boss) { const BR = ['demon', 'skylord', 'frostlord', 'infernal', 'abyssal', 'titan'], pk = k => BR[((k % BR.length) + BR.length) % BR.length];
+    if (n % 8 === 0) { L.push('lich'); if (n >= 16) L.push(pk(n / 8 + 1)); } else L.push(pk((n - 4) / 8)); }
   let cnt = Math.ceil(Math.max(4, Math.min(4 + n * 2, 26) - (boss ? Math.floor(n * 0.8) : 0)) * 1.3); if (boss && arena) cnt = Math.ceil(cnt * 0.6);
   const w = { slime: Math.max(1, 7 - n), skeleton: n >= 2 ? 2 + n * 0.6 : 0, orc: n >= 3 ? 0.5 + n * 0.5 : 0, bat: n >= 2 ? 1 + n * 0.4 : 0, archer: n >= 3 ? 1 + n * 0.4 : 0, bomber: n >= 4 ? 0.8 + n * 0.3 : 0, mage: n >= 5 ? 0.5 + n * 0.3 : 0, brute: n >= 6 ? 0.3 + n * 0.25 : 0 };
   const bias = palOf().bias; for (const k in bias) w[k] *= bias[k];
@@ -2706,6 +2806,8 @@ function makeList(n) {
   else if (!boss && n >= 5 && n % 5 === 0) { wave.theme = '폭탄 슬라임 무리'; const fm3 = FLOOR_MAP[floorTheme(floorNum)], sk = fm3.slime || 'slime', bk2 = fm3.bomber || 'bomber'; w[sk] = 5; w[bk2] = Math.max(w[bk2] || 0, 2) * 4; cnt += 4; }
   const ks = Object.keys(w), tot = ks.reduce((t, k) => t + w[k], 0);
   for (let i = 0; i < cnt; i++) { let r = Math.random() * tot; for (const k of ks) { r -= w[k]; if (r <= 0) { L.push(k); break; } } }
+  if (L.includes('skylord')) { for (let i = 0; i < Math.max(5, Math.ceil(cnt * 0.6)); i++) L.push(SKY_IDS[(Math.random() * SKY_IDS.length) | 0]); }
+  if (!boss && n >= 6 && n % 7 === 6 && !wave.theme) { wave.theme = '천공 습격'; for (let i = 0; i < 7; i++) L.push(SKY_IDS[(Math.random() * SKY_IDS.length) | 0]); }
   if (!boss && n >= 5 && n % 3 === 2) { L.push('king'); wave.theme = wave.theme || '왕 슬라임 출현'; }
   return L;
 }
@@ -2786,6 +2888,7 @@ function projTrail(p) {
 }
 function update(dt) {
   time += dt;
+  if (state === 'play') { P.chkT = (P.chkT || 0) - dt; if (P.chkT <= 0) { P.chkT = 1; spCheck(); wmCheck(); } }
   { const jn = jobNext(); if (jn && P.hp > 0) { P.jobT = (P.jobT == null ? 1.4 : P.jobT) - dt; if (P.jobT <= 0) { openJob(jn); return; } } }
   flowT -= dt;
   const pk = clamp(Math.floor(P.y / TS), 0, MH - 1) * MW + clamp(Math.floor(P.x / TS), 0, MW - 1);
@@ -3041,6 +3144,11 @@ function render() {
   }
   for (const mt of meteors) if (mt.t > 0) {
     const p = mt.t / mt.d, x = Math.round(mt.x), y = Math.round(mt.y);
+    if (mt.spr) {
+      ctx.strokeStyle = 'rgba(255,220,90,.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, y, mt.r * p, mt.r * 0.65 * p, 0, 0, 6.283); ctx.stroke();
+      const sp = gearSpr(mt.spr), fy = y - Math.round((1 - p * p) * 170); ctx.save(); ctx.translate(x, fy); ctx.rotate(Math.PI * 0.75); ctx.globalAlpha = 0.5; ctx.fillStyle = '#ffd24a'; ctx.fillRect(-1, -22, 2, 18); ctx.globalAlpha = 1; ctx.drawImage(sp, -Math.round(sp.width / 2), -Math.round(sp.height / 2)); ctx.restore();
+      continue;
+    }
     ctx.fillStyle = 'rgba(255,60,30,' + (0.12 + 0.2 * p) + ')'; ctx.beginPath(); ctx.ellipse(x, y, mt.r, mt.r * 0.65, 0, 0, 6.283); ctx.fill();
     ctx.strokeStyle = 'rgba(255,150,90,.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, y, mt.r, mt.r * 0.65, 0, 0, 6.283); ctx.stroke();
     ctx.strokeStyle = 'rgba(255,240,200,.9)'; ctx.beginPath(); ctx.ellipse(x, y, mt.r * p, mt.r * 0.65 * p, 0, 0, 6.283); ctx.stroke();
@@ -3289,6 +3397,12 @@ ICONS.runeburst = mk(16, 16, g => { ell(g, 8, 8, 6, 6, '#3a1a6a'); ell(g, 8, 8, 
 ICONS.runefuse = mk(16, 16, g => { ell(g, 5, 8, 4, 4, '#2a5a8a'); ell(g, 11, 8, 4, 4, '#7a4ac8'); ell(g, 8, 8, 3, 3, '#c8f0ff'); rect(g, '#ffffff', 7, 7, 2, 2); });
 ICONS.runecopy = mk(16, 16, g => { rect(g, '#7a4ac8', 2, 2, 8, 9); rect(g, '#c8a0ff', 3, 3, 6, 7); rect(g, '#ffd24a', 6, 6, 8, 8); rect(g, '#fff2a0', 7, 7, 6, 6); rect(g, '#7a4ac8', 9, 8, 2, 4); rect(g, '#7a4ac8', 8, 9, 4, 1); });
 ICONS.runecreate = mk(16, 16, g => { ell(g, 8, 8, 7, 7, '#7a4ac8'); ell(g, 8, 8, 5, 5, '#ffd24a'); ell(g, 8, 8, 3, 3, '#fff2a0'); rect(g, '#ffffff', 7, 1, 2, 14); rect(g, '#ffffff', 1, 7, 14, 2); });
+ICONS.weaponrain = mk(16, 16, g => { rect(g, '#e0e4f0', 3, 1, 2, 9); rect(g, '#ffd24a', 1, 9, 6, 1); rect(g, '#8a5a2a', 3, 10, 2, 4); rect(g, '#c8d0e0', 10, 2, 3, 8); rect(g, '#ffd24a', 9, 10, 5, 1); rect(g, '#8a5a2a', 11, 11, 1, 4); rect(g, '#ff5a4a', 7, 4, 2, 2); rect(g, '#ffd24a', 7, 7, 2, 1); });
+ICONS.skybullet = mk(16, 16, g => { rect(g, '#5aa0e0', 2, 7, 12, 2); rect(g, '#bfe8ff', 2, 7, 11, 1); rect(g, '#ffffff', 10, 6, 5, 4); rect(g, '#fff8c0', 14, 7, 2, 2); });
+ICONS.skydodge = mk(16, 16, g => { for (let i = 0; i < 3; i++) { rect(g, i ? '#6aa0e8' : '#e8f8ff', 3 + i * 3, 4, 3, 8); rect(g, i ? '#bfe8ff' : '#ffffff', 4 + i * 3, 5, 1, 6); } rect(g, '#ffe35a', 12, 7, 2, 2); });
+ICONS.starburst = mk(16, 16, g => { for (const [x, y] of [[2, 3], [7, 2], [12, 4], [4, 8], [10, 9], [6, 13], [13, 12]]) { rect(g, '#ffe35a', x, y, 2, 2); rect(g, '#fff8c0', x, y, 1, 1); rect(g, '#bfe8ff', x - 1, y + 1, 1, 1); } });
+ICONS.dimsnipe = mk(16, 16, g => { ell(g, 8, 8, 6, 6, '#2a4a8a'); ell(g, 8, 8, 4, 4, '#14284a'); rect(g, '#bfe8ff', 1, 8, 14, 1); rect(g, '#bfe8ff', 8, 1, 1, 14); rect(g, '#ffffff', 7, 7, 3, 3); });
+ICONS.starfall = mk(16, 16, g => { for (const [x, y] of [[3, 2], [9, 1], [6, 6], [12, 7]]) { for (let i = 0; i < 4; i++) rect(g, i ? '#ff9a3a' : '#ffe35a', x + i, y + i, 2, 2); rect(g, '#fff8c0', x, y, 1, 1); } rect(g, '#ffe35a', 2, 13, 12, 1); });
 ICONS.volley = ICONS.scatter; ICONS.swiftheal = ICONS.swift;
 ICONS.parry = mk(16, 16, g => { rect(g, '#6a7894', 3, 2, 10, 8); rect(g, '#6a7894', 4, 10, 8, 2); rect(g, '#6a7894', 5, 12, 6, 1); rect(g, '#ffd24a', 4, 3, 8, 6); rect(g, '#ffd24a', 5, 9, 6, 2); rect(g, '#fff2b0', 5, 4, 3, 3); rect(g, '#c0301a', 7, 4, 2, 6); rect(g, '#c0301a', 5, 6, 6, 2); for (const [x, y] of [[0, 1], [15, 1], [0, 8], [15, 8]]) rect(g, '#ffffff', x, y, 1, 2); });
 (function outlineAll() {
@@ -3374,7 +3488,7 @@ function renderSlots() {
 function loadGame(sv) {
   if (sv.dead) return;
   newGame(); runSeed = sv.seed; buildFloor(sv.floor);
-  Object.assign(P, sv.P); P.runes = P.runes || []; P.rid = P.rid || 1; P.rs = P.rs || {}; setClassSkills(P.cls, P.job2); P.hwk = P.hwk || {}; if (P.lordUnlocked) giveHW('dgs'); if (P.runeLord) giveHW('tms'); hwApply('dgs'); hwApply('tms'); hwSync(); 
+  Object.assign(P, sv.P); P.runes = P.runes || []; P.rid = P.rid || 1; P.rs = P.rs || {}; setClassSkills(P.cls, P.job2); P.hwk = P.hwk || {}; if (P.lordUnlocked) giveHW('dgs'); if (P.runeLord) giveHW('tms'); hwApply('dgs'); hwApply('tms'); hwSync(); wmCheck(); spCheck(); 
   P.x = fl.start[0] * TS + 8; P.y = fl.start[1] * TS + 8; P.vx = P.vy = P.kx = P.ky = 0; P.dash = 0; P.inv = 0.8; P.shield = P.parry = P.swift = P.guard = P.crit = P.buff = 0; P.jobT = null; P.dashHit = null; updAwk(true);
   for (const c in P.cd) P.cd[c] = 0;
   calcRB(); P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = Math.min(P.hp, P.maxHp); P.mp = Math.min(P.mp, P.maxMp);
@@ -3472,7 +3586,7 @@ function genStock() {
   stock = []; const rw = rarW(), taken = new Set();
   const addG = (slot, n) => {
     for (let i = 0; i < n; i++) {
-      const pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && (!g.gun || P.cls === 'gunner') && (P.cls !== 'gunner' || g.slot !== 'weapon' || g.gun) && g.slot === slot && !taken.has(g.id) && !P.owned.includes(g.id) && rw[g.rar] > 0);
+      const pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && wokPool(g) && g.slot === slot && !taken.has(g.id) && !P.owned.includes(g.id) && rw[g.rar] > 0);
       if (!pool.length) break; const g = wpick(pool, x => rw[x.rar]); taken.add(g.id);
       stock.push({ kind: 'gear', id: g.id, price: Math.max(5, Math.round(g.cost * rnd(0.9, 1.15) / 5) * 5), qty: 1 });
     }
@@ -3487,7 +3601,7 @@ function genStock() {
   const gs = stock.filter(x => x.kind === 'gear'); if (gs.length) { const sp = gs[(Math.random() * gs.length) | 0]; sp.sale = true; sp.price = Math.round(sp.price * 0.65 / 5) * 5; }
 }
 const sellVal = g => Math.round(g.cost * 0.45);
-function equip(id) { const g = GEAR[id]; if (g.gun && P.cls !== 'gunner') { say('거너 전용', '총은 거너만 사용할 수 있습니다'); sfx(140, 0.15, 'square', 0.05, -60); return; } if (P.cls === 'gunner' && g.slot === 'weapon' && !g.gun) { say('거너 전용 제한', '거너는 총만 장착할 수 있습니다'); sfx(140, 0.15, 'square', 0.05, -60); return; } if (g.job && P.job2 !== g.job) { say('전용 무기', JOB2[g.job].n + ' 전용 무기입니다'); sfx(140, 0.15, 'square', 0.05, -60); return; } P.eq[g.slot] = id; recalc(); }
+function equip(id) { const g = GEAR[id], bad = t => { say(t[0], t[1]); sfx(140, 0.15, 'square', 0.05, -60); }; if (g.slot === 'weapon' && !wmOn()) { if (g.gun && P.cls !== 'gunner') return bad(['거너 전용', '총은 거너만 사용할 수 있습니다']); if (P.cls === 'gunner' && !g.gun) return bad(['거너 전용 제한', '거너는 총만 장착할 수 있습니다']); } if (g.job && P.job2 !== g.job) return bad(['전용 무기', JOB2[g.job].n + ' 전용 무기입니다']); P.eq[g.slot] = id; recalc(); }
 function renderShop() {
   const keep = ov.shop.scrollTop; $('shopGold').textContent = P.gold; $('shopWave').textContent = wave.n;
   const rc = 25 + 15 * rerolls, rr = $('rerollBtn'); rr.textContent = '재고 새로고침 ' + rc + 'G'; rr.disabled = P.gold < rc;
@@ -3504,7 +3618,7 @@ function renderShop() {
   });
   const order = { weapon: 0, armor: 1, ring: 2 }, nm = { weapon: '무기', armor: '방어구', ring: '반지' };
   P.owned.slice().sort((x, y) => order[GEAR[x].slot] - order[GEAR[y].slot] || GEAR[y].rar - GEAR[x].rar).forEach(id => {
-    const g = GEAR[id], on = P.eq[g.slot] === id, nog = P.cls === 'gunner' && g.slot === 'weapon' && !g.gun, btns = [{ t: on ? '장착 중' : nog ? '거너 사용 불가' : '장착', dis: on || nog, fn: () => equip(id) }];
+    const g = GEAR[id], on = P.eq[g.slot] === id, nog = !wmOn() && P.cls === 'gunner' && g.slot === 'weapon' && !g.gun, btns = [{ t: on ? '장착 중' : nog ? '거너 사용 불가' : '장착', dis: on || nog, fn: () => equip(id) }];
     if (!on && g.cost > 0) btns.push({ t: '판매 ' + sellVal(g) + 'G', alt: true, fn: () => { P.gold += sellVal(g); P.owned.splice(P.owned.indexOf(id), 1); } });
     box.my.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: nm[g.slot] + ' · ' + gearDesc(g), btns }));
   });
@@ -3525,7 +3639,8 @@ $('nextBtn').addEventListener('click', closeShop);
 /* 무기 강화 / 제작 */
 const ENH_MAX = 15;
 const enhCost = id => { const g = GEAR[id], l = enhLv(id); return Math.round((20 + g.cost * 0.08) * (1 + l * 0.45) / 5) * 5; };
-const enhMats = id => { const l = enhLv(id); return l < 3 ? { jelly: 2 + l, bone: 2 + l } : l < 6 ? { hide: l - 1, wing: l - 1 } : l < 9 ? { shard: l - 3, hide: l - 3 } : l < 12 ? { core: l - 7, shard: l - 4 } : { core: l - 8, shard: l - 3 }; };
+const enhMats0 = id => { const l = enhLv(id); return l < 3 ? { jelly: 2 + l, bone: 2 + l } : l < 6 ? { hide: l - 1, wing: l - 1 } : l < 9 ? { shard: l - 3, hide: l - 3 } : l < 12 ? { core: l - 7, shard: l - 4 } : { core: l - 8, shard: l - 3 }; };
+const enhMats = id => { const o = enhMats0(id), l = enhLv(id); if (l >= 9) o.skyshard = Math.ceil((l - 7) / 2); return o; };
 const enhChance = l => l < 3 ? 0.9 : l < 5 ? 0.75 : l < 7 ? 0.6 : l < 9 ? 0.45 : l < 12 ? 0.3 : 0.18;
 let enhBusy = false;
 function setEnhMsg(t, cls) { const m = $('enhMsg'); m.textContent = t; m.className = 'enhmsg ' + (cls || ''); }
@@ -3539,6 +3654,7 @@ function doEnhance(id) {
       msg = great ? '대성공! ' + GEAR[id].n + ' +' + l + ' → +' + P.enh[id] : '강화 성공! ' + GEAR[id].n + ' +' + l + ' → +' + P.enh[id]; cls = great ? 'great' : 'ok';
       sfx(660, 0.12, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.15, 'square', 0.05, 200), 90); setTimeout(() => sfx(1320, 0.25, 'square', 0.05, 200), 190);
       if (great) say('GREAT SUCCESS', gname(id));
+      wmCheck();
       if (id === P.eq.weapon) recalc();
       if (TRANS[id] && P.enh[id] >= ENH_MAX) { const nid = transcend(id); msg = '★ 초월! ' + GEAR[id].n + ' → ' + GEAR[nid].n + ' (+' + TRANS_START + ' 로 시작)'; cls = 'great'; }
     } else {
@@ -3570,7 +3686,7 @@ function renderEnh() {
   }
   const cb = $('craftList'); cb.textContent = '';
   for (const id in RCP) {
-    if (!!GEAR[id].gun !== (P.cls === 'gunner')) continue;
+    if (!(GEAR[id].rar === 6 || wmOn()) && !!GEAR[id].gun !== (P.cls === 'gunner')) continue;
     const g = GEAR[id], r = RCP[id], own = P.owned.includes(id) || P.owned.includes(TRANS[id]);
     cb.appendChild(card({ pic: gearIcon(id), name: g.n, rar: g.rar, desc: gearDesc(g) + ' · 재료: ' + matStr(r.mats),
       btns: [{ t: own ? '제작 완료' : '제작 ' + r.gold + 'G', dis: own || P.gold < r.gold || !hasMats(r.mats), fn: () => doCraft(id) }], re: renderEnh }));
@@ -3611,7 +3727,7 @@ function renderInv() {
   const bag = $('invBag'); bag.textContent = '';
   const order = { weapon: 0, armor: 1, ring: 2 }, others = P.owned.filter(id => P.eq[GEAR[id].slot] !== id).sort((x, y) => order[GEAR[x].slot] - order[GEAR[y].slot] || GEAR[y].rar - GEAR[x].rar);
   if (!others.length) { const e = document.createElement('p'); e.className = 'empty-note'; e.textContent = '교체할 장비가 없습니다. 몬스터를 잡거나 상점에서 구하세요.'; bag.appendChild(e); }
-  others.forEach(id => { const g = GEAR[id]; bag.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: nm[g.slot] + ' · ' + gearDesc(g), btns: [(P.cls === 'gunner' && g.slot === 'weapon' && !g.gun) ? { t: '거너 사용 불가', dis: true, fn: () => {} } : { t: '장착', fn: () => equip(id) }], re: renderInv })); });
+  others.forEach(id => { const g = GEAR[id]; bag.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: nm[g.slot] + ' · ' + gearDesc(g), btns: [(!wmOn() && P.cls === 'gunner' && g.slot === 'weapon' && !g.gun) ? { t: '거너 사용 불가', dis: true, fn: () => {} } : { t: '장착', fn: () => equip(id) }], re: renderInv })); });
   const pe = $('invPets'); pe.textContent = ''; if (!pets.length) { const e = document.createElement('p'); e.className = 'empty-note'; e.textContent = '아직 동료가 없습니다. 던전의 철창을 공격해 부수세요.'; pe.appendChild(e); }
   pets.forEach(p => { const sp = document.createElement('span'); sp.style.setProperty('--rc', PET[p.type].col); sp.append(iconCv(PSPR[p.type][0]), document.createTextNode(petName(p) + ' ' + '★'.repeat(p.ev || 1) + ' · ' + PET[p.type].d + ((p.ev || 1) < 3 ? ' · 진화까지 처치 ' + Math.max(0, PET_EV_XP[p.ev || 1] - (p.xp || 0)) : ' · 최종 단계'))); pe.appendChild(sp); });
   matChips($('invMats'));
@@ -3872,10 +3988,11 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 도감 ---------- */
 (function dex() {
-  const desc = { slime: '통통 튀며 몸으로 부딪칩니다.', bat: '2웨이브부터. 불규칙하게 날며 물고 빠집니다.', skeleton: '다가와 녹슨 검을 휘두릅니다.', archer: '3웨이브부터. 거리를 두고 화살을 쏩니다.', orc: '느리지만 곤봉 내려치기가 아픕니다.', bomber: '4웨이브부터. 달려와 자폭합니다. 원을 피하세요.', mage: '5웨이브부터. 보라색 마법탄을 3갈래로 쏩니다.', king: '5웨이브부터 가끔 등장. 죽으면 슬라임 3마리로 분열합니다.', brute: '6웨이브부터. 잠시 노려본 뒤 돌진합니다.', demon: '4웨이브마다 등장. 내려찍기, 화염탄, 부하 소환.', lich: '8웨이브마다 등장. 마법탄 난사와 궁수 소환.' };
+  const desc = { slime: '통통 튀며 몸으로 부딪칩니다.', bat: '2웨이브부터. 불규칙하게 날며 물고 빠집니다.', skeleton: '다가와 녹슨 검을 휘두릅니다.', archer: '3웨이브부터. 거리를 두고 화살을 쏩니다.', orc: '느리지만 곤봉 내려치기가 아픕니다.', bomber: '4웨이브부터. 달려와 자폭합니다. 원을 피하세요.', mage: '5웨이브부터. 보라색 마법탄을 3갈래로 쏩니다.', king: '5웨이브부터 가끔 등장. 죽으면 슬라임 3마리로 분열합니다.', brute: '6웨이브부터. 잠시 노려본 뒤 돌진합니다.', demon: '4웨이브마다 등장. 내려찍기, 화염탄, 부하 소환.', lich: '8웨이브마다 등장. 마법탄 난사와 궁수 소환.', skylord: '하늘에서 번개를 폭우처럼 내리꽂습니다. 낙뢰 범위를 보고 피하세요. 하늘의 부하들을 거느리고, 처치하면 천공의 파편을 많이 떨어뜨립니다.', frostlord: '얼음 마탄을 부채꼴로 대량 발사합니다.', infernal: '불꽃 고리를 촘촘하게 뿜어내고 돌진합니다. 공격력이 높습니다.', abyssal: '체력이 절반 아래가 되면 망령 사수 다섯을 소환합니다.', titan: '느리지만 거대한 내려찍기로 넓은 범위를 부숩니다. 체력이 가장 높습니다.' };
   const baseKeys = ['slime', 'bat', 'skeleton', 'archer', 'orc', 'bomber', 'mage', 'brute'];
   const tabs = FLOORS.map((p, i) => ({ n: (i + 1) + '층', title: p.n, list: [...new Set(baseKeys.map(k => FLOOR_MAP[i][k] || k)), 'king'], note: (i + 1) + '층 · ' + (i + 5) + '층 · ' + (i + 9) + '층 … 에 나오는 몬스터입니다. (층이 같은 테마로 돌아올 때는 웨이브가 높아 더 강해집니다)' }));
-  tabs.push({ n: '보스', title: '보스', list: ['demon', 'lich'], note: '4웨이브마다 층의 보스가 나옵니다. 보스는 모든 층에서 같습니다.' });
+  tabs.push({ n: '보스', title: '보스', list: ['demon', 'skylord', 'frostlord', 'infernal', 'abyssal', 'titan', 'lich'], note: '4웨이브마다 보스가 나옵니다. 보스 종류는 웨이브에 따라 돌아가며 등장합니다.' });
+  tabs.push({ n: '천공', title: '천공의 군주 휘하', list: SKY_IDS, note: '천공의 군주가 나오는 웨이브에 함께 등장하며, 군주가 부르기도 합니다. 처치하면 천공의 파편을 떨어뜨립니다.' });
   tabs.push({ n: '펫', title: '펫 도감', pets: true, note: '철창을 부수고 동료로 만난 펫이 등록됩니다. 진화 단계도 기록됩니다.' });
   const PET_FLOOR = { wolf: 1, fairy: 1, slime: 1, bee: 1, owl: 1, ghost: 2, golem: 2, drake: 3, phoenix: 4 };
   const bar = $('dexTabs'), box = $('dex'), note = $('dexNote'); let cur = 0; const btns = [];
@@ -3943,6 +4060,20 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.53', d: '11/08', t: '천공의 파편 활용과 천공 습격', i: [
+    '천공의 파편이 강화 재료로 쓰입니다. 무기를 +9 이상으로 강화할 때 필요하며 단계가 오를수록 더 많이 듭니다.',
+    '신화 무기를 제작할 때도 천공의 파편이 4개 필요합니다.',
+    '7웨이브마다(6웨이브부터) 천공의 부하들이 몰려오는 \'천공 습격\' 웨이브가 나옵니다. 파편을 모으기 좋은 기회입니다.',
+  ] },
+  { v: '1.52', d: '11/08', t: '천공의 군주 부하와 천공의 파편', i: [
+    '천공의 군주의 부하 5종이 추가되었습니다: 구름 정령 · 하늘 수호병 · 번개 궁수 · 폭풍 술사 · 구름 거인. 천공의 군주 웨이브에 함께 나오고, 군주가 체력 절반 이하일 때 불러내기도 합니다.',
+    '부하와 천공의 군주를 처치하면 새 재료 "천공의 파편"을 떨어뜨립니다. 몬스터 도감의 "천공" 탭에서 부하들을 볼 수 있습니다.',
+  ] },
+  { v: '1.51', d: '11/08', t: '새로운 보스 5종', i: [
+    '보스가 5종 추가되었습니다: 천공의 군주(하늘에서 낙뢰 폭우) · 서리 군주(얼음 마탄 부채꼴) · 염옥의 군주(촘촘한 불꽃 고리) · 심연의 군주(망령 사수 5마리 소환) · 대지의 거신(넓은 내려찍기, 최고 체력).',
+    '4웨이브마다 나오는 보스가 웨이브에 따라 돌아가며 등장합니다. 8웨이브 보스인 죽음의 군주는 그대로이고, 16웨이브부터는 함께 다른 보스도 나옵니다.',
+    '보스 도감에서 새 보스를 확인할 수 있습니다.',
+  ] },
   { v: '1.50', d: '11/08', t: '거너 총 종류 확대', i: [
     '거너가 쓸 수 있는 총이 6종에서 12종으로 늘었습니다. 새 총: 기관단총(2발 점사) · 핸드캐논(느리지만 치명타가 잘 터지는 묵직한 한 발) · 화염방사기(짧은 사거리, 관통하며 불태움) · 레일건(느리지만 일직선 관통 고피해) · 로켓 발사기(대형 폭발) · 전격총(주변 적에게 전기가 튑니다).',
     '새 총도 각각 5등급이 있고, 상점·몬스터 드롭과 신화 무기 제작에서 얻을 수 있습니다.',
@@ -4048,7 +4179,18 @@ newGame();
 for (let i = 0; i < 3; i++) { const [x, y] = [P.x + rnd(-120, 120), P.y + rnd(-60, 40)]; if (!blocked(x, y, 4, 3)) { const m = spawnMonster(['slime', 'skeleton', 'slime'][i], x, y); m.spawnT = 0; } }
 /*DBG*/
 let last = performance.now();
+let errN = 0;
 function frame(now) {
+  try { frame0(now); errN = Math.max(0, errN - 0.02); }
+  catch (e) {
+    console.error(e); errN++;
+    if (errN >= 2) { try { projs = []; meteors = []; fxs = []; parts = []; texts = []; storms = []; teles = []; } catch (_) {} }
+    if (errN >= 6) { try { monsters = monsters.filter(m => m && isFinite(m.x) && isFinite(m.y)); if (!isFinite(P.x) || !isFinite(P.y)) { P.x = cam.x + W / 2; P.y = cam.y + H / 2; } } catch (_) {} }
+    if (errN >= 30 && state === 'play') { try { state = 'pause'; showOv('pause'); } catch (_) {} }
+    last = now; requestAnimationFrame(frame);
+  }
+}
+function frame0(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (state === 'play') update(dt);
   else if (state === 'menu') { time += dt; for (const p of parts) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; } ambT -= dt; if (ambT <= 0) { ambT = 0.18; const [tx, ty] = walk[(Math.random() * walk.length) | 0]; parts.push({ x: tx * TS + rnd(0, 16), y: ty * TS + rnd(4, 16), vx: rnd(-3, 3), vy: -rnd(5, 11), life: 2, max: 2, col: '#4af0d8', size: 1, g: 0, amb: true }); } parts = parts.filter(p => p.life > 0); }
