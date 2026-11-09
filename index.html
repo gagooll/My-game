@@ -482,6 +482,12 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
   </section>
 </main>
 
+<div class="shopov" id="ovHJ" hidden role="dialog" aria-label="히든 직업 전직">
+  <div class="shopwrap" style="max-width:520px">
+    <div class="shophead"><div><h2 id="hjTitle">히든 조건 달성!</h2><p id="hjText" style="white-space:pre-line"></p></div></div>
+    <div class="shopfoot"><button class="btn" id="hjYes" type="button">예, 전직합니다 (Enter)</button><button class="btn" id="hjNo" type="button" style="margin-left:14px;background:#4a4060;color:#f0e8ff;box-shadow:0 4px 0 #261e38">아니오 (Esc)</button></div>
+  </div>
+</div>
 <div class="shopov" id="ovAch" hidden role="dialog" aria-label="업적과 보석 상점">
   <div class="shopwrap">
     <div class="shophead">
@@ -1599,10 +1605,11 @@ let selCls = 'novice';
 const awkB = k => !P.awk ? 0 : k === 'atk' && P.awk >= 2 ? (10 + (P.lvl - 1) * 3) * 0.05 : k === 'hp' && P.awk >= 4 ? Math.round(P.bHp * 0.1) : 0;
 const clsB = k => awkB(k) + ((CLS[P.cls] && CLS[P.cls].b[k]) || 0) + ((P.job2 && JOB2[P.job2] && JOB2[P.job2].b[k]) || 0);
 /* ---------- 초월 무기: 전설 무기를 +15까지 강화하면 변신 ---------- */
-const TRANS = {}, TRANS_START = 10;
-['cf12', 'cf13', 'cf14', 'cf15', 'cf16'].forEach((id, i) => {
-  const g = GEAR[id], nid = 'tx' + (i + 1), t = Object.assign({}, g, { id: nid, n: '초월: ' + g.n, rar: 5, cost: g.cost * 3, atk: Math.round(g.atk * 1.7 + 10), craft: true, trans: true });
-  for (const k in g) if (!['id', 'n', 'rar', 'cost', 'atk', 'slot', 'type', 'craft'].includes(k) && typeof g[k] === 'number') t[k] = +(g[k] * 1.6).toFixed(3);
+const TRANS = {}, TRANS_START = 0;
+[['cf12', 'tx1'], ['cf13', 'tx2'], ['cf14', 'tx3'], ['cf15', 'tx4'], ['cf16', 'tx5'], ['cg10', 'tx6'], ['cg11', 'tx7'], ['cg12', 'tx8']].forEach(([id, nid]) => {
+  const g = GEAR[id], t = Object.assign({}, g, { id: nid, rar: 6, cost: g.cost * 3, atk: g.type === 'staff' ? g.atk + 3 : g.gun ? Math.round(g.atk * 1.45) : Math.round(g.atk * 1.9 + 8), craft: true, trans: true });
+  const CAP = { crit: 0.7, ls: 0.14, spd: 0.12 };
+  for (const k in g) if (!['id', 'n', 'rar', 'cost', 'atk', 'slot', 'type', 'craft'].includes(k) && typeof g[k] === 'number') t[k] = Math.min(CAP[k] || 1e9, +(g[k] * 1.6).toFixed(3));
   GEAR[nid] = t; TRANS[id] = nid;
 });
 function transcend(id) {
@@ -1961,28 +1968,60 @@ function setForm(to) {
   flashA = Math.max(flashA, 0.45); shake = Math.max(shake, 5); ring(P.x, P.y - 8, c1, 70, 0.8); ring(P.x, P.y - 8, lord ? '#ff3a6a' : '#fff', 40, 0.6); burst(P.x, P.y - 9, 40, c1, 140, 1, 2);
   sfx(lord ? 110 : 330, 0.5, 'sawtooth', 0.07, lord ? 300 : 200); setTimeout(() => sfx(lord ? 220 : 495, 0.5, 'triangle', 0.07, 300), 150);
 }
-function unlockLord() {
+function unlockLordGo() {
   P.lordUnlocked = true; giveHW('dgs'); setForm('shadowlord');
   say('히든 직업 해금!', JOB2.shadowlord.n + '(으)로 변신했습니다'); flashA = 0.8; shake = 9;
   ring(P.x, P.y - 8, '#ffd24a', 90, 1); burst(P.x, P.y - 9, 60, '#b06bff', 170, 1.2, 2); sfx(262, 0.4, 'sawtooth', 0.08, 500); setTimeout(() => sfx(523, 0.4, 'sawtooth', 0.08, 500), 150); setTimeout(() => sfx(1046, 0.7, 'sawtooth', 0.08, 400), 300);
   saveGame();
 }
+function unlockLord() { hjTick(); }
+/* ---------- 히든 직업: 조건 달성 → 전직 의사 확인 ---------- */
+let hjQ = null;
+const HJ = {
+  shadowlord: { c: '그림자 암살자로 몬스터 ' + LORD_KILLS + '마리를 처치했습니다.', ok: () => P.job2 === 'shadow' && !P.lordUnlocked && (P.shK || 0) >= LORD_KILLS, go: () => unlockLordGo() },
+  creator: { c: '룬의 수호자를 쓰러뜨렸습니다.', ok: () => !P.runeLord && !!P.runeReady, go: () => creatorGo() },
+  weaponmaster: { c: '신화 무기 3개를 +3 이상으로 강화했습니다.', ok: () => !P.wmUnlocked && !!P.owned && P.owned.filter(id => GEAR[id] && GEAR[id].slot === 'weapon' && GEAR[id].rar === 6 && enhLv(id) >= 3).length >= 3, go: () => wmGo() },
+  skysniper: { c: '레벨 65, 천공의 파편 20개, 신화 총 조건을 모두 달성했습니다.', ok: () => !P.spUnlocked && P.cls === 'gunner' && P.lvl >= 65 && mat('skyshard') >= 20 && !!P.owned && P.owned.some(id => GEAR[id] && GEAR[id].rar === 6 && GEAR[id].gun), go: () => spGo() },
+};
+function hjAsk(title, text, yes, no) {
+  if (state !== 'play' || hjQ) return false;
+  for (const k in keys) keys[k] = false; for (const k in virt) virt[k] = false; mouse.down = mouse.right = false;
+  hjQ = { yes, no }; $('hjTitle').textContent = '히든 조건 달성!'; $('hjText').textContent = text;
+  state = 'hj'; showOv('hj'); flashA = Math.max(flashA, 0.4); sfx(660, 0.2, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.3, 'square', 0.05, 200), 140); setTimeout(() => $('hjYes').focus({ preventScroll: true }), 30);
+  return true;
+}
+function hjAnswer(ok) {
+  const q = hjQ; if (!q) return; hjQ = null; state = 'play'; showOv(null);
+  if (ok) q.yes(); else { P.hjCool = 180; if (q.no) q.no(); say('전직을 미뤘습니다', '3분 뒤에 다시 물어봅니다'); }
+}
+$('hjYes').addEventListener('click', () => hjAnswer(true));
+$('hjNo').addEventListener('click', () => hjAnswer(false));
+function hjTick() {
+  if (state !== 'play' || hjQ || !P.owned || P.hjCool > 0) return;
+  if (P.job2 && JOB2[P.job2] && JOB2[P.job2].hidden) return;
+  for (const id of ['shadowlord', 'creator', 'weaponmaster', 'skysniper']) {
+    if (HJ[id].ok()) { hjAsk('', '조건 달성: ' + HJ[id].c + '\n히든 직업 [' + JOB2[id].n + '](으)로 전직하겠습니까?\n(전직하면 이전 직업으로 돌아갈 수 없습니다.)', HJ[id].go); return; }
+  }
+}
 function formList() { return [P.job2 || null]; }
-function unlockCreator() {
+function unlockCreator() { P.runeReady = true; hjTick(); }
+function creatorGo() {
   if (P.runeLord) return; P.runeLord = true; giveHW('tms'); setForm('creator');
   say('히든 직업 해금!', JOB2.creator.n + '(으)로 변신했습니다'); flashA = 0.8; shake = 9;
   ring(P.x, P.y - 8, '#ffd24a', 90, 1); ring(P.x, P.y - 8, '#c98aff', 60, 0.8); burst(P.x, P.y - 9, 60, '#c98aff', 170, 1.2, 2); sfx(262, 0.4, 'sawtooth', 0.08, 500); setTimeout(() => sfx(523, 0.4, 'sawtooth', 0.08, 500), 150); setTimeout(() => sfx(1046, 0.7, 'sawtooth', 0.08, 400), 300);
   saveGame();
 }
-function wmCheck() {
+function wmCheck() { hjTick(); }
+function wmGo() {
   if (P.wmUnlocked || P.job2 === 'weaponmaster' || !P.owned) return;
-  if (WM_IDS.concat(['mx6']).filter(id => P.owned.includes(id) && enhLv(id) >= 3).length < 3) return;
+  if (P.owned.filter(id => GEAR[id] && GEAR[id].slot === 'weapon' && GEAR[id].rar === 6 && enhLv(id) >= 3).length < 3) return;
   P.wmUnlocked = true; setForm('weaponmaster');
   say('히든 직업 해금!', JOB2.weaponmaster.n + '(으)로 변신했습니다'); flashA = 0.8; shake = 9;
   ring(P.x, P.y - 8, '#ffd24a', 90, 1); ring(P.x, P.y - 8, '#ff5a4a', 60, 0.8); burst(P.x, P.y - 9, 60, '#ffd24a', 170, 1.2, 2); sfx(262, 0.4, 'sawtooth', 0.08, 500); setTimeout(() => sfx(523, 0.4, 'sawtooth', 0.08, 500), 150); setTimeout(() => sfx(1046, 0.7, 'sawtooth', 0.08, 400), 300);
   saveGame();
 }
-function spCheck() {
+function spCheck() { hjTick(); }
+function spGo() {
   if (P.spUnlocked || P.cls !== 'gunner' || (P.job2 && JOB2[P.job2].hidden) || P.lvl < 65 || mat('skyshard') < 20 || !P.owned) return;
   if (!P.owned.some(id => GEAR[id] && GEAR[id].rar === 6 && GEAR[id].gun)) return;
   P.spUnlocked = true; setForm('skysniper');
@@ -2074,7 +2113,7 @@ function openAscend() {
   state = 'job'; showOv('job'); sfx(520, 0.2, 'triangle', 0.05, 300);
 }
 function openJob(stage) {
-  if (stage === 3) return openAscend();
+  if (stage === 3) { if (P.ascOk) return openAscend(); hjAsk('', '조건 달성: 초보자로 Lv25에 도달했습니다.\n히든 직업 [초월자](으)로 전직하겠습니까?\n(전직하면 이전 직업으로 돌아갈 수 없습니다.)', () => { P.ascOk = true; openAscend(); }, () => { P.jobT = 180; }); return; }
   $('jobSkip').textContent = '전직하지 않기 (나중에 인벤토리에서 전직 가능)';
   for (const k in keys) keys[k] = false; for (const k in virt) virt[k] = false; mouse.down = mouse.right = false;
   const row = $('jobRow'); row.textContent = '';
@@ -2149,6 +2188,13 @@ const TPL = {
   fireball: BASE.KeyQ, ice: BASE.KeyE, storm: BASE.KeyR, heal: BASE.KeyF, dash: BASE.Space, spin: BASE.Digit1, shield: BASE.Digit2, meteor: BASE.Digit3, shock: BASE.Digit4,
   weaponrain: Object.assign({}, BASE.Digit3, { n: '천무: 만병강림', mp: 100, cd: 60, col: '#ffd24a', d: '모든 종류의 무기를 하늘에서 소환해 쏟아붓습니다.', nodes: [] }),
   starfall: Object.assign({}, BASE.Digit3, { n: '유성 폭격', mp: 100, cd: 60, col: '#ffe35a', d: '하늘에서 유성탄을 쏟아붓습니다.', nodes: [] }),
+  snipe: Object.assign({}, BASE.Digit4, { n: '관통 사격', mp: 20, cd: 6, col: '#ffd24a', d: '히든 직업 전용 스킬.', nodes: [] }),
+  ringshot: Object.assign({}, BASE.Digit4, { n: '방사 사격', mp: 20, cd: 6, col: '#ffd24a', d: '히든 직업 전용 스킬.', nodes: [] }),
+  pulse: Object.assign({}, BASE.Digit4, { n: '파동', mp: 20, cd: 6, col: '#ffd24a', d: '히든 직업 전용 스킬.', nodes: [] }),
+  blink: Object.assign({}, BASE.Digit4, { n: '점멸', mp: 20, cd: 6, col: '#ffd24a', d: '히든 직업 전용 스킬.', nodes: [] }),
+  buffself: Object.assign({}, BASE.Digit4, { n: '강화', mp: 20, cd: 6, col: '#ffd24a', d: '히든 직업 전용 스킬.', nodes: [] }),
+  guard: Object.assign({}, BASE.Digit4, { n: '수호', mp: 20, cd: 6, col: '#ffd24a', d: '히든 직업 전용 스킬.', nodes: [] }),
+  pounce: Object.assign({}, BASE.Digit4, { n: '급습', mp: 20, cd: 6, col: '#ffd24a', d: '히든 직업 전용 스킬.', nodes: [] }),
   quickstep: { n: '빠른 발걸음', mp: 10, cd: 12, col: '#bff6ff', d: '8초간 이동속도가 크게 빨라집니다.', nodes: [N('a', '긴 질주', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
   grit: { n: '투지', mp: 15, cd: 16, col: '#ff5a4a', d: '10초간 체력이 낮을수록 공격력이 높아집니다. (체력이 바닥에 가까우면 최대 +100%)', nodes: [N('a', '긴 투지', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
   limit: { n: '한계돌파', mp: 30, cd: 40, col: '#ffd24a', d: '12초간 공격력·마법력·체력·마나·이동속도·공격속도·치명타·방어가 모두 20% 늘어납니다.', nodes: [N('a', '긴 폭발', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
@@ -2305,35 +2351,39 @@ JOBLOOK.gunslinger = { pal: { red: '#5a3a2a', redD: '#38241a', redL: '#8a5a3a', 
 JOBLOOK.demolisher = { pal: { red: '#c07a20', redD: '#7a4a10', redL: '#f0a838', shield: '#4a4a52', shieldD: '#2e2e34', shieldL: '#6a6a74', steelM: '#8a8a94', steelL: '#bcbcc8', steelD: '#4a4a54', gold: '#ffd24a', goldL: '#fff2a0' },
   deco: (g, C) => { rect(g, '#e8a020', 4, 0, 13, 4); rect(g, '#ffd24a', 5, 0, 11, 1); rect(g, '#2a2a30', 5, 4, 11, 2); rect(g, '#7fe8ff', 6, 4, 3, 1); rect(g, '#7fe8ff', 12, 4, 3, 1); rect(g, '#d8404f', 9, 12, 3, 4); rect(g, '#ffd24a', 10, 11, 1, 1); } };
 // 히든 직업 전용 스킬 (나머지 키)
-JOB2.shadowlord.sk.push(
-  [0, 'volley', { n: '그림자 표창', ic: 'shuriken', mp: 12, cd: 1.8, col: '#b06bff', d: '그림자 표창 5발을 부채꼴로 던져 적을 관통합니다.', p: VOL({ n: 5, spread: 0.12, spd: 310, life: 0.6, mul: 0.85, kind: 'arrow', pierce: true }) }],
-  [1, 'backstab', { n: '어둠 암습', ic: 'backstab', col: '#8a4ae0' }],
-  [3, 'swiftheal', { n: '그림자 질주', ic: 'swift', col: '#7a3ac0' }],
-  [4, 'dash', { n: '암흑 점멸', ic: 'dash', col: '#b06bff' }],
-  [5, 'flurry', { n: '심연 난무', ic: 'flurry', col: '#ff3a6a' }],
-  [6, 'shield', { n: '어둠의 장막', ic: 'shield', col: '#8a4ae0' }]);
-JOB2.weaponmaster.sk.push(
-  [0, 'parry', { n: '무기 막기', ic: 'shield', col: '#ffd24a' }],
-  [1, 'roar', { n: '전쟁의 함성', ic: 'roar', col: '#ff5a4a' }],
-  [2, 'spin', { n: '천검 폭풍', ic: 'bladestorm', mp: 40, cd: 13, col: '#e0e4f0', d: '무기를 휘둘러 주변을 5번 연속으로 벱니다.', p: { times: 5, gap: 180 } }],
-  [3, 'heal', { n: '무장 회복', ic: 'heal', col: '#ffd24a' }],
-  [4, 'dash', { n: '무기 돌진', ic: 'dash', col: '#ffd24a' }],
-  [5, 'spin', { n: '무기 회전', ic: 'spin', col: '#e0e4f0' }],
-  [6, 'shield', { n: '무기 장벽', ic: 'shield', col: '#ffd24a' }],
-  [7, 'smash', { n: '신화 일격', ic: 'smash', mp: 30, cd: 8, col: '#ff5a4a', d: '신화 무기로 혼신의 일격을 내려쳐 막대한 피해를 줍니다.', p: { mul: 4.4 } }]);
-JOB2.skysniper.sk.push(
-  [0, 'volley', { n: '천공 속사', ic: 'rapid', mp: 10, cd: 2, col: '#bfe8ff', d: '빛의 탄환 3발을 연달아 쏩니다.', p: VOL({ n: 1, rep: 3, gap: 0.08, spd: 400, life: 0.8, mul: 0.9, pierce: false, kind: 'bullet' }) }],
-  [1, 'volley', { n: '성광 산탄', ic: 'scatter', mp: 22, cd: 6, col: '#ffe35a', d: '근거리에서 빛의 산탄 8발을 넓게 흩뿌립니다.', p: VOL({ n: 8, spread: 0.13, spd: 320, life: 0.35, mul: 0.85, pierce: false, kind: 'bullet' }) }],
-  [3, 'heal', { n: '천상의 수복', ic: 'heal', col: '#bfe8ff' }],
-  [5, 'fireball', { n: '성광탄', ic: 'fireball', mp: 24, cd: 7, col: '#ffe35a', d: '던진 곳에서 폭발하는 빛의 수류탄.' }],
-  [6, 'shield', { n: '빛의 방벽', ic: 'shield', col: '#bfe8ff' }]);
-JOB2.creator.sk.push(
-  [0, 'fireball', { n: '룬 화염', ic: 'fireball', col: '#ff9a3a' }],
-  [1, 'ice', { n: '룬 서리', ic: 'ice', col: '#7ad0ff' }],
-  [3, 'heal', { n: '룬의 치유', ic: 'heal', col: '#c98aff' }],
-  [4, 'dash', { n: '룬 점멸', ic: 'dash', col: '#c98aff' }],
-  [5, 'volley', { n: '룬 탄환', ic: 'orb', mp: 20, cd: 4, col: '#c98aff', d: '룬의 마탄 6발을 부채꼴로 쏩니다.', p: VOL({ n: 6, spread: 0.16, spd: 210, life: 1, mul: 0.9, base: 'mag', pierce: false, kind: 'orb' }) }],
-  [6, 'shield', { n: '룬 방벽', ic: 'shield', col: '#7ad0ff' }]);
+const HSET = (id, arr) => { for (const x of arr) { const k = JOB2[id].sk.findIndex(y => y[0] === x[0]); if (k >= 0) JOB2[id].sk.splice(k, 1); JOB2[id].sk.push(x); } };
+HSET('shadowlord', [
+  [0, 'snipe', { n: '그림자 창', ic: 'shuriken', mp: 14, cd: 2.5, col: '#b06bff', d: '어둠의 창을 두 번 연달아 던져 일직선의 모든 적을 꿰뚫습니다.', p: { len: 240, w: 9, mul: 2.2, rep: 2, gap: 0.12 } }],
+  [1, 'pounce', { n: '어둠 암습', ic: 'backstab', mp: 26, cd: 9, col: '#8a4ae0', d: '가장 강한 적의 등 뒤로 순간이동해 3연속 일격을 가합니다.', p: {} }],
+  [2, 'pulse', { n: '암흑 군림', ic: 'shock', mp: 45, cd: 16, col: '#7a3ac0', d: '주변에 어둠의 파동을 6번 일으켜 적을 베고 체력을 흡수합니다.', p: { times: 6, gap: 350, R: 66, mul: 0.9, drain: 0.15, kb: 80, stun: 0.4 } }],
+  [3, 'buffself', { n: '그림자 질주', ic: 'swift', mp: 24, cd: 16, col: '#bff6ff', d: '2.5초간 무적이 되고 8초간 빨라지며 공격력이 오릅니다.', p: { inv: 2.5, swift: 8, buff: 6 } }],
+  [4, 'blink', { n: '암흑 점멸', ic: 'dash', mp: 10, cd: 3, col: '#b06bff', d: '조준한 방향으로 순간이동하며 출발점과 도착점에 어둠의 폭발을 남깁니다.', p: { dist: 90, R: 36, mul: 1.2, both: true, stun: 0.5 } }],
+  [5, 'ringshot', { n: '심연 난무', ic: 'flurry', mp: 22, cd: 6, col: '#ff3a6a', d: '사방으로 12자루의 어둠의 칼날을 날려 관통시킵니다.', p: { n: 12, arc: 6.3, spd: 200, life: 0.5, mul: 0.9, kind: 'arrow', pierce: true } }],
+  [6, 'guard', { n: '어둠의 장막', ic: 'shield', mp: 24, cd: 15, col: '#8a4ae0', d: '3초간 방어막을 두르고 주변 적을 밀쳐 기절시킵니다.', p: { dur: 3, R: 50, mul: 0.6, stun: 1.2, kb: 260 } }]]);
+HSET('weaponmaster', [
+  [0, 'ringshot', { n: '검기 참격', ic: 'smash', mp: 12, cd: 3, col: '#ffd24a', d: '전방으로 3줄기의 검기를 날려 적을 관통합니다.', p: { n: 3, arc: 0.5, spd: 300, life: 0.5, mul: 1.6, kind: 'arrow', pierce: true } }],
+  [1, 'pulse', { n: '전쟁의 함성', ic: 'roar', mp: 24, cd: 16, col: '#ff5a4a', d: '두 번의 충격파로 주변 적을 기절시키고 8초간 공격력이 오릅니다.', p: { times: 2, gap: 250, R: 75, mul: 0.8, stun: 1, buff: 8 } }],
+  [2, 'ringshot', { n: '천검 난무', ic: 'bladestorm', mp: 40, cd: 13, col: '#e0e4f0', d: '사방으로 16자루의 검기를 흩뿌려 모든 적을 꿰뚫습니다.', p: { n: 16, arc: 6.3, spd: 190, life: 0.6, mul: 1.8, kind: 'arrow', pierce: true } }],
+  [3, 'buffself', { n: '무장 회복', ic: 'heal', mp: 25, cd: 14, col: '#ffd24a', d: '체력을 30% 회복하고 6초간 공격력이 오릅니다.', p: { heal: 0.3, buff: 6 } }],
+  [4, 'blink', { n: '무기 돌진', ic: 'dash', mp: 8, cd: 3, col: '#ffd24a', d: '조준한 곳으로 순간 돌진해 도착 지점의 적을 기절시킵니다.', p: { dist: 80, R: 34, mul: 1.8, stun: 0.8 } }],
+  [5, 'pulse', { n: '무기 회전', ic: 'spin', mp: 16, cd: 4, col: '#e0e4f0', d: '주변에 세 번 연속으로 충격을 일으켜 적을 크게 밀어냅니다.', p: { times: 3, gap: 200, R: 46, mul: 1.4, kb: 300 } }],
+  [6, 'guard', { n: '무기 장벽', ic: 'shield', mp: 24, cd: 15, col: '#ffd24a', d: '3.5초간 장벽을 두르고 주변 적을 튕겨내 기절시킵니다.', p: { dur: 3.5, R: 55, mul: 0.8, stun: 1, kb: 320 } }],
+  [7, 'smash', { n: '신화 일격', ic: 'smash', mp: 30, cd: 8, col: '#ff5a4a', d: '신화 무기로 혼신의 일격을 내려쳐 막대한 피해를 줍니다.', p: { mul: 4.4 } }]]);
+HSET('skysniper', [
+  [0, 'snipe', { n: '천공 속사', ic: 'rapid', mp: 10, cd: 2, col: '#bfe8ff', d: '빛의 탄환 3발을 순식간에 일직선으로 꿰뚫어 쏩니다.', p: { len: 280, w: 6, mul: 1.1, rep: 3, gap: 0.08 } }],
+  [1, 'ringshot', { n: '성광 산탄', ic: 'scatter', mp: 22, cd: 6, col: '#ffe35a', d: '몸 주위 사방으로 빛의 산탄 12발을 터뜨립니다.', p: { n: 12, arc: 6.3, spd: 300, life: 0.3, mul: 0.9, kind: 'bullet', pierce: false } }],
+  [2, 'snipe', { n: '천공의 탄환', ic: 'skybullet', mp: 35, cd: 12, col: '#bfe8ff', d: '모든 것을 꿰뚫는 강력한 빛의 탄환 한 발을 쏩니다.', p: { len: 340, w: 8, mul: 6.5 } }],
+  [3, 'buffself', { n: '천상의 수복', ic: 'heal', mp: 28, cd: 14, col: '#bfe8ff', d: '체력을 25% 회복하고 방어막과 이동 속도 증가를 얻습니다.', p: { heal: 0.25, shield: 2.5, swift: 4 } }],
+  [4, 'blink', { n: '천상의 회피', ic: 'skydodge', mp: 8, cd: 3, col: '#bfe8ff', d: '조준 반대 방향으로 순간이동해 공격을 피하고 빨라집니다.', p: { dist: 90, back: true, swift: 5 } }],
+  [5, 'pulse', { n: '성광탄', ic: 'fireball', mp: 24, cd: 7, col: '#ffe35a', d: '강렬한 빛을 터뜨려 주변 적을 오래 기절시킵니다.', p: { times: 1, R: 80, mul: 1.2, stun: 1.8, kb: 100 } }],
+  [6, 'guard', { n: '빛의 방벽', ic: 'shield', mp: 24, cd: 15, col: '#bfe8ff', d: '3초간 빛의 방벽을 두르고 주변 적을 기절시킵니다.', p: { dur: 3, R: 40, mul: 0.5, stun: 0.8 } }]]);
+HSET('creator', [
+  [0, 'ringshot', { n: '룬 화염', ic: 'fireball', mp: 18, cd: 2.5, col: '#ff9a3a', d: '룬의 화염구 5발을 부채꼴로 쏩니다.', p: { n: 5, arc: 0.8, spd: 220, life: 0.9, mul: 1.3, base: 'mag', kind: 'orb', pierce: false } }],
+  [1, 'pulse', { n: '룬 서리', ic: 'ice', mp: 24, cd: 8, col: '#7ad0ff', d: '주변에 룬의 한기를 퍼뜨려 적을 얼려버립니다.', p: { times: 1, R: 75, mul: 1, base: 'mag', frz: 2.5 } }],
+  [3, 'buffself', { n: '룬의 치유', ic: 'heal', mp: 28, cd: 14, col: '#c98aff', d: '체력을 20% 회복하고 마나를 40% 되찾습니다.', p: { heal: 0.2, mp: 0.4 } }],
+  [4, 'blink', { n: '룬 점멸', ic: 'dash', mp: 10, cd: 3, col: '#c98aff', d: '조준한 곳으로 순간이동하며 출발점과 도착점에 룬이 폭발합니다.', p: { dist: 100, R: 40, mul: 1.2, base: 'mag', both: true } }],
+  [5, 'snipe', { n: '룬 광선', ic: 'orb', mp: 22, cd: 5, col: '#c98aff', d: '룬의 광선으로 일직선의 적을 모두 꿰뚫습니다.', p: { len: 280, w: 10, mul: 3, base: 'mag' } }],
+  [6, 'guard', { n: '룬 방벽', ic: 'shield', mp: 24, cd: 15, col: '#7ad0ff', d: '3초간 룬의 방벽을 두르고 주변 적을 얼립니다.', p: { dur: 3, R: 48, mul: 0.8, base: 'mag', frz: 1.5 } }]]);
 const SPJ = {}; for (const id in JOB2) { const L = JOBLOOK[id]; SPJ[id] = [0, 1, 2, 3].map(fr => knightSpr(fr, Object.assign({}, CLS[JOB2[id].cls].pal || {}, L.pal), L.deco)); }
 const curSpr = () => (P.job2 && SPJ[P.job2]) || SPK[P.cls] || SP.knight;
 const awkMod = (code, k) => { if (!SK[code].awk || !P.awk) return 0; const a = P.awk; return ({ dmg: (a >= 3 ? 0.4 : 0) + (a >= 5 ? 0.6 : 0), cd: (a >= 3 ? -0.15 : 0) + (a >= 5 ? -0.15 : 0), aoe: a >= 5 ? 0.3 : 0, mp: a >= 5 ? -0.2 : 0 })[k] || 0; };
@@ -2540,6 +2590,77 @@ const LIB = {
     P.inv = Math.max(P.inv, 0.45); P.face = Math.cos(a + Math.PI) < 0 ? -1 : 1;
     list.forEach(m => { hitMonster(m, pDmg() * 2.0 * sDmg(qq) * dmgMul() * 1.8 * rnd(0.95, 1.05), Math.atan2(m.y - P.y, m.x - P.x), 200, true); if (sm(qq, 'stun')) disable(m, 'stun', 1.2); burst(m.x, m.y - m.cOff, 14, '#d8404f', 110, 0.4); ring(m.x, m.y - m.cOff, '#ff8a96', 24, 0.3); });
     shake = Math.max(shake, 3); sfx(900, 0.12, 'sawtooth', 0.06, -500);
+  },
+  snipe(qq) {
+    const S = SK[qq], p = S.p || {}, rep = p.rep || 1, gap = (p.gap || 0.1) * 1000;
+    const shot = () => {
+      const a = aimAng(), cx = Math.cos(a), cy = Math.sin(a), ox = P.x, oy = P.y - P.cOff, w = p.w || 8, base = p.base === 'mag' ? pBolt() : pDmg(), dmg = base * (p.mul || 2) * sDmg(qq) * dmgMul();
+      let L = p.len || 260; for (let q = 8; q < L; q += 6) if (blocked(ox + cx * q, oy + cy * q + P.cOff, 1, 1)) { L = q; break; }
+      for (const m of monsters) {
+        if (m.dead || m.spawnT > 0) continue; const rx = m.x - ox, ry = (m.y - m.cOff) - oy, t = rx * cx + ry * cy, d = Math.abs(-rx * cy + ry * cx);
+        if (t > -4 && t < L && d < w + m.r) { const crit = Math.random() < critCh(); hitMonster(m, dmg * rnd(0.95, 1.05) * (crit ? 1.8 : 1), a, 160, crit); burst(m.x, m.y - m.cOff, 6, S.col, 70, 0.3); }
+      }
+      hitCagesAt(ox + cx * L * 0.5, oy + cy * L * 0.5, L * 0.5, dmg * 0.5);
+      for (let q = 6; q < L; q += 7) burst(ox + cx * q, oy + cy * q, 1, S.col, 18, 0.28, 2);
+      P.kx -= cx * 16; P.ky -= cy * 16; P.swing = P.swingMax = 0.12; sfx(p.mul > 4 ? 200 : 520, 0.12, 'square', 0.05, -200); shake = Math.max(shake, p.mul > 4 ? 3 : 1);
+    };
+    shot(); for (let k = 1; k < rep; k++) setTimeout(() => { if (state === 'play') shot(); }, k * gap);
+  },
+  ringshot(qq) {
+    const S = SK[qq], p = S.p || {}, cnt = (p.n || 8) + sm(qq, 'n'), rep = p.rep || 1, gap = (p.gap || 0.1) * 1000, full = (p.arc || 0) >= 6;
+    const shot = k => {
+      const a = full ? k * 0.3 : aimAng(), base = p.base === 'mag' ? pBolt() : pDmg();
+      for (let i = 0; i < cnt; i++) {
+        const b = full ? a + i / cnt * 6.283 : a + (i - (cnt - 1) / 2) * (p.arc || 0.5) / Math.max(1, cnt - 1);
+        projs.push({ kind: p.kind || 'arrow', x: P.x + Math.cos(b) * 8, y: P.y - P.cOff + Math.sin(b) * 8, vx: Math.cos(b) * p.spd, vy: Math.sin(b) * p.spd, a: b, dmg: base * p.mul * sDmg(qq) * dmgMul(), life: p.life || 0.6, r: p.kind === 'orb' ? 4 : 3, friendly: true, hit: [], pierce: !!p.pierce });
+      }
+      ring(P.x, P.y - 8, S.col, 22, 0.3); burst(P.x, P.y - 8, 8, S.col, 70, 0.3); sfx(full ? 360 : 480, 0.1, 'triangle', 0.05, -100);
+    };
+    shot(0); for (let k = 1; k < rep; k++) setTimeout(() => { if (state === 'play') shot(k); }, k * gap);
+  },
+  pulse(qq) {
+    const S = SK[qq], p = S.p || {}, T = (p.times || 1) + sm(qq, 'n'), gap = p.gap || 300;
+    const one = () => {
+      const R = (p.R || 60) * (1 + sm(qq, 'aoe')), dmg = (p.base === 'mag' ? pBolt() : pDmg()) * (p.mul || 1) * sDmg(qq) * dmgMul();
+      fxs.push({ k: 'shock', t: 0, d: 0.45, r: R, x: P.x, y: P.y - 4 }); ring(P.x, P.y - 4, S.col, R, 0.4);
+      for (const m of monsters) {
+        if (m.dead || m.spawnT > 0) continue; const dx = m.x - P.x, dy = m.y - P.y, d = Math.hypot(dx, dy);
+        if (d < R + m.r) { const crit = Math.random() < critCh(); hitMonster(m, dmg * (crit ? 1.8 : 1), Math.atan2(dy, dx), p.kb || 200, crit); if (p.stun) disable(m, 'stun', p.stun); if (p.frz) disable(m, 'frz', p.frz); if (p.drain) P.hp = Math.min(P.maxHp, P.hp + dmg * p.drain); }
+      }
+      hitCagesAt(P.x, P.y, R, dmg * 0.8); burst(P.x, P.y - 2, 18, S.col, 110, 0.5, 2); shake = Math.max(shake, p.shk || 3); sfx(120, 0.25, 'sawtooth', 0.07, -60);
+    };
+    one(); for (let k = 1; k < T; k++) setTimeout(() => { if (state === 'play') one(); }, k * gap);
+    if (p.buff) { P.buff = Math.max(P.buff, p.buff * (1 + sm(qq, 'dur'))); addText(P.x, P.y - 30, 'ATK UP', '#ffb36b', 7); }
+  },
+  blink(qq) {
+    const S = SK[qq], p = S.p || {}, a = aimAng() + (p.back ? Math.PI : 0), ox = P.x, oy = P.y; let nx = ox, ny = oy;
+    for (let d = 4; d <= (p.dist || 90); d += 4) { const x = ox + Math.cos(a) * d, y = oy + Math.sin(a) * d; if (blocked(x, y, P.hw, P.hh)) break; nx = x; ny = y; }
+    const boom = (x, y) => {
+      if (!p.R) return; const dmg = (p.base === 'mag' ? pBolt() : pDmg()) * (p.mul || 1) * sDmg(qq) * dmgMul(); ring(x, y - 4, S.col, p.R, 0.35); burst(x, y - 4, 14, S.col, 90, 0.4);
+      for (const m of monsters) { if (m.dead || m.spawnT > 0) continue; const dx = m.x - x, dy = m.y - y; if (Math.hypot(dx, dy) < p.R + m.r) { const crit = Math.random() < critCh(); hitMonster(m, dmg * (crit ? 1.8 : 1), Math.atan2(dy, dx), 200, crit); if (p.stun) disable(m, 'stun', p.stun); } }
+    };
+    fxs.push({ k: 'ghost', x: ox, y: oy, face: P.face, f: 0, t: 0, d: 0.4 }); P.x = nx; P.y = ny; P.inv = Math.max(P.inv, 0.5 + sm(qq, 'inv')); if (p.swift) P.swift = Math.max(P.swift, p.swift);
+    if (p.both) boom(ox, oy); boom(nx, ny); sfx(800, 0.12, 'sawtooth', 0.05, -400);
+  },
+  buffself(qq) {
+    const S = SK[qq], p = S.p || {}, k = 1 + sm(qq, 'dur');
+    if (p.inv) P.inv = Math.max(P.inv, p.inv); if (p.swift) P.swift = Math.max(P.swift, p.swift * k); if (p.buff) P.buff = Math.max(P.buff, p.buff * k); if (p.shield) P.shield = Math.max(P.shield, p.shield * k);
+    if (p.heal) { const h = Math.round(P.maxHp * (p.heal + sm(qq, 'heal'))); P.hp = Math.min(P.maxHp, P.hp + h); addText(P.x, P.y - 28, '+' + h + ' HP', '#6bff8a', 8); }
+    if (p.mp) P.mp = Math.min(P.maxMp, P.mp + P.maxMp * p.mp);
+    ring(P.x, P.y - 6, S.col, 30, 0.5); burst(P.x, P.y - 8, 18, S.col, 90, 0.6); sfx(700, 0.15, 'triangle', 0.05, 300);
+  },
+  guard(qq) {
+    const p = SK[qq].p || {}; P.shield = Math.max(P.shield, (p.dur || 3) * (1 + sm(qq, 'dur'))); LIB.pulse(qq); sfx(220, 0.3, 'triangle', 0.06, 300);
+  },
+  pounce(qq) {
+    const list = monsters.filter(m => !m.dead && m.spawnT <= 0 && Math.hypot(m.x - P.x, m.y - P.y) < 230).sort((x, y) => (y.hp || 0) - (x.hp || 0));
+    if (!list.length) { P.mp += sMp(qq); P.cd[qq] = 0; addText(P.x, P.y - 26, '대상 없음', '#b0a8b4', 7); return; }
+    const t = list[0], a = Math.atan2(t.y - P.y, t.x - P.x);
+    fxs.push({ k: 'ghost', x: P.x, y: P.y, face: P.face, f: 0, t: 0, d: 0.4 }); burst(P.x, P.y - 8, 12, '#7a5ab0', 80, 0.4);
+    for (const dd of [14, 10, 6]) { const nx = t.x + Math.cos(a) * dd, ny = t.y + Math.sin(a) * dd; if (!blocked(nx, ny, P.hw, P.hh)) { P.x = nx; P.y = ny; break; } }
+    P.inv = Math.max(P.inv, 0.7);
+    [0, 130, 260].forEach(dl => setTimeout(() => { if (state !== 'play' || t.dead) return; hitMonster(t, pDmg() * 1.7 * sDmg(qq) * dmgMul() * rnd(0.95, 1.05), a, 100, true); burst(t.x, t.y - t.cOff, 10, '#d8404f', 100, 0.35); sfx(900, 0.08, 'sawtooth', 0.05, -400); }, dl));
+    shake = Math.max(shake, 3);
   },
   runeburst(qq) {
     const sl = (P.rs && P.eq && P.rs[P.eq.weapon]) || [], rs = [];
@@ -3025,7 +3146,7 @@ function projTrail(p) {
 }
 function update(dt) {
   time += dt;
-  for (const k of GBUFFS) if (P[k] > 0) P[k] = Math.max(0, P[k] - dt);
+  for (const k of GBUFFS) if (P[k] > 0) P[k] = Math.max(0, P[k] - dt); if (P.hjCool > 0) P.hjCool -= dt;
   if (state === 'play') { P.chkT = (P.chkT || 0) - dt; if (P.chkT <= 0) { P.chkT = 1; spCheck(); wmCheck(); achTick(); } }
   { const jn = jobNext(); if (jn && P.hp > 0) { P.jobT = (P.jobT == null ? 1.4 : P.jobT) - dt; if (P.jobT <= 0) { openJob(jn); return; } } }
   flowT -= dt;
@@ -3137,6 +3258,15 @@ function txt(s, x, y, col, sz, align = 'center') {
   ctx.fillStyle = col; ctx.fillText(s, Math.round(x), Math.round(y));
 }
 const walkSeq = [1, 0, 3, 0]; const AWKS = {};
+function drawTitle() {
+  const tt = ACH.title && TITLES[ACH.title]; if (!tt) return;
+  ctx.save(); ctx.font = "bold 8px 'Noto Sans KR', 'Silkscreen', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const x = Math.round(P.x), y = Math.round(P.y - 36), w = Math.ceil(ctx.measureText(tt).width) + 8;
+  ctx.fillStyle = 'rgba(10,6,18,.72)'; ctx.fillRect(x - (w >> 1), y - 6, w, 12);
+  ctx.fillStyle = '#ffd24a'; ctx.fillRect(x - (w >> 1), y - 6, w, 1); ctx.fillRect(x - (w >> 1), y + 5, w, 1);
+  ctx.fillStyle = '#000'; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) ctx.fillText(tt, x + dx, y + dy + 0.5);
+  ctx.fillStyle = '#ffe9a0'; ctx.fillText(tt, x, y + 0.5); ctx.restore();
+}
 function drawPlayer() {
   const f = P.moving ? walkSeq[Math.floor(P.anim) % 4] : 0, bob = P.moving ? (f ? -1 : 0) : (Math.floor(P.anim) % 2 ? 1 : 0);
   shadow(P.x, P.y, 6);
@@ -3157,6 +3287,7 @@ function drawPlayer() {
     weapon(ws, P.x, P.y - P.cOff, P.swingAng + dir * (-1.35 + 2.7 * e), 0, ws.ax, ws.ay);
   } else weapon(ws, hx + P.face * 2, hy + 2, P.face > 0 ? 1.15 : Math.PI - 1.15, 0, ws.ax, ws.ay);
   ctx.globalAlpha = 1;
+  drawTitle();
   if (P.parry > 0) { const a = Math.min(1, P.parry) * (0.6 + 0.2 * Math.sin(time * 14)); ctx.globalAlpha = a; ctx.strokeStyle = '#ffd24a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(Math.round(P.x), Math.round(P.y - 9), 11, 13, 0, 0, 6.283); ctx.stroke(); ctx.globalAlpha = 1; }
   if (P.shield > 0) { const a = Math.min(1, P.shield) * (0.55 + 0.15 * Math.sin(time * 10)); ctx.globalAlpha = a * 0.35; ell(ctx, Math.round(P.x), Math.round(P.y - 9), 13, 15, '#9fd8ff'); ctx.globalAlpha = a; ctx.strokeStyle = '#e8ffff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(Math.round(P.x), Math.round(P.y - 9), 13, 15, 0, 0, 6.283); ctx.stroke(); ctx.globalAlpha = 1; }
 }
@@ -3581,7 +3712,7 @@ function refreshSkillUI() {
   for (const k in hc) if (/^sk[lmhnt]/.test(k)) delete hc[k];
 }
 /* ---------- 상태 전환 ---------- */
-const ov = { rune: $('ovRune'), rec: $('ovRec'), enh: $('ovEnh'), inv: $('ovInv'), tree: $('ovTree'), start: $('ovStart'), pause: $('ovPause'), over: $('ovOver'), shop: $('ovShop'), ach: $('ovAch'), pot: $('ovPot'), job: $('ovJob') };
+const ov = { rune: $('ovRune'), rec: $('ovRec'), enh: $('ovEnh'), inv: $('ovInv'), tree: $('ovTree'), start: $('ovStart'), pause: $('ovPause'), over: $('ovOver'), shop: $('ovShop'), ach: $('ovAch'), hj: $('ovHJ'), pot: $('ovPot'), job: $('ovJob') };
 function showOv(k) { for (const n in ov) ov[n].hidden = n !== k; }
 (function clsInit() {
   selCls = 'novice'; setClassSkills('novice');
@@ -3798,7 +3929,7 @@ function doEnhance(id) {
       if (great) say('GREAT SUCCESS', gname(id));
       wmCheck();
       if (id === P.eq.weapon) recalc();
-      if (TRANS[id] && P.enh[id] >= ENH_MAX) { const nid = transcend(id); msg = '★ 초월! ' + GEAR[id].n + ' → ' + GEAR[nid].n + ' (+' + TRANS_START + ' 로 시작)'; cls = 'great'; }
+      if (TRANS[id] && P.enh[id] >= ENH_MAX) { const nid = transcend(id); msg = '★ 초월! ' + GEAR[id].n + ' 이(가) 신화 등급이 되었습니다 (0강으로 시작)'; cls = 'great'; }
     } else {
       for (const k in need) P.mats[k] += Math.floor(need[k] / 2);
       if (l >= 7 && Math.random() < 0.3) { P.enh[id] = l - 1; msg = '강화 실패... 단계가 하락했습니다. +' + l + ' → +' + (l - 1) + ' (재료 절반 반환)'; cls = 'down'; sfx(120, 0.4, 'sawtooth', 0.07, -60); if (id === P.eq.weapon) recalc(); }
@@ -3823,7 +3954,7 @@ function renderEnh() {
   for (const id of ws) {
     const g = GEAR[id], l = enhLv(id), cost = enhCost(id), need = enhMats(id), max = l >= ENH_MAX, on = P.eq.weapon === id;
     const nxt = l ? ' · 현재 공격력 +' + Math.round(l * (2 + g.rar * 0.5)) + ' / 마법 +' + Math.round(l * 3) + '%' : '';
-    box.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: (on ? '[장착 중] ' : '') + (TRANS[id] ? '[+15 달성 시 초월] ' : '') + gearDesc(g) + nxt + ' · 성공 ' + Math.round(enhChance(l) * 100) + '% · 필요: ' + (max ? '-' : matStr(need)),
+    box.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: (on ? '[장착 중] ' : '') + (TRANS[id] ? '[+15 달성 시 신화로 초월 · 0강으로 시작] ' : '') + gearDesc(g) + nxt + ' · 성공 ' + Math.round(enhChance(l) * 100) + '% · 필요: ' + (max ? '-' : matStr(need)),
       btns: [{ t: max ? 'MAX' : '강화 ' + cost + 'G', dis: max || P.gold < cost || !hasMats(need) || enhBusy, fn: () => doEnhance(id) }], re: renderEnh }));
   }
   const cb = $('craftList'); cb.textContent = '';
@@ -4160,6 +4291,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyK' && (state === 'play' || state === 'tree')) { e.preventDefault(); if (!e.repeat) { if (state === 'play') openTree(); else closeTree(); } return; }
   if ((e.code === 'KeyI' || e.code === 'KeyC') && (state === 'play' || state === 'inv')) { e.preventDefault(); if (!e.repeat) { if (state === 'play') openInv(); else closeInv(); } return; }
   if (e.code === 'Enter' && state === 'play' && wave.state === 'clear') { e.preventDefault(); skipFarm(); return; }
+  if (state === 'hj') { e.preventDefault(); if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'KeyY') hjAnswer(true); else if (e.code === 'Escape' || e.code === 'KeyN') hjAnswer(false); return; }
   if (e.code === 'KeyJ' && (state === 'play' || state === 'ach')) { e.preventDefault(); if (!e.repeat) { if (state === 'play') openAch(); else closeAch(); } return; }
   if (state === 'ach') { if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); closeAch(); } return; }
   if (e.code === 'KeyG' && state === 'play') { e.preventDefault(); if (!e.repeat) toggleForm(); return; }
@@ -4295,6 +4427,10 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.60', d: '11/09', t: '칭호 표시와 신화 초월', i: [
+    '장착한 칭호가 캐릭터 머리 위에 또렷한 글씨로 표시됩니다.',
+    '초월이 바뀌었습니다. 전설 무기를 +15까지 강화해 초월하면 이름은 그대로, 등급만 신화가 되고 강화는 0강으로 돌아갑니다. 능력치는 신화 등급에 맞게 올라갑니다. 총 전설 무기(화룡의 화염방사기·폭풍의 전격총·성좌의 유탄포)도 초월할 수 있습니다.',
+  ] },
   { v: '1.59', d: '11/09', t: '숨겨진 보스방', i: [
     '보스방이 처음에는 보이지 않고 벽에 가려져 있다가, 보스가 나오는 웨이브가 되어 보스방으로 이동하면 그때 모습을 드러냅니다.',
     '보스방이 만들어지지 않는 층에서는 지형을 최소한만 지워 벽으로 둘러싼 별도의 보스방을 만듭니다.',
