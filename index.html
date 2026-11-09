@@ -3685,7 +3685,7 @@ function doEnhance(id) {
   }, 650);
 }
 function doCraft(id) {
-  const r = RCP[id]; if (P.owned.includes(id) || P.owned.includes(TRANS[id]) || P.gold < r.gold || !hasMats(r.mats)) return;
+  const r = RCP[id]; if (P.cls === 'gunner' && !wmOn() && !GEAR[id].gun) return; if (P.owned.includes(id) || P.owned.includes(TRANS[id]) || P.gold < r.gold || !hasMats(r.mats)) return;
   P.gold -= r.gold; for (const k in r.mats) P.mats[k] -= r.mats[k]; P.owned.push(id);
   setEnhMsg('제작 성공! ' + GEAR[id].n + ' 을(를) 얻었습니다. 인벤토리(I)에서 장착하세요.', 'great'); say('CRAFTED', GEAR[id].n);
   sfx(660, 0.12, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.15, 'square', 0.05, 200), 90); setTimeout(() => sfx(1320, 0.25, 'square', 0.05, 200), 190); renderEnh();
@@ -3705,7 +3705,8 @@ function renderEnh() {
   }
   const cb = $('craftList'); cb.textContent = '';
   for (const id in RCP) {
-    if (!(GEAR[id].rar === 6 || wmOn()) && !!GEAR[id].gun !== (P.cls === 'gunner')) continue;
+    if (P.cls === 'gunner' && !wmOn() && !GEAR[id].gun) continue;
+      if (!(GEAR[id].rar === 6 || wmOn()) && !!GEAR[id].gun !== (P.cls === 'gunner')) continue;
     const g = GEAR[id], r = RCP[id], own = P.owned.includes(id) || P.owned.includes(TRANS[id]);
     cb.appendChild(card({ pic: gearIcon(id), name: g.n, rar: g.rar, desc: gearDesc(g) + ' · 재료: ' + matStr(r.mats),
       btns: [{ t: own ? '제작 완료' : '제작 ' + r.gold + 'G', dis: own || P.gold < r.gold || !hasMats(r.mats), fn: () => doCraft(id) }], re: renderEnh }));
@@ -3773,6 +3774,8 @@ const GSHOP = [
   { id: 'bgold', n: '골드 2배 (5분)', gem: 30, d: '5분 동안 얻는 골드가 2배가 됩니다.' },
   { id: 'bcrt', n: '치명타 확률 +25% (5분)', gem: 35, d: '5분 동안 치명타 확률이 25%p 늘어납니다.' },
   { id: 'heal', n: '완전 회복', gem: 15, d: '체력과 마나를 즉시 모두 회복합니다.' },
+  { id: 'boxL', n: '하급 무기상자', gem: 25, d: '열면 무기가 하나 나옵니다. 일반 55% · 고급 30% · 희귀 15%. 이미 가진 무기가 나오면 골드로 바뀝니다.' },
+  { id: 'boxH', n: '고급 무기상자', gem: 80, d: '열면 무기가 하나 나옵니다. 희귀 30% · 영웅 40% · 전설 25% · 초월 5%. 이미 가진 무기가 나오면 골드로 바뀝니다.' },
   { id: 'cd', n: '재사용 대기 초기화', gem: 20, d: '모든 스킬의 재사용 대기시간을 즉시 없앱니다.' },
 ];
 const GEMSPR = mk(10, 10, g => { for (let y = 0; y < 9; y++) { const hw = y < 4 ? y : 8 - y; rect(g, '#0a6a4a', 5 - hw - 1, 1 + y, hw * 2 + 2, 1); rect(g, '#3affb0', 5 - hw, 1 + y, hw * 2, 1); } rect(g, '#d8fff0', 4, 3, 1, 2); });
@@ -3807,8 +3810,26 @@ function renderAch() {
   });
   ov.ach.scrollTop = keep;
 }
+function boxOpen(tier) {
+  const W = tier === 'boxH' ? [[2, 30], [3, 40], [4, 25], [5, 5]] : [[0, 55], [1, 30], [2, 15]];
+  let r = Math.random() * 100, rar = W[0][0]; for (const [q, w] of W) { if (r < w) { rar = q; break; } r -= w; rar = q; }
+  const all = Object.values(GEAR).filter(g => g.slot === 'weapon' && !g.craft && !g.job && g.cost > 0 && wokPool(g));
+  let pool = all.filter(g => g.rar === rar);
+  for (let d = 1; !pool.length && d < 7; d++) pool = all.filter(g => g.rar === rar - d || g.rar === rar + d);
+  if (!pool.length) return null;
+  const fresh = pool.filter(g => !P.owned.includes(g.id)), g = (fresh.length ? fresh : pool)[(Math.random() * (fresh.length ? fresh.length : pool.length)) | 0];
+  return g;
+}
 function gemBuy(it) {
-  if (ACH.gems < it.gem) return; ACH.gems -= it.gem;
+  if (ACH.gems < it.gem) return;
+  if (it.id === 'boxL' || it.id === 'boxH') {
+    const g = boxOpen(it.id); if (!g) { achMsg('지금은 열 수 있는 무기가 없습니다.', 'bad'); return; }
+    ACH.gems -= it.gem;
+    if (P.owned.includes(g.id)) { const gd = Math.max(20, Math.round(g.cost * 0.5)); P.gold += gd; achMsg('[' + RAR[g.rar].n + '] ' + g.n + ' — 이미 가진 무기라 ' + gd + ' 골드로 바뀌었습니다.', ''); }
+    else { P.owned.push(g.id); achMsg('상자에서 [' + RAR[g.rar].n + '] ' + g.n + ' 을(를) 얻었습니다! (인벤토리에서 장착)', 'ok'); }
+    sfx(700, 0.2, 'square', 0.05, 400); achSave(); renderAch(); return;
+  }
+  ACH.gems -= it.gem;
   if (GBUFFS.includes(it.id)) { P[it.id] = (P[it.id] || 0) + 300; achMsg(it.n + ' 효과가 적용되었습니다.', 'ok'); }
   else if (it.id === 'heal') { P.hp = P.maxHp; P.mp = P.maxMp; achMsg('체력과 마나를 모두 회복했습니다.', 'ok'); }
   else if (it.id === 'cd') { for (const k in P.cd) P.cd[k] = 0; achMsg('모든 스킬의 재사용 대기시간이 초기화되었습니다.', 'ok'); }
@@ -4152,6 +4173,7 @@ const PATCHES = [
   { v: '1.54', d: '11/08', t: '업적 · 칭호 · 보석 상점', i: [
     'J키(또는 상단 \'업적\' 버튼)로 업적 창을 엽니다. 몬스터 500~3000마리 처치(6단계), 보스 10~30마리 처치(5단계), 신화 무기 7~10종 수집(4단계) 업적이 있습니다.',
     '업적을 달성하면 칭호와 보석을 받습니다. 칭호는 업적 창에서 골라 장착하면 화면 상단에 표시됩니다. 업적 기록과 보석은 새 게임을 시작해도 유지됩니다.',
+    '보석으로 하급/고급 무기상자를 살 수 있습니다. 무기는 랜덤으로 나옵니다.',
     '특수 보석 상점에서 보석으로 5분짜리 효과를 살 수 있습니다: 경험치 2배 · 공격력 1.5배 · 받는 피해 30% 감소 · 골드 2배 · 치명타 확률 +25%. 완전 회복과 스킬 재사용 초기화도 살 수 있습니다.',
   ] },
   { v: '1.53', d: '11/08', t: '천공의 파편 활용과 천공 습격', i: [
