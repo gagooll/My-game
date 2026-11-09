@@ -786,6 +786,91 @@ function demonSpr(f) {
     rect(g, O, 18, 17, 8, 2); rect(g, '#fff4d8', 19, 17, 1, 2); rect(g, '#fff4d8', 24, 17, 1, 2);
   });
 }
+
+const poly = (g, c, pts) => { g.fillStyle = c; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill(); };
+function lichSpr(f) {
+  const O = '#0c1226', R = '#27479a', R2 = '#172a66', R3 = '#4b8cf2', Bn = '#e8ecf8', G = '#7affd8', b = f % 2;
+  return mk(44, 48, g => {
+    oell(g, 22, 35, 15, 11, R2, O); rect(g, R, 10, 38, 24, 5, R); for (let i = 0; i < 6; i++) rect(g, O, 9 + i * 5, 44, 3, 2 + ((f + i) % 2));
+    oell(g, 22, 26 - b, 9, 11, R, O); ell(g, 22, 28 - b, 5, 6, R3);
+    rr(g, 7, 24 - b, 5, 13, R, O); rr(g, 32, 24 - b, 5, 13, R, O); rect(g, Bn, 7, 37 - b, 5, 3); rect(g, Bn, 32, 37 - b, 5, 3);
+    ell(g, 39, 31 - b - (f === 2 ? 2 : 0), 4, 4, '#1fa88a'); ell(g, 39, 31 - b - (f === 2 ? 2 : 0), 3, 3, G); rect(g, '#fff', 38, 30 - b, 1, 1);
+    oell(g, 22, 12 - b, 9, 9, R2, O); ell(g, 22, 14 - b, 6, 6, Bn);
+    rect(g, O, 18, 12 - b, 3, 4); rect(g, O, 24, 12 - b, 3, 4); rect(g, G, 19, 13 - b, 1, 2); rect(g, G, 25, 13 - b, 1, 2); rect(g, O, 21, 16 - b, 2, 2);
+    rect(g, O, 18, 19 - b, 9, 1); for (let x = 19; x < 27; x += 2) rect(g, O, x, 18 - b, 1, 2);
+    for (const x of [14, 19, 24, 29]) { poly(g, '#ffd24a', [[x, 5 - b], [x + 1, -0.5 - b + (x === 19 || x === 24 ? 0 : 2)], [x + 3, 5 - b]]); }
+  });
+}
+function runekeeperSpr(f) {
+  const O = '#150b22', S = '#6a5f86', S2 = '#4b4266', S3 = '#9a8cc0', P = '#d79bff', b = f % 2;
+  return mk(44, 48, g => {
+    rr(g, 11, 38, 8, 8, S2, O); rr(g, 25, 38, 8, 8, S2, O);
+    rr(g, 10, 19 - b, 24, 20, S, O); rect(g, S3, 11, 20 - b, 22, 2); rect(g, S2, 11, 34 - b, 22, 3);
+    rr(g, 2, 17 - b, 10, 11, S2, O); rr(g, 32, 17 - b, 10, 11, S2, O); rr(g, 3, 29 - b, 7, 13, S, O); rr(g, 34, 29 - b, 7, 13, S, O);
+    rect(g, S3, 3, 17 - b, 10, 2); rect(g, S3, 32, 17 - b, 10, 2);
+    rr(g, 15, 5 - b, 14, 13, S, O); rect(g, S3, 16, 6 - b, 12, 2); rect(g, O, 17, 11 - b, 10, 3); rect(g, P, 18, 12 - b, 3, 1); rect(g, P, 23, 12 - b, 3, 1);
+    for (const [x, y] of [[16, 25], [26, 25], [20, 30]]) { rect(g, P, x, y - b, 1, 4); rect(g, P, x - 1, y + 1 - b, 3, 1); }
+    const ang = f * Math.PI / 2; for (let i = 0; i < 3; i++) { const a = ang + i * 2.094, x = 22 + Math.cos(a) * 19, y = 20 + Math.sin(a) * 6; poly(g, '#150b22', [[x, y - 4], [x + 3, y], [x, y + 4], [x - 3, y]]); poly(g, P, [[x, y - 3], [x + 2, y], [x, y + 3], [x - 2, y]]); rect(g, '#fff', x, y - 1, 1, 1); }
+  });
+}
+function skylordSpr(f) {
+  const O = '#0f2038', W = '#eaf6ff', W2 = '#a8d4f4', A = '#3a78c8', A2 = '#27508c', Gd = '#ffd24a', b = f % 2, fl = [0, -2, 0, 2][f];
+  return mk(44, 48, g => {
+    for (const sx of [1, -1]) { const cx = 22 + sx * 13; ell(g, cx, 17 + fl, 8, 14, O); ell(g, cx, 17 + fl, 7, 13, W); for (let i = 0; i < 4; i++) { rect(g, W2, cx - 6 + i * 3 + (sx > 0 ? 3 : -3), 8 + fl + i, 1, 16 - i * 2); } poly(g, W2, [[22 + sx * 8, 9 + fl], [22 + sx * 20, 4 + fl], [22 + sx * 16, 15 + fl]]); }
+    rr(g, 15, 38, 5, 7, A2, O); rr(g, 24, 38, 5, 7, A2, O); rect(g, Gd, 15, 44, 5, 2); rect(g, Gd, 24, 44, 5, 2);
+    oell(g, 22, 28 - b, 9, 11, A, O); ell(g, 22, 30 - b, 5, 7, '#8ad8ff'); rect(g, Gd, 17, 24 - b, 10, 2); rect(g, Gd, 21, 24 - b, 2, 10);
+    rr(g, 10, 22 - b, 4, 10, A2, O); rr(g, 30, 22 - b, 4, 10, A2, O); rect(g, W, 10, 32 - b, 4, 3); rect(g, W, 30, 32 - b, 4, 3);
+    oell(g, 22, 14 - b, 7, 7, W, O); rect(g, '#ffe35a', 17, 13 - b, 4, 2); rect(g, '#ffe35a', 24, 13 - b, 4, 2); rect(g, O, 19, 13 - b, 1, 2); rect(g, O, 26, 13 - b, 1, 2); rect(g, A, 16, 9 - b, 12, 2);
+    g.globalCompositeOperation = 'source-over'; ell(g, 22, 3, 9, 2, O); ell(g, 22, 3, 8, 1, Gd); rect(g, '#fff8c0', 17, 3, 3, 1);
+  });
+}
+function frostlordSpr(f) {
+  const O = '#0a2a3c', I1 = '#8fe6ff', I2 = '#4cb8e8', I3 = '#e8fbff', I4 = '#2a7ab0', b = f % 2;
+  return mk(44, 48, g => {
+    poly(g, O, [[10, 46], [14, 36], [20, 38], [19, 47]]); poly(g, I2, [[11, 45], [14, 37], [19, 39], [18, 46]]); poly(g, O, [[34, 46], [30, 36], [24, 38], [25, 47]]); poly(g, I2, [[33, 45], [30, 37], [25, 39], [26, 46]]);
+    poly(g, O, [[22, 17 - b], [34, 24 - b], [32, 40], [22, 43], [12, 40], [10, 24 - b]]); poly(g, I2, [[22, 19 - b], [32, 25 - b], [30, 39], [22, 41], [14, 39], [12, 25 - b]]);
+    poly(g, I1, [[22, 19 - b], [32, 25 - b], [22, 30]]); poly(g, I3, [[22, 21 - b], [27, 25 - b], [22, 28]]); poly(g, '#ffe35a', [[22, 29], [25, 33], [22, 37], [19, 33]]); rect(g, '#fff', 22, 32, 1, 2);
+    poly(g, O, [[2, 14 - b], [10, 22 - b], [8, 33], [3, 28]]); poly(g, I1, [[3, 16 - b], [9, 23 - b], [7, 31], [4, 27]]); poly(g, O, [[42, 14 - b], [34, 22 - b], [36, 33], [41, 28]]); poly(g, I1, [[41, 16 - b], [35, 23 - b], [37, 31], [40, 27]]);
+    poly(g, O, [[8, 33], [3, 40], [10, 38]]); poly(g, I3, [[8, 34], [5, 39], [9, 37]]); poly(g, O, [[36, 33], [41, 40], [34, 38]]); poly(g, I3, [[36, 34], [39, 39], [35, 37]]);
+    poly(g, O, [[15, 13 - b], [29, 13 - b], [27, 22 - b], [17, 22 - b]]); poly(g, I3, [[16, 14 - b], [28, 14 - b], [26, 21 - b], [18, 21 - b]]);
+    rect(g, '#1b6aa0', 18, 16 - b, 3, 2); rect(g, '#1b6aa0', 24, 16 - b, 3, 2); rect(g, '#ffffff', 19, 16 - b, 1, 1);
+    for (const [x, h] of [[13, 9], [17, 14], [22, 17], [27, 14], [31, 9]]) { poly(g, O, [[x - 2, 13 - b], [x, 13 - h - b], [x + 3, 13 - b]]); poly(g, I1, [[x - 1, 13 - b], [x, 14 - h - b], [x + 2, 13 - b]]); }
+  });
+}
+function infernalSpr(f) {
+  const O = '#2a0a06', B = '#9a2410', B2 = '#6a1408', B3 = '#d8481a', Fi = '#ff8a1a', Fy = '#ffe35a', H = '#f0dca0', b = f % 2, fk = [0, 2, 0, -2][f];
+  return mk(44, 48, g => {
+    rr(g, 12, 37, 7, 9, B2, O); rr(g, 25, 37, 7, 9, B2, O); rect(g, O, 11, 45, 9, 2); rect(g, O, 24, 45, 9, 2);
+    oell(g, 22, 27 - b, 11, 12, B, O); ell(g, 22, 30 - b, 7, 8, B3); for (let i = 0; i < 4; i++) rect(g, Fi, 17 + i * 3, 25 - b + (i % 2) * 3, 2, 2);
+    rr(g, 5, 18 - b, 7, 14, B, O); rr(g, 32, 18 - b, 7, 14, B, O); for (const x of [4, 8, 33, 37]) poly(g, Fy, [[x, 33 - b], [x + 2, 33 - b], [x + 1, 38 - b + fk]]);
+    for (const sx of [1, -1]) { const bx = 22 + sx * 5; poly(g, O, [[bx, 8 - b], [22 + sx * 15, 6 - b], [22 + sx * 17, -1 - b], [22 + sx * 12, 3 - b], [22 + sx * 8, 3 - b]]); poly(g, H, [[bx + sx, 7 - b], [22 + sx * 14, 5.5 - b], [22 + sx * 16, 0 - b], [22 + sx * 12, 4 - b]]); }
+    oell(g, 22, 13 - b, 8, 7, B, O); rect(g, Fy, 16, 12 - b, 4, 2); rect(g, Fy, 24, 12 - b, 4, 2); rect(g, O, 18, 12 - b, 1, 2); rect(g, O, 26, 12 - b, 1, 2);
+    rect(g, O, 17, 17 - b, 10, 3); for (let x = 18; x < 27; x += 3) rect(g, H, x, 17 - b, 1, 2);
+    for (const [x, h] of [[16, 8], [19, 12], [22, 15], [25, 12], [28, 8]]) { poly(g, Fi, [[x - 2, 7 - b], [x + fk * 0.3, 7 - h - b], [x + 3, 7 - b]]); poly(g, Fy, [[x - 1, 7 - b], [x + fk * 0.3, 8 - h + 3 - b], [x + 2, 7 - b]]); }
+  });
+}
+function abyssalSpr(f) {
+  const O = '#12082a', V = '#3a1a6a', V2 = '#2a1250', V3 = '#6a3ab0', E = '#e8dcff', Ir = '#b04aff';
+  return mk(44, 48, g => {
+    for (let i = 0; i < 7; i++) { const x = 6 + i * 5.4, ph = f * 1.57 + i * 1.1; for (let y = 28; y < 47; y++) { const t = (y - 28) / 19, ox = Math.sin(ph + t * 3.2) * (1 + t * 3); rect(g, O, Math.round(x + ox) - 2, y, 5, 1); } for (let y = 28; y < 46; y++) { const t = (y - 28) / 19, ox = Math.sin(ph + t * 3.2) * (1 + t * 3); rect(g, i % 2 ? V : V3, Math.round(x + ox) - 1, y, 3, 1); } }
+    oell(g, 22, 22, 17, 17, V2, O); ell(g, 22, 22, 15, 15, V); ell(g, 22, 18, 11, 8, V3);
+    ell(g, 22, 22, 11, 9, O); ell(g, 22, 22, 10, 8, E); ell(g, 22 + [0, 2, 0, -2][f], 22, 5, 6, Ir); ell(g, 22 + [0, 2, 0, -2][f], 22, 2, 5, O); rect(g, '#fff', 20 + [0, 2, 0, -2][f], 19, 2, 2);
+    for (const [x, y, r] of [[8, 15, 2], [36, 14, 2], [6, 25, 1], [38, 26, 1], [13, 8, 1], [31, 7, 1]]) { ell(g, x, y, r + 1, r + 1, O); ell(g, x, y, r, r, E); rect(g, Ir, x, y, 1, 1); }
+    for (const x of [12, 17, 22, 27, 32]) { rect(g, O, x, 4, 1, 3); poly(g, V3, [[x - 1, 6], [x, 2 - (x === 22 ? 2 : 0)], [x + 2, 6]]); }
+  });
+}
+function titanSpr(f) {
+  const O = '#1c1408', R = '#8a7a5c', R2 = '#5e5038', R3 = '#b8a888', M = '#4a7a2a', b = f % 2;
+  return mk(44, 48, g => {
+    rr(g, 8, 33, 12, 13, R2, O); rr(g, 24, 33, 12, 13, R2, O); rect(g, R3, 9, 34, 10, 2); rect(g, R3, 25, 34, 10, 2); rect(g, O, 7, 45, 14, 2); rect(g, O, 23, 45, 14, 2);
+    oell(g, 22, 25 - b, 16, 13, R, O); ell(g, 22, 27 - b, 12, 8, R2); ell(g, 18, 20 - b, 6, 3, R3); ell(g, 28, 30 - b, 4, 2, R3);
+    for (const [x, y] of [[14, 24], [26, 22], [20, 30], [30, 28]]) { rect(g, O, x, y - b, 4, 1); rect(g, O, x + 1, y + 1 - b, 1, 3); }
+    for (const [x, y, w] of [[12, 15, 6], [24, 14, 8], [30, 17, 5]]) { rect(g, M, x, y - b, w, 2); rect(g, '#6aa83a', x + 1, y - b, w - 3, 1); }
+    oell(g, 5, 28 - b + (f === 2 ? 2 : 0), 6, 9, R, O); oell(g, 39, 28 - b + (f === 0 ? 2 : 0), 6, 9, R, O); oell(g, 5, 38 - b, 6, 6, R2, O); oell(g, 39, 38 - b, 6, 6, R2, O); ell(g, 4, 36 - b, 3, 2, R3); ell(g, 38, 36 - b, 3, 2, R3);
+    rr(g, 16, 7 - b, 12, 10, R, O); rect(g, R3, 17, 8 - b, 10, 2); rect(g, O, 17, 11 - b, 10, 3); rect(g, '#ffb030', 18, 12 - b, 3, 1); rect(g, '#ffb030', 23, 12 - b, 3, 1); rect(g, M, 16, 6 - b, 5, 2);
+    poly(g, O, [[16, 8 - b], [13, 3 - b], [19, 7 - b]]); poly(g, R2, [[16, 8 - b], [14, 4 - b], [18, 7 - b]]); poly(g, O, [[28, 8 - b], [31, 3 - b], [25, 7 - b]]); poly(g, R2, [[28, 8 - b], [30, 4 - b], [26, 7 - b]]);
+  });
+}
 const swordSpr = (blade, edge, guard, len = 13) => mk(5 + len, 5, g => {
   rect(g, '#6b4a2a', 0, 2, 3, 1); rect(g, guard, 3, 0, 1, 5);
   rect(g, blade, 4, 2, len, 1); rect(g, edge, 4, 3, len - 1, 1); rect(g, blade, 4 + len, 2, 1, 1);
@@ -844,8 +929,8 @@ const MAT_DROP = { slime: ['jelly'], bomber: ['jelly'], king: ['jelly', 'jelly',
 SP.bat = [0, 1].map(batSpr);
 SP.archer = SP.skeleton.map(f => shadeOf(f, '#3a8ad8', 0.5)); SP.mage = SP.skeleton.map(f => shadeOf(f, '#b06bff', 0.6));
 SP.bomber = SP.slime.map(f => shadeOf(f, '#ff6a1a', 0.65)); SP.king = SP.slime.map(f => shadeOf(f, '#e0c030', 0.4));
-SP.brute = SP.orc.map(f => shadeOf(f, '#d8404f', 0.42)); SP.lich = SP.demon.map(f => shadeOf(f, '#4b8cf2', 0.5)); SP.runekeeper = SP.demon.map(f => shadeOf(f, '#c98aff', 0.6)); MAT_DROP.runekeeper = MAT_DROP.demon;
-SP.skylord = SP.demon.map(f => shadeOf(f, '#8ad8ff', 0.6)); SP.frostlord = SP.demon.map(f => shadeOf(f, '#e0f6ff', 0.55)); SP.infernal = SP.demon.map(f => shadeOf(f, '#ff7a1a', 0.6)); SP.abyssal = SP.demon.map(f => shadeOf(f, '#3a1a6a', 0.7)); SP.titan = SP.demon.map(f => shadeOf(f, '#9a7a40', 0.55));
+SP.brute = SP.orc.map(f => shadeOf(f, '#d8404f', 0.42)); SP.lich = [0, 1, 2, 3].map(lichSpr); SP.runekeeper = [0, 1, 2, 3].map(runekeeperSpr); MAT_DROP.runekeeper = MAT_DROP.demon;
+SP.skylord = [0, 1, 2, 3].map(skylordSpr); SP.frostlord = [0, 1, 2, 3].map(frostlordSpr); SP.infernal = [0, 1, 2, 3].map(infernalSpr); SP.abyssal = [0, 1, 2, 3].map(abyssalSpr); SP.titan = [0, 1, 2, 3].map(titanSpr);
 for (const k of ['skylord', 'frostlord', 'infernal', 'abyssal', 'titan']) MAT_DROP[k] = MAT_DROP.demon;
 const CHEST_PAL = [['#6a4126', '#8a5a36', '#b89a62'], ['#56607a', '#a8b4cc', '#e8f0ff'], ['#a8782a', '#e0b040', '#fff2b0']];
 const chestSpr = (open, tier) => mk(16, 14, g => {
@@ -1121,6 +1206,21 @@ function carveArena() {
     arena = { x: x0, y: y0, w, h, cx: x0 + (w >> 1), cy: y0 + (h >> 1) - 1, seen: false }; fl.boss = [arena.cx, arena.cy];
     return;
   }
+  // 빈 벽 공간이 없으면: 기존 지형과 맞닿는 곳에 보스방을 강제로 뚫는다
+  const w = 11, h = 7, cand = [];
+  for (let y0 = 3; y0 + h < MH - 3; y0++) for (let x0 = 3; x0 + w < MW - 3; x0++) {
+    let touch = 0;
+    for (let x = x0 - 1; x <= x0 + w; x++) { if (map[y0 - 1][x] !== '#') touch++; if (map[y0 + h][x] !== '#') touch++; }
+    for (let y = y0; y < y0 + h; y++) { if (map[y][x0 - 1] !== '#') touch++; if (map[y][x0 + w] !== '#') touch++; }
+    if (touch > 0) cand.push([x0, y0, touch]);
+  }
+  if (!cand.length) return;
+  cand.sort((p, q) => q[2] - p[2]); const top = cand.slice(0, Math.max(1, Math.min(12, cand.length >> 2)));
+  const [x0, y0] = top[Math.floor(rng() * top.length)];
+  carveRaw(x0, y0, x0 + w - 1, y0 + h - 1);
+  putRaw('p', [[x0 + 2, y0 + 2], [x0 + w - 3, y0 + 2], [x0 + 2, y0 + h - 3], [x0 + w - 3, y0 + h - 3]]);
+  putRaw('S', [[x0 + (w >> 1) - 3, y0 + 1], [x0 + (w >> 1) + 3, y0 + 1]]);
+  arena = { x: x0, y: y0, w, h, cx: x0 + (w >> 1), cy: y0 + (h >> 1) - 1, seen: false }; fl.boss = [arena.cx, arena.cy];
 }
 let vault = null, vaultFail = -1;
 const isMageLine = () => P.cls === 'mage';
@@ -1464,6 +1564,8 @@ const RECIPES = [
 const RCP = {};
 RECIPES.forEach(([id, n, rar, cost, type, atk, o, mats, gold]) => { GEAR[id] = Object.assign({ id, slot: 'weapon', n, rar, cost, type, atk, craft: true }, o); RCP[id] = { mats, gold }; });
 for (const id in RCP) if (GEAR[id].rar === 6) RCP[id].mats = Object.assign({}, RCP[id].mats, { skyshard: 4 });
+const SHOPMY = ['mx18', 'mx19', 'mx20', 'mx21', 'mx22'];
+SHOPMY.forEach(id => { delete RCP[id]; GEAR[id].cost = Math.round(GEAR[id].cost * 1.3 / 100) * 100; });
 const CONS = [
   { k: 'hp', n: '체력 물약', desc: '체력 40% 회복 (최소 40)', cost: 40, rar: 0 },
   { k: 'mp', n: '마나 물약', desc: '마나 60% 회복', cost: 30, rar: 0 },
@@ -1802,7 +1904,7 @@ function hurtPlayer(d, sx, sy, kb) {
 }
 
 /* ---------- 전직 ---------- */
-const WM_IDS = Object.keys(RCP).filter(id => GEAR[id].rar === 6 && id !== 'mx6');
+const WM_IDS = Object.keys(GEAR).filter(id => /^mx\d+$/.test(id) && id !== 'mx6');
 const wmOn = () => P.job2 === 'weaponmaster';
 const wokPool = g => (!g.gun || P.cls === 'gunner' || wmOn()) && (P.cls !== 'gunner' || wmOn() || g.slot !== 'weapon' || g.gun);
 const jobElig = () => (P.cls === 'novice' ? (P.asc ? 0 : P.lvl >= 5 ? 1 : 0) : (!P.job2 && P.lvl >= 25 ? 2 : 0));
@@ -3621,13 +3723,14 @@ function genStock() {
     }
   };
   addG('weapon', 4); addG('armor', 3); addG('ring', 2);
+  { const my = SHOPMY.filter(id => !P.owned.includes(id) && wokPool(GEAR[id])); for (let i = 0; i < 2 && my.length; i++) { const id = my.splice((Math.random() * my.length) | 0, 1)[0]; stock.push({ kind: 'gear', id, price: GEAR[id].cost, qty: 1, myth: true }); } }
   const base = wpick(CONS.filter(c => c.rar === 0), () => 1); taken.add(base.k);
   stock.push({ kind: 'pot', id: base.k, price: Math.round(base.cost * rnd(0.9, 1.15)), qty: rint(2, 5) });
   for (let i = 0; i < 3; i++) {
     const pool = CONS.filter(c => !taken.has(c.k) && rw[c.rar] > 0); if (!pool.length) break; const c = wpick(pool, x => rw[x.rar]); taken.add(c.k);
     stock.push({ kind: 'pot', id: c.k, price: Math.round(c.cost * rnd(0.9, 1.15)), qty: rint(2, 5) });
   }
-  const gs = stock.filter(x => x.kind === 'gear'); if (gs.length) { const sp = gs[(Math.random() * gs.length) | 0]; sp.sale = true; sp.price = Math.round(sp.price * 0.65 / 5) * 5; }
+  const gs = stock.filter(x => x.kind === 'gear' && !x.myth); if (gs.length) { const sp = gs[(Math.random() * gs.length) | 0]; sp.sale = true; sp.price = Math.round(sp.price * 0.65 / 5) * 5; }
 }
 const sellVal = g => Math.round(g.cost * 0.45);
 function equip(id) { const g = GEAR[id], bad = t => { say(t[0], t[1]); sfx(140, 0.15, 'square', 0.05, -60); }; if (g.slot === 'weapon' && !wmOn()) { if (g.gun && P.cls !== 'gunner') return bad(['거너 전용', '총은 거너만 사용할 수 있습니다']); if (P.cls === 'gunner' && !g.gun) return bad(['거너 전용 제한', '거너는 총만 장착할 수 있습니다']); } if (g.job && P.job2 !== g.job) return bad(['전용 무기', JOB2[g.job].n + ' 전용 무기입니다']); P.eq[g.slot] = id; recalc(); }
@@ -4182,8 +4285,15 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.58', d: '11/09', t: '보스 모양 개편', i: [
+    '보스마다 완전히 다른 모습이 되었습니다: 악마 군주(날개 달린 악마) · 죽음의 군주(왕관 쓴 해골 리치) · 룬의 수호자(룬이 떠도는 석상) · 천공의 군주(날개와 후광의 천사) · 서리 군주(얼음 결정 거인) · 염옥의 군주(불타는 뿔 마수) · 심연의 군주(촉수 달린 거대한 눈) · 대지의 거신(이끼 낀 바위 거인).',
+  ] },
+  { v: '1.57', d: '11/09', t: '보스방 수정', i: [
+    '일부 층에서 보스방이 만들어지지 않아 보스가 아무 곳에나 나오던 문제를 고쳤습니다. 이제 모든 층에 보스방이 생기고 보스는 항상 보스방에 나옵니다.',
+  ] },
   { v: '1.56', d: '11/09', t: '신화 무기 추가', i: [
     '총이 아닌 신화 무기 5종이 추가되었습니다: 심판의 대검 저지먼트 · 대지 분쇄자 가이아 · 심연의 송곳니 어비스 · 별의 지팡이 아스트로 · 폭풍의 장궁 템페스트. 이제 총이 아닌 신화 무기는 모두 10종입니다.',
+    '총이 아닌 신화 무기 10종 중 5종(기존 5종)은 제작으로, 5종(새로 추가된 5종)은 상점에서 골드로 살 수 있습니다. 상점에는 방문할 때마다 이 중 최대 2종이 나오며, 재고 새로고침으로 바뀝니다.',
   ] },
   { v: '1.55', d: '11/09', t: '거너 무기 제작', i: [
     '거너도 무기 제작에서 일반부터 전설 등급까지 총을 만들 수 있습니다. 새 총 12종이 추가되었습니다 (권총·소총·산탄총·기관단총·저격총·기관총·핸드캐논·레일건·로켓포·화염방사기·전격총·유탄포). 신화 총은 기존대로 제작할 수 있습니다.',
