@@ -1123,7 +1123,7 @@ function carveArena() {
   }
 }
 let vault = null, vaultFail = -1;
-const isMageLine = () => P.cls === 'mage' || (P.cls === 'novice' && !!P.asc && P.asc.some(x => x && (String(x).startsWith('mage:') || (JOB2[String(x).split(':')[0]] && JOB2[String(x).split(':')[0]].cls === 'mage' && !JOB2[String(x).split(':')[0]].hidden))));
+const isMageLine = () => P.cls === 'mage';
 const lairOk = () => !P.runeLord && isMageLine() && (P.fuseN || 0) >= 10 && (P.runes || []).filter(q => q.r === 5).length >= 3;
 function tryVault() {
   if (vault || vaultFail === floorNum || !secrets.length || !lairOk()) return;
