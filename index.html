@@ -491,11 +491,12 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
 <div class="shopov" id="ovAch" hidden role="dialog" aria-label="업적과 보석 상점">
   <div class="shopwrap">
     <div class="shophead">
-      <div><h2>ACHIEVEMENTS</h2><p>업적을 달성하면 칭호와 보석을 받습니다. 보석으로 특수 보석 상점에서 이로운 효과를 살 수 있습니다. 시간이 멈춥니다.</p></div>
+      <div><h2>ACHIEVEMENTS</h2><p>매일 바뀌는 퀘스트와 업적을 달성하면 칭호·보석·골드를 받습니다. 보석으로 특수 보석 상점에서 이로운 효과를 살 수 있습니다. 시간이 멈춥니다.</p></div>
       <div class="purse"><small>GEMS</small><span id="achGems">0</span></div>
     </div>
     <div class="enhmsg" id="achMsg" role="status" aria-live="polite">칭호를 고르거나 보석 상점에서 효과를 구매하세요.</div>
-    <section class="shopsec"><h3>TITLE 칭호 (업적 달성 시 획득)</h3><div class="potrow" id="achTitles"></div></section>
+    <section class="shopsec"><h3 id="dqHead">DAILY QUEST 오늘의 퀘스트</h3><div class="goods" id="achDaily"></div></section>
+    <section class="shopsec"><h3>TITLE 칭호 (업적·퀘스트 보상)</h3><div class="potrow" id="achTitles"></div></section>
     <section class="shopsec"><h3>GEM SHOP 특수 보석 상점</h3><div class="goods" id="achShop"></div></section>
     <section class="shopsec"><h3>ACHIEVEMENTS 업적</h3><div class="goods" id="achList"></div></section>
     <div class="shopfoot"><button class="btn" id="achClose" type="button">닫기 (J)</button></div>
@@ -2831,7 +2832,7 @@ function castSkill(code) {
   if (s.fn === 'heal' && P.hp >= P.maxHp) { if (P.nmT <= 0) { P.nmT = 0.4; addText(P.x, P.y - 26, 'HP FULL', '#b0a8b4', 7); } return; }
   const mp = sMp(code);
   if (P.mp < mp) { if (P.nmT <= 0) { P.nmT = 0.4; addText(P.x, P.y - 26, 'NO MANA', '#7aa6ff', 7); sfx(120, 0.1, 'square', 0.04); } return; }
-  P.mp -= mp; P.cd[code] = sCd(code); SKF[code](); if (s.fn !== 'runecopy') P.lastCast = code;
+  P.mp -= mp; P.cd[code] = sCd(code); SKF[code](); dqAdd('cast', 1); if (s.fn !== 'runecopy') P.lastCast = code;
 }
 function updPlayer(dt) {
   P.formT = (P.formT || 0) + dt;
@@ -3186,7 +3187,7 @@ function crack(px, py) {
   say('SECRET ROOM', '비밀의 방을 발견했습니다'); if (vault && !vault.broken && vault.sc === sc) setTimeout(() => { if (vault && !vault.broken) say('룬의 기운', '벽 어딘가에서 룬이 공명합니다'); }, 1800); sfx(90, 0.4, 'sawtooth', 0.08, -40); setTimeout(() => sfx(880, 0.3, 'triangle', 0.05, 300), 150);
 }
 function openChest(c) {
-  c.open = true; const t = c.tier, g = Math.round(rint(30, 60) * (1 + 0.4 * (floorNum - 1)) * [1, 1.8, 3][t]);
+  c.open = true; dqAdd('chest', 1); const t = c.tier, g = Math.round(rint(30, 60) * (1 + 0.4 * (floorNum - 1)) * [1, 1.8, 3][t]);
   P.gold += g; addText(c.x, c.y - 14, '+' + g + 'G', '#f6b32d', 8);
   ring(c.x, c.y - 4, CH_COL[t], 26, 0.5); ring(c.x, c.y - 4, '#ffffff', 14, 0.3); burst(c.x, c.y - 6, 10 + t * 8, CH_COL[t], 100, 0.7, 2);
   fxs.push({ k: 'cbeam', x: c.x, y: c.y, t: 0, d: 0.7, col: CH_COL[t] });
@@ -3220,7 +3221,7 @@ function updWave(dt) {
     wave.spawnT = Math.max(0.5, 1.3 - wave.n * 0.06);
   }
   if (!wave.list.length && monsters.length === 0) {
-    wave.state = 'clear'; wave.t = FARM_T; const bonus = wave.n * 10; P.gold += bonus;
+    wave.state = 'clear'; dqAdd('wave', 1); wave.t = FARM_T; const bonus = wave.n * 10; P.gold += bonus;
     addText(P.x, P.y - 30, '+' + bonus + 'G', '#f6b32d', 9); say('WAVE CLEAR', '보너스 ' + bonus + 'G'); sfx(660, 0.15, 'square', 0.05, 220);
   }
 }
@@ -4139,16 +4140,55 @@ function achGive(a) {
   say('업적 달성!', a.n + ' · 칭호 [' + a.ti + '] · 보석 +' + a.g); sfx(660, 0.15, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.25, 'square', 0.05, 200), 120);
 }
 function achCheck() { for (const a of ACHS) if (!ACH.done[a.id] && (ACH[a.k] || 0) >= a.t) { achGive(a); break; } }
-function achKill(m) { ACH.kills++; if (m.boss) ACH.bosses++; if (ACH.kills % 10 === 0 || m.boss) achSave(); achCheck(); }
+function achKill(m) { ACH.kills++; dqAdd('kill', 1); if (m.boss) { ACH.bosses++; dqAdd('boss', 1); } if (ACH.kills % 10 === 0 || m.boss) achSave(); achCheck(); }
 function achTick() {
+  dqRoll();
   const n = (P.owned || []).filter(id => GEAR[id] && GEAR[id].rar === 6 && GEAR[id].slot === 'weapon').length;
   if (n > (ACH.myth || 0)) { ACH.myth = n; achSave(); } achCheck();
+}
+/* ---------- 일일 퀘스트 ---------- */
+const DQ_KINDS = { kill: ['몬스터 처치', '마리', [40, 60, 80, 100, 120]], boss: ['보스 처치', '마리', [1, 1, 2]], chest: ['상자 열기', '개', [3, 4, 5, 6]], cast: ['스킬 사용', '회', [25, 40, 60, 80]], wave: ['웨이브 클리어', '회', [2, 3, 4]] };
+const DQT_RND = [['dr1', '오늘의 영웅'], ['dr2', '행운의 모험가'], ['dr3', '새벽의 사냥꾼'], ['dr4', '퀘스트 마스터'], ['dr5', '달빛 기사'], ['dr6', '일일 챔피언']];
+const DQT_ST = [[3, 'ds3', '성실한 모험가'], [7, 'ds7', '꾸준한 용사'], [14, 'ds14', '던전 단골'], [30, 'ds30', '전설의 일꾼']];
+const DQT = DQT_RND.concat(DQT_ST.map(([, id, n]) => [id, n]));
+DQT.forEach(([id, n]) => { TITLES[id] = n; });
+ACH.dqt = ACH.dqt || {}; ACH.dqDays = ACH.dqDays || 0;
+const dqKey = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+function dqRng(seed) { let h = 1779033703 ^ seed.length; for (let i = 0; i < seed.length; i++) { h = Math.imul(h ^ seed.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } let a = h >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function dqRoll() {
+  const key = dqKey(); if (ACH.dq && ACH.dq.date === key) return;
+  const r = dqRng(key), kinds = Object.keys(DQ_KINDS).filter(k => k !== 'boss' || r() < 0.5), q = [];
+  while (q.length < 3 && kinds.length) {
+    const k = kinds.splice((r() * kinds.length) | 0, 1)[0], arr = DQ_KINDS[k][2], i = (r() * arr.length) | 0, lv = arr.length > 1 ? i / (arr.length - 1) : 0.5, x = r();
+    const rw = x < 0.45 ? { ty: 'gem', v: Math.round(10 + lv * 14) } : x < 0.82 ? { ty: 'gold', v: Math.round((200 + lv * 400) / 50) * 50 } : { ty: 'title', v: 0 };
+    q.push({ k, t: arr[i], p: 0, rw, cl: false });
+  }
+  ACH.dq = { date: key, q, bonus: false }; achSave();
+}
+const dqName = q => DQ_KINDS[q.k][0] + ' ' + q.t + DQ_KINDS[q.k][1];
+const dqRwTxt = rw => rw.ty === 'gem' ? '보석 ' + rw.v : rw.ty === 'gold' ? rw.v + ' 골드' : '특별 칭호(랜덤)';
+let dqSaveN = 0;
+function dqAdd(k, n) {
+  dqRoll(); n = n || 1;
+  for (const q of ACH.dq.q) if (q.k === k && q.p < q.t) { q.p = Math.min(q.t, q.p + n); if (q.p >= q.t) { say('일일 퀘스트 완료!', dqName(q) + ' · 업적 창에서 보상을 받으세요'); sfx(660, 0.15, 'square', 0.05, 300); achSave(); } else if (++dqSaveN % 8 === 0) achSave(); }
+}
+function dqClaim(i) {
+  dqRoll(); const q = ACH.dq.q[i]; if (!q || q.cl || q.p < q.t) return; q.cl = true; const rw = q.rw; let txt;
+  if (rw.ty === 'title') { const left = DQT_RND.filter(([id]) => !ACH.dqt[id]); if (left.length) { const [id, n] = left[(Math.random() * left.length) | 0]; ACH.dqt[id] = true; if (!ACH.title) ACH.title = id; txt = '특별 칭호 [' + n + '] 획득!'; } else { ACH.gems += 25; txt = '모든 특별 칭호를 모아서 보석 25개로 바뀌었습니다.'; } }
+  else if (rw.ty === 'gem') { ACH.gems += rw.v; txt = '보석 ' + rw.v + '개를 받았습니다.'; } else { P.gold += rw.v; txt = rw.v + ' 골드를 받았습니다.'; }
+  if (ACH.dq.q.every(x => x.cl) && !ACH.dq.bonus) {
+    ACH.dq.bonus = true; ACH.dqDays++; ACH.gems += 20; txt += ' 오늘의 퀘스트를 모두 완료! 보너스 보석 +20';
+    for (const [d, id, n] of DQT_ST) if (ACH.dqDays >= d && !ACH.dqt[id]) { ACH.dqt[id] = true; txt += ' · 칭호 [' + n + '] 획득!'; }
+  }
+  sfx(700, 0.2, 'square', 0.05, 400); achSave(); achMsg(txt, 'ok'); renderAch();
 }
 function achMsg(t, cls) { const m = $('achMsg'); m.textContent = t; m.className = 'enhmsg ' + (cls || ''); }
 function renderAch() {
   const keep = ov.ach.scrollTop; $('achGems').textContent = ACH.gems;
+  dqRoll(); { const db = $('achDaily'); db.textContent = ''; const nd = new Date(), left = Math.max(0, Math.ceil((new Date(nd.getFullYear(), nd.getMonth(), nd.getDate() + 1) - nd) / 60000)); $('dqHead').textContent = 'DAILY QUEST 오늘의 퀘스트 (초기화까지 ' + Math.floor(left / 60) + '시간 ' + left % 60 + '분 · 전부 완료 시 보너스 보석 +20 · 누적 완료 ' + ACH.dqDays + '일)';
+    ACH.dq.q.forEach((q, i) => { const ok = q.p >= q.t; db.appendChild(card({ pic: GEMSPR, name: (q.cl ? '✔ ' : '') + dqName(q), rar: q.rw.ty === 'title' ? 6 : q.rw.ty === 'gem' ? 4 : 3, desc: '진행 ' + q.p + '/' + q.t + ' · 보상: ' + dqRwTxt(q.rw), btns: [{ t: q.cl ? '수령 완료' : ok ? '보상 받기' : '진행 중', dis: q.cl || !ok, fn: () => dqClaim(i) }], re: renderAch })); }); }
   const tb = $('achTitles'); tb.textContent = '';
-  const owned = ACHS.filter(a => ACH.done[a.id]);
+  const owned = ACHS.filter(a => ACH.done[a.id]).concat(DQT.filter(([id]) => ACH.dqt[id]).map(([id, n]) => ({ id, ti: n })));
   const none = document.createElement('button'); none.type = 'button'; none.className = 'btn' + (ACH.title ? '' : ' on'); none.textContent = '칭호 없음'; none.addEventListener('click', () => { ACH.title = null; achSave(); renderAch(); }); tb.appendChild(none);
   owned.forEach(a => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (ACH.title === a.id ? ' on' : ''); b.textContent = (ACH.title === a.id ? '✔ ' : '') + a.ti; b.addEventListener('click', () => { ACH.title = a.id; achSave(); renderAch(); sfx(500, 0.08, 'square', 0.04, 200); }); tb.appendChild(b); });
   const sb = $('achShop'); sb.textContent = '';
@@ -4526,6 +4566,11 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.65', d: '11/10', t: '일일 퀘스트', i: [
+    '매일 자정에 바뀌는 일일 퀘스트 3개가 생겼습니다. 업적 창(업적 버튼)의 맨 위에서 확인하고 보상을 받을 수 있습니다.',
+    '퀘스트 종류: 몬스터 처치, 보스 처치, 상자 열기, 스킬 사용, 웨이브 클리어.',
+    '보상은 보석, 골드, 또는 특별 칭호(랜덤)입니다. 세 개를 모두 완료하면 보너스 보석 +20을 받고, 누적 3·7·14·30일 완료 시 전용 칭호가 주어집니다.'
+  ] },
   { v: '1.64', d: '11/10', t: '보스 디자인 개편', i: [
     '모든 보스의 몸 모양이 더 화려하게 바뀌었습니다. 악마 군주는 어깨 가시와 꼬리, 죽음의 군주는 갈비뼈와 영혼 지팡이, 룬 수호자는 룬 수정과 문양, 천공의 군주는 황금 창과 갑옷, 서리 군주는 얼음 어깨와 서릿발, 염옥의 군주는 용암 균열과 불꽃 어깨, 심연의 군주는 핏줄 눈과 가시 왕관, 거인은 용암 핵과 바위 어깨를 갖게 되었습니다.'
   ] },
