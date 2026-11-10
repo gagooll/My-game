@@ -3855,7 +3855,7 @@ function card(o) {
 }
 let stock = [], rerolls = 0;
 function genStock() {
-  stock = []; const rw = rarW(), taken = new Set();
+  stock = []; const rw = [1, 1, 1, 1, 1], taken = new Set();
   const addG = (slot, n) => {
     for (let i = 0; i < n; i++) {
       const pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && wokPool(g) && g.slot === slot && !taken.has(g.id) && !P.owned.includes(g.id) && rw[g.rar] > 0);
@@ -4427,6 +4427,9 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.61', d: '11/10', t: '상점 등급 완전 랜덤', i: [
+    '레벨·웨이브와 상관없이 상점에 나오는 무기·방어구·반지의 등급이 완전히 랜덤으로 정해집니다. (일반~전설 동일 확률)'
+  ] },
   { v: '1.60', d: '11/09', t: '칭호 표시와 신화 초월', i: [
     '장착한 칭호가 캐릭터 머리 위에 또렷한 글씨로 표시됩니다.',
     '초월이 바뀌었습니다. 전설 무기를 +15까지 강화해 초월하면 이름은 그대로, 등급만 신화가 되고 강화는 0강으로 돌아갑니다. 능력치는 신화 등급에 맞게 올라갑니다. 총 전설 무기(화룡의 화염방사기·폭풍의 전격총·성좌의 유탄포)도 초월할 수 있습니다.',
