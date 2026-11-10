@@ -1,3 +1,4 @@
+
 <title>Dungeon Adventure</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3855,7 +3856,7 @@ function card(o) {
 }
 let stock = [], rerolls = 0;
 function genStock() {
-  stock = []; const rw = [1, 1, 1, 1, 1], taken = new Set();
+  stock = []; const rw = [40, 30, 18, 9, 3], taken = new Set();
   const addG = (slot, n) => {
     for (let i = 0; i < n; i++) {
       const pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && wokPool(g) && g.slot === slot && !taken.has(g.id) && !P.owned.includes(g.id) && rw[g.rar] > 0);
@@ -3864,7 +3865,7 @@ function genStock() {
     }
   };
   addG('weapon', 4); addG('armor', 3); addG('ring', 2);
-  { const my = SHOPMY.filter(id => !P.owned.includes(id) && wokPool(GEAR[id])); for (let i = 0; i < 2 && my.length; i++) { const id = my.splice((Math.random() * my.length) | 0, 1)[0]; stock.push({ kind: 'gear', id, price: GEAR[id].cost, qty: 1, myth: true }); } }
+  { const my = SHOPMY.filter(id => !P.owned.includes(id) && wokPool(GEAR[id])); for (let i = 0; i < 2 && my.length; i++) { if (Math.random() > 0.05) continue; const id = my.splice((Math.random() * my.length) | 0, 1)[0]; stock.push({ kind: 'gear', id, price: GEAR[id].cost, qty: 1, myth: true }); } }
   const base = wpick(CONS.filter(c => c.rar === 0), () => 1); taken.add(base.k);
   stock.push({ kind: 'pot', id: base.k, price: Math.round(base.cost * rnd(0.9, 1.15)), qty: rint(2, 5) });
   for (let i = 0; i < 3; i++) {
@@ -4427,6 +4428,9 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.62', d: '11/10', t: '상점 고등급 확률 하향', i: [
+    '상점에서 전설 장비가 나올 확률이 크게 낮아졌고(약 3%), 신화 장비는 전설보다도 훨씬 드물게(진열 슬롯당 약 5%) 나옵니다.'
+  ] },
   { v: '1.61', d: '11/10', t: '상점 등급 완전 랜덤', i: [
     '레벨·웨이브와 상관없이 상점에 나오는 무기·방어구·반지의 등급이 완전히 랜덤으로 정해집니다. (일반~전설 동일 확률)'
   ] },
