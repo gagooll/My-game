@@ -1193,10 +1193,12 @@ function hitCagesAt(x, y, r, dmg) { for (const c of cages) if (!c.broken && Math
 function breakCage(c) {
   c.broken = true; burst(c.x, c.y - 6, 26, '#b8b4c4', 120, 0.7, 2); burst(c.x, c.y - 6, 12, PET[c.pet].col, 90, 0.7, 2); ring(c.x, c.y - 6, '#ffffff', 28, 0.4); ring(c.x, c.y - 6, PET[c.pet].col, 40, 0.5);
   shake = Math.max(shake, 4); sfx(200, 0.25, 'sawtooth', 0.07, -100); setTimeout(() => { sfx(660, 0.12, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.2, 'square', 0.05, 200), 100); }, 120);
-  const np = mkPet(c.pet, rollPetRar(), 1, 0, false); np.x = c.x; np.y = c.y + 2; petBag.push(np); if (pets.length < 3) { np.act = true; pets.push(np); }
+  const np = mkPet(c.pet, rollPetRar(), 1, 0, false); np.x = c.x; np.y = c.y + 2; np.hp = petMax(np); petBag.push(np); if (pets.length < 3) { np.act = true; pets.push(np); }
   seePet(c.pet, 1); say('PET 획득!', '[' + RAR[np.rar].n + '] ' + PET[c.pet].n + (np.act ? ' 동료가 합류했습니다' : ' · 인벤토리에서 확인하세요'));
 }
 const PLAD = [0, 1, 2, 3, 4, 6], PET_RARM = [1, 1.2, 1.45, 1.8, 2.3, 3.0];
+const petMax = p => Math.round((60 + P.lvl * 8 + floorNum * 12) * petRm(p) * [1, 1.4, 1.9][(p.ev || 1) - 1]);
+function petHealAll(f, revive) { for (const p of pets) { const mx = petMax(p); if (p.hp === undefined) p.hp = mx; if (p.down && !revive) continue; p.hp = Math.min(mx, p.hp + mx * f); if (p.down) { p.down = false; p.hp = Math.max(p.hp, mx * f); } addText(p.x, p.y - 20, '+' + Math.round(mx * f), '#6bff8a', 6); } }
 const petRm = p => PET_RARM[Math.max(0, PLAD.indexOf(p.rar || 0))];
 function rollPetRar() { const f = floorNum || 1, w = [Math.max(24, 62 - f * 3), 28, 8 + f, 2 + f * 0.4, 0.4 + f * 0.15]; let r = Math.random() * w.reduce((a, b) => a + b, 0); for (let i = 0; i < 5; i++) { if (r < w[i]) return PLAD[i]; r -= w[i]; } return 0; }
 const mkPet = (type, rar, ev, xp, act) => ({ type, rar: rar || 0, ev: ev || 1, xp: xp || 0, act: !!act, x: P.x + rnd(-14, 14), y: P.y + rnd(-8, 8), hw: 4, hh: 3, face: 1, cd: 0.5, ph: Math.random() * 6, atk: 0 });
@@ -1213,6 +1215,7 @@ function petGain(n) {
 function updPets(dt) {
   for (const c of cages) { if (c.flash > 0) c.flash -= dt; if (c.shk > 0) c.shk -= dt; }
   pets.forEach((p, i) => {
+    { const mx = petMax(p); if (p.hp === undefined) p.hp = mx; if (p.down) return; if (p.hp < mx) p.hp = Math.min(mx, p.hp + mx * 0.01 * dt); }
     const T = PET[p.type], ev = p.ev || 1, dmg = (4 + P.lvl * 1.5 + floorNum * 2) * T.m * PET_EVM[ev - 1] * petRm(p); p.cd -= dt; p.atk = Math.max(0, p.atk - dt);
     let tgt = null, bd = 130; for (const m of monsters) { if (m.dead || m.spawnT > 0) continue; const d = Math.hypot(m.x - p.x, m.y - p.y); if (d < bd && Math.hypot(m.x - P.x, m.y - P.y) < 170) { bd = d; tgt = m; } }
     let tx, ty, sp = T.spd;
@@ -1248,6 +1251,7 @@ function updPets(dt) {
   });
 }
 function drawPet(p, i) {
+  if (p.down) { ctx.globalAlpha = 0.35; blit(PSPR[p.type][0], p.x, p.y + 2, 8, 14, p.face < 0); ctx.globalAlpha = 1; txt('ZZ', p.x, p.y - 16, '#b0a8b4', 6); return; }
   const f = Math.floor(time * 6 + p.ph) % 2, T = PET[p.type], bob = ({ fairy: 1, bee: 1, owl: 1, ghost: 1, phoenix: 1 })[p.type] ? Math.round(Math.sin(time * 5 + p.ph) * 2) - 4 : 0;
   shadow(p.x, p.y + 1, p.type === 'slime' ? 6 : 5);
   if (p.type === 'fairy') { glow(p.x, p.y - 8 + bob, 14, '255,200,90', 0.35); }
@@ -1259,6 +1263,7 @@ function drawPet(p, i) {
   ctx.restore();
   const top = Math.round(p.y) - 19 - Math.round((sc - 1) * 14) + bob; ctx.fillStyle = RAR[p.rar || 0].c; ctx.fillRect(Math.round(p.x) - 1, top, 3, 2);
   for (let k = 1; k < ev; k++) { ctx.fillStyle = '#ffe35a'; ctx.fillRect(Math.round(p.x) - 4 + k * 4 - (ev - 1) * 2, top - 3, 2, 2); }
+  { const mx = petMax(p); if (p.hp !== undefined && p.hp < mx) { const bx = Math.round(p.x) - 7, by = top - 5 - (ev > 1 ? 3 : 0); ctx.fillStyle = 'rgba(0,0,0,.75)'; ctx.fillRect(bx, by, 14, 3); ctx.fillStyle = p.hp / mx > 0.35 ? '#6bff8a' : '#ff5a5a'; ctx.fillRect(bx + 1, by + 1, Math.max(0, Math.round(12 * p.hp / mx)), 1); } }
 }
 function decorate(L) {
   const rng = mulberry32(floorNum * 31337 + 5 + runSeed * 104729), ri = (a, b) => a + Math.floor(rng() * (b - a + 1));
@@ -2012,7 +2017,9 @@ function hurtPlayer(d, sx, sy, kb) {
   const red = Math.min(0.92, gsum('red') + (P.guard > 0 ? 0.4 : 0) + (P.shield > 0 ? 0.7 : 0) + (P.parry > 0 ? 0.5 : 0) + (P.bdef > 0 ? 0.3 : 0));
   if (P.parry > 0 && SK[P.parryQ]) { const q = P.parryQ; for (const m of monsters) if (!m.dead && m.spawnT <= 0 && Math.hypot(m.x - P.x, m.y - P.y) < 52) { const dm = pDmg() * 2.2 * sDmg(q) * dmgMul(); hitMonster(m, dm, Math.atan2(m.y - P.y, m.x - P.x), 240, false); if (sm(q, 'stun')) disable(m, 'stun', 1.2); } fxs.push({ k: 'shock', t: 0, d: 0.35, r: 52, x: P.x, y: P.y - 4 }); ring(P.x, P.y - 8, '#ffd24a', 52, 0.35); addText(P.x, P.y - 36, 'PARRY!', '#ffd24a', 7); sfx(500, 0.1, 'square', 0.06, -200); }
   if (P.shield > 0 && smf('shield', 'refl')) { for (const m of monsters) if (!m.dead && m.spawnT <= 0 && Math.hypot(m.x - P.x, m.y - P.y) < 46) hitMonster(m, pBolt() * 1.5, Math.atan2(m.y - P.y, m.x - P.x), 200, false); ring(P.x, P.y - 8, '#bff6ff', 46, 0.35); }
-  d = Math.max(1, Math.round(d * (1 - red) / limM())); P.hp -= d; P.inv = 0.7; P.flash = 0.15;
+  d = Math.max(1, Math.round(d * (1 - red) / limM()));
+  { const ps = pets.filter(p => !p.down); if (ps.length && d > 3) { const part = Math.floor(d * 0.3), each = Math.max(1, Math.round(part / ps.length)); d -= part; for (const p of ps) { const mx = petMax(p); if (p.hp === undefined) p.hp = mx; p.hp -= each; addText(p.x, p.y - 20, '-' + each, '#ff9a9a', 6); if (p.hp <= 0) { p.hp = 0; p.down = true; addText(p.x, p.y - 26, 'DOWN', '#ff5a5a', 7); burst(p.x, p.y - 6, 8, '#ff5a5a', 50, 0.4); } } } }
+  P.hp -= d; P.inv = 0.7; P.flash = 0.15;
   const a = Math.atan2(P.y - sy, P.x - sx); P.kx += Math.cos(a) * kb; P.ky += Math.sin(a) * kb;
   shake = Math.max(shake, 4); addText(P.x, P.y - 26, '-' + d, '#ff5a5a', 9); burst(P.x, P.y - 9, 8, '#d8404f');
   sfx(170, 0.2, 'sawtooth', 0.07, -100);
@@ -2879,8 +2886,8 @@ function updPlayer(dt) {
 
 /* ---------- 몬스터 ---------- */
 function spawnMonster(type, x, y) {
-  const d = DEF[type], hm = (1 + 0.14 * (wave.n - 1)) * (1.3 + 0.12 * (floorNum - 1)), dm = (1 + 0.07 * (wave.n - 1)) * (1.25 + 0.08 * (floorNum - 1));
-  const m = { type, x, y, hp: Math.round(d.hp * hm), maxHp: Math.round(d.hp * hm), dmg: d.dmg * dm, spd: d.spd * 1.08, r: d.r, hw: d.boss && !arena ? 9 : d.hw, hh: d.boss && !arena ? 5 : d.hh, h: d.h, cOff: d.cOff, kbMul: d.kb, kx: 0, ky: 0, flash: 0, cd: rnd(0.4, 1), state: 'chase', t: 0, face: 1, anim: Math.random() * 5, spawnT: 0.55, idleDur: rnd(0.3, 0.8), moving: false, hx: 0, hy: 0, summoned: false, bt: d.base || type, boss: !!d.boss, sc: d.sc || 1, ai: d.ai || type };
+  const d = DEF[type], hm = (1 + 0.16 * (wave.n - 1)) * (1.6 + 0.14 * (floorNum - 1)), dm = (1 + 0.08 * (wave.n - 1)) * (1.5 + 0.1 * (floorNum - 1));
+  const m = { type, x, y, hp: Math.round(d.hp * hm), maxHp: Math.round(d.hp * hm), dmg: d.dmg * dm, spd: d.spd * 1.12, r: d.r, hw: d.boss && !arena ? 9 : d.hw, hh: d.boss && !arena ? 5 : d.hh, h: d.h, cOff: d.cOff, kbMul: d.kb, kx: 0, ky: 0, flash: 0, cd: rnd(0.4, 1), state: 'chase', t: 0, face: 1, anim: Math.random() * 5, spawnT: 0.55, idleDur: rnd(0.3, 0.8), moving: false, hx: 0, hy: 0, summoned: false, bt: d.base || type, boss: !!d.boss, sc: d.sc || 1, ai: d.ai || type };
   monsters.push(m); ring(x, y - 4, '#4af0d8', 18, 0.5); burst(x, y - 4, 8, '#4af0d8', 40, 0.5);
   return m;
 }
@@ -3158,7 +3165,7 @@ function makeList(n) {
   const boss = n % 4 === 0, L = []; wave.theme = '';
   if (boss) { const BR = ['demon', 'skylord', 'frostlord', 'infernal', 'abyssal', 'titan'], pk = k => BR[((k % BR.length) + BR.length) % BR.length];
     if (n % 8 === 0) { L.push('lich'); if (n >= 16) L.push(pk(n / 8 + 1)); } else L.push(pk((n - 4) / 8)); }
-  let cnt = Math.ceil(Math.max(4, Math.min(4 + n * 2, 26) - (boss ? Math.floor(n * 0.8) : 0)) * 1.3); if (boss && arena) cnt = Math.ceil(cnt * 0.6);
+  let cnt = Math.ceil(Math.max(4, Math.min(4 + n * 2, 26) - (boss ? Math.floor(n * 0.8) : 0)) * 1.5); if (boss && arena) cnt = Math.ceil(cnt * 0.6);
   const w = { slime: Math.max(1, 7 - n), skeleton: n >= 2 ? 2 + n * 0.6 : 0, orc: n >= 3 ? 0.5 + n * 0.5 : 0, bat: n >= 2 ? 1 + n * 0.4 : 0, archer: n >= 3 ? 1 + n * 0.4 : 0, bomber: n >= 4 ? 0.8 + n * 0.3 : 0, mage: n >= 5 ? 0.5 + n * 0.3 : 0, brute: n >= 6 ? 0.3 + n * 0.25 : 0 };
   const bias = palOf().bias; for (const k in bias) w[k] *= bias[k];
   { const fm = FLOOR_MAP[floorTheme(floorNum)], w2 = {}; for (const k in w) { const t = fm[k] || k; w2[t] = (w2[t] || 0) + w[k]; } for (const k in w) delete w[k]; Object.assign(w, w2); }
@@ -3178,7 +3185,7 @@ function descend() {
   P.x = fl.start[0] * TS + 8; P.y = fl.start[1] * TS + 8; P.vx = P.vy = P.kx = P.ky = 0; P.dash = 0;
   cam.x = P.x - W / 2; cam.y = P.y - H / 2; fadeA = 1;
   for (const p of pets) { p.x = P.x + rnd(-14, 14); p.y = P.y + rnd(-8, 8); }
-  P.undyUsed = false; wave.state = 'break'; wave.t = 2.4; wave.list = [];
+  P.undyUsed = false; for (const p of petBag) { const mx = petMax(p); if (p.down) { p.down = false; p.hp = Math.ceil(mx * 0.3); } else p.hp = Math.min(mx, (p.hp === undefined ? mx : p.hp) + mx * 0.25); } wave.state = 'break'; wave.t = 2.4; wave.list = [];
   saveGame(); say('FLOOR ' + floorNum, floorName()); sfx(200, 0.6, 'sawtooth', 0.05, -120); setTimeout(() => sfx(500, 0.5, 'triangle', 0.05, 300), 200);
 }
 function crack(px, py) {
@@ -3217,7 +3224,7 @@ function updWave(dt) {
   if (wave.state === 'break') { wave.t -= dt; if (wave.t <= 0) nextWave(); return; }
   if (wave.state === 'clear') { wave.t -= dt; if (wave.t <= 0) openEnh(); return; }
   wave.spawnT -= dt;
-  if (wave.list.length && wave.spawnT <= 0 && monsters.length < 8 + Math.min(wave.n, 12)) {
+  if (wave.list.length && wave.spawnT <= 0 && monsters.length < 10 + Math.min(wave.n, 14)) {
     const type = wave.list.shift();
     if (DEF[type].boss) {
       const bx = fl.boss[0] * TS + 8, by = fl.boss[1] * TS + 8; const far = Math.hypot(P.x - bx, P.y - by) > 110; const [x, y] = (far || arena) ? [bx, by] : pickSpawn();
@@ -3845,7 +3852,7 @@ function saveGame() {
   try {
     if (state === 'over' || !P.cls || !curSlot) return;
     const old = readSlot(curSlot);
-    writeSlot(curSlot, { v: 1, name: (old && old.name) || '모험 ' + curSlot, t: Date.now(), floor: floorNum, seed: runSeed, waveN: wave.n, stairs: !!portal, pets: petBag.map(p => ({ type: p.type, ev: p.ev || 1, xp: p.xp || 0, rar: p.rar || 0, act: !!p.act })), P: JSON.parse(JSON.stringify(P)) });
+    writeSlot(curSlot, { v: 1, name: (old && old.name) || '모험 ' + curSlot, t: Date.now(), floor: floorNum, seed: runSeed, waveN: wave.n, stairs: !!portal, pets: petBag.map(p => ({ type: p.type, ev: p.ev || 1, xp: p.xp || 0, rar: p.rar || 0, act: !!p.act, hp: p.hp, down: !!p.down })), P: JSON.parse(JSON.stringify(P)) });
   } catch (e) { /* 저장 불가 환경 */ }
 }
 window.addEventListener('pagehide', () => { if (state === 'play' || state === 'pause') saveGame(); });
@@ -3878,6 +3885,7 @@ function loadGame(sv) {
   for (const c in P.cd) P.cd[c] = 0;
   calcRB(); P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = Math.min(P.hp, P.maxHp); P.mp = Math.min(P.mp, P.maxMp);
   petBag = (sv.pets || []).map((q, i) => mkPet(typeof q === 'string' ? q : q.type, q.rar || 0, q.ev || 1, q.xp || 0, q.act !== undefined ? q.act : i < 3));
+  petBag.forEach((p, i) => { const q = sv.pets[i]; if (q && typeof q === 'object') { p.hp = q.hp; p.down = !!q.down; } });
   pets = petBag.filter(p => p.act).slice(0, 3); petBag.forEach(p => { p.act = pets.includes(p); seePet(p.type, p.ev); });
   wave.n = sv.waveN; wave.list = []; wave.spawnT = 0;
   if (sv.stairs) { wave.state = 'stairs'; portal = { x: fl.boss[0] * TS + 8, y: fl.boss[1] * TS + 8 }; if (arena) { arena.seen = true; drawMini(); P.x = portal.x; P.y = portal.y + 40; } } else { wave.state = 'break'; wave.t = 1.8; }
@@ -3933,7 +3941,7 @@ function useItem(k) {
     case 'crit': ok = buff('crit', 20, 'FOCUS!', '#ffd24a'); break;
     case 'elixir': if (P.hp >= P.maxHp && P.mp >= P.maxMp) full('FULL'); else { P.hp = P.maxHp; P.mp = P.maxMp; addText(P.x, P.y - 26, 'ELIXIR!', '#ff7aff'); burst(P.x, P.y - 9, 16, '#ff7aff', 70, 0.6); ring(P.x, P.y - 6, '#ff7aff', 32, 0.5); ok = true; } break;
   }
-  if (ok) { P.bag[k]--; sfx(520, 0.14, 'triangle', 0.05, 260); }
+  if (ok) { P.bag[k]--; sfx(520, 0.14, 'triangle', 0.05, 260); if (k === 'hp' || k === 'hp2' || k === 'elixir') petHealAll(k === 'hp' ? 0.2 : k === 'hp2' ? 0.4 : 0.6, k === 'elixir'); }
 }
 function armorSpr(col) {
   return mk(16, 16, g => {
@@ -3976,11 +3984,11 @@ function genStock() {
       stock.push({ kind: 'gear', id: g.id, price: Math.max(5, Math.round(g.cost * rnd(0.9, 1.15) / 5) * 5), qty: 1 });
     }
   };
-  addG('weapon', 4); addG('armor', 3); addG('ring', 2);
+  addG('weapon', 7); addG('armor', 5); addG('ring', 4);
   { const my = SHOPMY.filter(id => !P.owned.includes(id) && wokPool(GEAR[id])); for (let i = 0; i < 2 && my.length; i++) { if (Math.random() > 0.05) continue; const id = my.splice((Math.random() * my.length) | 0, 1)[0]; stock.push({ kind: 'gear', id, price: GEAR[id].cost, qty: 1, myth: true }); } }
   const base = wpick(CONS.filter(c => c.rar === 0), () => 1); taken.add(base.k);
   stock.push({ kind: 'pot', id: base.k, price: Math.round(base.cost * rnd(0.9, 1.15)), qty: rint(2, 5) });
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 6; i++) {
     const pool = CONS.filter(c => !taken.has(c.k) && rw[c.rar] > 0); if (!pool.length) break; const c = wpick(pool, x => rw[x.rar]); taken.add(c.k);
     stock.push({ kind: 'pot', id: c.k, price: Math.round(c.cost * rnd(0.9, 1.15)), qty: rint(2, 5) });
   }
@@ -4103,11 +4111,16 @@ function petToggle(p) {
   else if (pets.length < 3) { p.act = true; p.x = P.x + rnd(-14, 14); p.y = P.y + rnd(-8, 8); pets.push(p); }
   sfx(500, 0.08, 'square', 0.04, 200);
 }
+function petPotion(p) {
+  const k = ['hp', 'hp2', 'elixir'].find(x => (P.bag[x] || 0) > 0); if (!k) { petMsg('체력 물약이 없습니다. 상점에서 구매하세요.', 'bad'); return; }
+  const f = k === 'hp' ? 0.4 : k === 'hp2' ? 0.75 : 1, mx = petMax(p); P.bag[k]--; const was = p.down; p.down = false; p.hp = Math.min(mx, Math.max(was ? 0 : (p.hp === undefined ? mx : p.hp), 0) + mx * f);
+  sfx(520, 0.14, 'triangle', 0.05, 260); renderInv(); petMsg((was ? '쓰러진 동료를 일으켰습니다! ' : '') + petName(p) + ' 체력 ' + Math.round(p.hp) + '/' + mx + ' (' + CONS.find(c => c.k === k).n + ' 사용)', 'ok');
+}
 function petFuse(i) {
   const r = PLAD[i], pool = petBag.filter(p => (p.rar || 0) === r).sort((a, b) => (a.act ? 1 : 0) - (b.act ? 1 : 0) || (a.ev || 1) - (b.ev || 1)); if (pool.length < 3) return;
   const used = pool.slice(0, 3), type = used[(Math.random() * 3) | 0].type;
   petBag = petBag.filter(p => !used.includes(p)); pets = pets.filter(p => !used.includes(p));
-  const np = mkPet(type, PLAD[i + 1], 1, 0, false); np.x = P.x; np.y = P.y; petBag.push(np); if (pets.length < 3) { np.act = true; pets.push(np); }
+  const np = mkPet(type, PLAD[i + 1], 1, 0, false); np.x = P.x; np.y = P.y; np.hp = petMax(np); petBag.push(np); if (pets.length < 3) { np.act = true; pets.push(np); }
   seePet(type, 1); sfx(500, 0.15, 'triangle', 0.05, 400); setTimeout(() => sfx(900, 0.25, 'triangle', 0.05, 300), 120);
   renderInv(); petMsg('합성 성공! [' + RAR[np.rar].n + '] ' + PET[type].n + ' 동료를 얻었습니다.' + (np.act ? '' : ' (동행 자리가 가득 차 있어 인벤토리에 보관됩니다)'), 'ok');
 }
@@ -4116,7 +4129,7 @@ function renderPets() {
   if (!petBag.length) { const e = document.createElement('p'); e.className = 'empty-note'; e.textContent = '아직 동료가 없습니다. 던전의 철창을 공격해 부수세요.'; pe.appendChild(e); }
   petBag.slice().sort((a, b) => PLAD.indexOf(b.rar || 0) - PLAD.indexOf(a.rar || 0) || (b.ev || 1) - (a.ev || 1)).forEach(p => {
     const ev = p.ev || 1;
-    pe.appendChild(card({ pic: PSPR[p.type][0], name: (p.act ? '✔ ' : '') + petName(p) + ' ' + '★'.repeat(ev), rar: p.rar || 0, desc: RAR[p.rar || 0].n + ' 등급 · 위력 ×' + petRm(p).toFixed(2) + ' · ' + PET[p.type].d + (ev < 3 ? ' · 진화까지 처치 ' + Math.max(0, PET_EV_XP[ev] - (p.xp || 0)) : ' · 최종 진화'), btns: [{ t: p.act ? '동행 해제' : '동행시키기', dis: !p.act && pets.length >= 3, fn: () => petToggle(p) }], re: renderInv }));
+    pe.appendChild(card({ pic: PSPR[p.type][0], name: (p.act ? '✔ ' : '') + petName(p) + ' ' + '★'.repeat(ev), rar: p.rar || 0, desc: (p.down ? '[쓰러짐] ' : '') + '체력 ' + Math.round(p.hp === undefined ? petMax(p) : p.hp) + '/' + petMax(p) + ' · ' + RAR[p.rar || 0].n + ' 등급 · 위력 ×' + petRm(p).toFixed(2) + ' · ' + PET[p.type].d + (ev < 3 ? ' · 진화까지 처치 ' + Math.max(0, PET_EV_XP[ev] - (p.xp || 0)) : ' · 최종 진화'), btns: [{ t: p.act ? '동행 해제' : '동행시키기', dis: !p.act && pets.length >= 3, fn: () => petToggle(p) }, { t: '체력 물약 사용 (' + ((P.bag.hp || 0) + (P.bag.hp2 || 0) + (P.bag.elixir || 0)) + '개)', dis: !p.down && (p.hp === undefined || p.hp >= petMax(p)), fn: () => petPotion(p) }], re: renderInv }));
   });
   const fb = $('invPetFuse'); fb.textContent = '';
   for (let i = 0; i < PLAD.length - 1; i++) {
@@ -4605,6 +4618,14 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.68', d: '11/11', t: '펫 체력·물약 치료, 상점 확장, 난이도 상향', i: [
+    '동료(펫)에게 체력이 생겼습니다. 적에게 맞을 때 받는 피해의 30%를 동행 중인 동료들이 나눠 받고, 체력이 0이 되면 쓰러집니다.',
+    '쓰러지거나 다친 동료는 인벤토리에서 체력 물약으로 치료할 수 있습니다. (체력 물약 40%, 고급 75%, 엘릭서 100%) 쓰러진 동료도 물약으로 일으킬 수 있습니다.',
+    '내가 체력 물약을 쓰면 동행 중인 동료도 함께 조금 회복합니다. (엘릭서는 쓰러진 동료도 일으킵니다)',
+    '웨이브가 끝나면 쓰러진 동료는 체력 30%로 일어나고, 다친 동료는 25% 회복합니다.',
+    '상점이 훨씬 꽉 차게 바뀌었습니다. 무기 7개, 방어구 5개, 반지 4개, 물약 최대 7종이 등급 상관없이 랜덤으로 진열됩니다.',
+    '난이도 상향: 몬스터 체력·공격력·이동속도가 늘고, 웨이브마다 나오는 몬스터 수와 동시에 나오는 수도 늘었습니다.'
+  ] },
   { v: '1.67', d: '11/11', t: '보석 효과 지속 시간 표시', i: [
     '보석 상점에서 산 효과(경험치 2배, 공격력 1.5배 등)가 게임 화면 왼쪽 위에 남은 시간과 함께 막대로 표시됩니다.',
     '남은 시간이 30초 미만이면 깜빡입니다.',
