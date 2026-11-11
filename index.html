@@ -3675,12 +3675,13 @@ function render() {
     txt(banner.txt, W / 2, 56, banner.txt.includes('BOSS') || banner.txt.includes('DOWN') ? '#ff6a7a' : '#4af0d8', 18);
     if (banner.sub) txt(banner.sub, W / 2, 74, '#ece4d2', 8); ctx.globalAlpha = 1;
   }
-  { let gy = (zoomed ? 36 : 5) + HO; const GD = [['bxp', 'EXP X2', '#6bff8a'], ['batk', 'ATK X1.5', '#ff7a5a'], ['bdef', 'DEF +30%', '#6ab0ff'], ['bgold', 'GOLD X2', '#ffd24a'], ['bcrt', 'CRIT +25%', '#ff6ad0']];
+  { let gy = (zoomed ? 52 : 5) + HO; const GD = [['bxp', 'EXP X2', '#6bff8a'], ['batk', 'ATK X1.5', '#ff7a5a'], ['bdef', 'DEF +30%', '#6ab0ff'], ['bgold', 'GOLD X2', '#ffd24a'], ['bcrt', 'CRIT +25%', '#ff6ad0']];
     for (const [k, lb, col] of GD) if (P[k] > 0) {
-      const left = P[k], w = 84, blink = left < 30 && Math.floor(time * 4) % 2 === 0;
-      ctx.fillStyle = 'rgba(0,0,0,.72)'; ctx.fillRect(5, gy, w, 9); ctx.fillStyle = col; ctx.globalAlpha = blink ? 0.3 : 0.55; ctx.fillRect(6, gy + 1, Math.round((w - 2) * Math.min(1, left / 300)), 7); ctx.globalAlpha = 1;
-      ctx.fillStyle = col; ctx.fillRect(5, gy, 1, 9);
-      txt(lb, 9, gy + 5, '#fff', 8, 'left'); txt(Math.floor(left / 60) + ':' + String(Math.ceil(left) % 60).padStart(2, '0'), 5 + w - 3, gy + 5, blink ? '#ff6a7a' : '#fff', 8, 'right'); gy += 10;
+      const left = P[k], w = 90, blink = left < 30 && Math.floor(time * 4) % 2 === 0;
+      const tm = Math.floor(left / 60) + ':' + String(Math.ceil(left) % 60).padStart(2, '0');
+      ctx.fillStyle = 'rgba(8,6,14,.88)'; ctx.fillRect(5, gy, w, 11); ctx.fillStyle = col; ctx.globalAlpha = blink ? 0.25 : 0.4; ctx.fillRect(6, gy + 1, Math.round((w - 2) * Math.min(1, left / 300)), 9); ctx.globalAlpha = 1;
+      ctx.fillStyle = col; ctx.fillRect(5, gy, 2, 11);
+      txt(lb, 10, gy + 6, '#000', 8, 'left'); txt(lb, 9, gy + 5, '#fff', 8, 'left'); txt(tm, 5 + w - 2, gy + 6, '#000', 8, 'right'); txt(tm, 5 + w - 3, gy + 5, blink ? '#ff6a7a' : '#fff', 8, 'right'); gy += 12;
     } }
   if (zoomed) {
     const bw = 90, bar = (y, v, c, label) => { ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(5, y, bw + 2, 8); ctx.fillStyle = c; ctx.fillRect(6, y + 1, Math.round(bw * clamp(v, 0, 1)), 6); txt(label, 8, y + 4, '#fff', 6, 'left'); };
@@ -4606,7 +4607,8 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 const PATCHES = [
   { v: '1.67', d: '11/11', t: '보석 효과 지속 시간 표시', i: [
     '보석 상점에서 산 효과(경험치 2배, 공격력 1.5배 등)가 게임 화면 왼쪽 위에 남은 시간과 함께 막대로 표시됩니다.',
-    '남은 시간이 30초 미만이면 깜빡입니다.'
+    '남은 시간이 30초 미만이면 깜빡입니다.',
+    '모바일(확대) 화면에서 다른 글자와 겹치던 것을 고치고, 글자에 그림자를 넣어 더 잘 보이게 했습니다.'
   ] },
   { v: '1.66', d: '11/11', t: '펫 등급·합성, 보스방 수정', i: [
     '동료(펫)에 등급이 생겼습니다. 철창에서 얻는 동료는 일반~전설 등급이 랜덤으로 정해지고, 등급이 높을수록 공격력이 강해집니다. (일반 ×1.0 ~ 전설 ×2.3, 신화 ×3.0)',
