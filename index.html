@@ -1780,8 +1780,8 @@ function recalc() {
 function wpick(arr, wf) { let t = 0; for (const a of arr) t += wf(a); let r = Math.random() * t; for (const a of arr) { r -= wf(a); if (r <= 0) return a; } return arr[arr.length - 1]; }
 const rarW = () => { const n = wave.n; return [60, 30 + n * 2, n >= 2 ? 10 + n * 1.5 : 0, n >= 4 ? 2 + n * 0.6 : 0, n >= 6 ? 0.5 + n * 0.25 : 0]; };
 function rollGear(minR) {
-  const rw = rarW(); let pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && wokPool(g) && g.rar >= minR && rw[g.rar] > 0);
-  if (!pool.length) pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && wokPool(g) && g.rar >= minR);
+  const rw = rarW(); let pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && !g.sv && wokPool(g) && g.rar >= minR && rw[g.rar] > 0);
+  if (!pool.length) pool = Object.values(GEAR).filter(g => g.cost > 0 && !g.craft && !g.sv && wokPool(g) && g.rar >= minR);
   return wpick(pool, g => rw[g.rar] || 0.1).id;
 }
 function tintOf(img, col) {
@@ -2030,6 +2030,16 @@ function hurtPlayer(d, sx, sy, kb) {
 }
 
 /* ---------- 전직 ---------- */
+/* 상점 전용 변형 장비: 기존 장비를 숙련(+15%)·정예(+30%) 버전으로 늘려 재고를 풍부하게 */
+for (const base of Object.values(GEAR).slice()) {
+  if (!(base.cost > 0) || base.craft || base.trans || base.job || base.hwL || base.rar > 4 || !['weapon', 'armor', 'ring'].includes(base.slot)) continue;
+  [['a', '숙련된 ', 1.15, 1.25], ['b', '정예 ', 1.3, 1.6]].forEach(([sfx, pre, f, cf]) => {
+    const g = Object.assign({}, base, { id: base.id + '_' + sfx, n: pre + base.n, cost: Math.round(base.cost * cf / 5) * 5, sv: 1 });
+    for (const k of ['atk', 'mag', 'mp', 'hp']) if (base[k]) g[k] = Math.max(base[k] + 1, Math.round(base[k] * f));
+    for (const k of ['red', 'crit', 'ls', 'mpr']) if (base[k]) g[k] = Math.round(base[k] * f * 100) / 100;
+    GEAR[g.id] = g;
+  });
+}
 const WM_IDS = Object.keys(GEAR).filter(id => /^mx\d+$/.test(id) && id !== 'mx6');
 const wmOn = () => P.job2 === 'weaponmaster';
 const wokPool = g => (!g.gun || P.cls === 'gunner' || wmOn()) && (P.cls !== 'gunner' || wmOn() || g.slot !== 'weapon' || g.gun);
@@ -4259,7 +4269,7 @@ function renderAch() {
 function boxOpen(tier) {
   const W = tier === 'boxH' ? [[2, 30], [3, 40], [4, 25], [5, 5]] : [[0, 55], [1, 30], [2, 15]];
   let r = Math.random() * 100, rar = W[0][0]; for (const [q, w] of W) { if (r < w) { rar = q; break; } r -= w; rar = q; }
-  const all = Object.values(GEAR).filter(g => g.slot === 'weapon' && !g.craft && !g.job && g.cost > 0 && wokPool(g));
+  const all = Object.values(GEAR).filter(g => g.slot === 'weapon' && !g.craft && !g.job && !g.sv && g.cost > 0 && wokPool(g));
   let pool = all.filter(g => g.rar === rar);
   for (let d = 1; !pool.length && d < 7; d++) pool = all.filter(g => g.rar === rar - d || g.rar === rar + d);
   if (!pool.length) return null;
@@ -4618,6 +4628,10 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.69', d: '11/12', t: '상점 재고 대폭 확대', i: [
+    '장비를 모두 사서 상점이 텅 비던 문제를 고쳤습니다. 기존 장비마다 숙련된(+15%)·정예(+30%) 버전이 상점 전용으로 추가되어, 무기·방어구·반지가 훨씬 다양하게 진열됩니다.',
+    '새 장비는 같은 등급 안에서 능력치가 더 높고 가격도 더 비쌉니다. 전설·신화 등장 확률은 그대로입니다.'
+  ] },
   { v: '1.68', d: '11/11', t: '펫 체력·물약 치료, 상점 확장, 난이도 상향', i: [
     '동료(펫)에게 체력이 생겼습니다. 적에게 맞을 때 받는 피해의 30%를 동행 중인 동료들이 나눠 받고, 체력이 0이 되면 쓰러집니다.',
     '쓰러지거나 다친 동료는 인벤토리에서 체력 물약으로 치료할 수 있습니다. (체력 물약 40%, 고급 75%, 엘릭서 100%) 쓰러진 동료도 물약으로 일으킬 수 있습니다.',
