@@ -2879,8 +2879,10 @@ function updPlayer(dt) {
   P.face = (mouse.x + cam.x) >= P.x ? 1 : -1;
   P.anim += dt * (P.moving ? (run ? 13 : 9) : 2.2);
   P.atkCd -= dt; P.magCd -= dt; P.useCd -= dt; P.swing -= dt; P.inv -= dt; P.flash -= dt; P.nmT -= dt; P.shield = Math.max(0, P.shield - dt); P.parry = Math.max(0, (P.parry || 0) - dt);
-  if (P.regen > 0) { P.regen -= dt; P.hp = Math.min(P.maxHp, P.hp + P.maxHp * 0.03 * dt); }
-  if (P.shield > 0 && smf('shield', 'sreg')) P.hp = Math.min(P.maxHp, P.hp + P.maxHp * 0.05 * dt);
+  P.idle = (P.idle || 0) + dt;
+  if (P.regen > 0) { P.regen -= dt; if (P.idle >= 1) P.hp = Math.min(P.maxHp, P.hp + P.maxHp * 0.03 * dt); }
+  if (P.shield > 0 && smf('shield', 'sreg') && P.idle >= 1) P.hp = Math.min(P.maxHp, P.hp + P.maxHp * 0.05 * dt);
+  if (P.idle >= 1 && P.hp < P.maxHp) P.hp = Math.min(P.maxHp, P.hp + Math.max(0.5, P.maxHp * 0.008) * dt);
   if (P.fuseT > 0) { P.fuseT -= dt; if (P.fuseT <= 0) { P.fuseT = 0; calcRB(); recalc(); } }
   P.grit = Math.max(0, (P.grit || 0) - dt); if (P.lim > 0) { P.lim -= dt; if (P.lim <= 0) { P.lim = 0; recalc(); addText(P.x, P.y - 28, '한계돌파 종료', '#b0a8b4', 7); } }
   P.buff = Math.max(0, P.buff - dt); P.swift = Math.max(0, P.swift - dt); P.guard = Math.max(0, P.guard - dt); P.crit = Math.max(0, P.crit - dt);
@@ -3096,7 +3098,7 @@ function updMonster(m, dt) {
 let hitSrc = 'p';
 function hitMonster(m, dmg, ang, kb, crit) {
   m.byPet = hitSrc === 'pet';
-  dmg = Math.max(1, Math.round(dmg)); m.hp -= dmg; m.flash = 0.1; if (gsum('ls') > 0) P.hp = Math.min(P.maxHp, P.hp + Math.max(1, dmg * gsum('ls')));
+  dmg = Math.max(1, Math.round(dmg)); m.hp -= dmg; m.flash = 0.1; if (hitSrc !== 'pet') P.idle = 0; if (gsum('ls') > 0) P.hp = Math.min(P.maxHp, P.hp + Math.max(1, dmg * gsum('ls') * 0.5));
   m.kx += Math.cos(ang) * kb * m.kbMul; m.ky += Math.sin(ang) * kb * m.kbMul;
   addText(m.x + rnd(-4, 4), m.y - m.h - 2, crit ? dmg + '!' : String(dmg), crit ? '#ffe35a' : '#ffffff', crit ? 10 : 8);
   burst(m.x, m.y - m.cOff, crit ? 9 : 5, m.bt === 'slime' ? '#7be12f' : m.boss ? '#d4505c' : m.bt === 'orc' ? '#6db83e' : '#e6dcc2', 70, 0.4);
@@ -4628,6 +4630,11 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.70', d: '11/12', t: '체력 회복 방식 변경', i: [
+    '자동 체력 회복이 공격을 멈춘 뒤 1초가 지나야 시작됩니다. (최대 체력의 약 0.8%/초)',
+    '재생 효과(치유 스킬의 지속 회복, 방어막 재생)도 공격을 멈춘 상태에서만 작동합니다.',
+    '흡혈(공격 시 체력 회복) 효과가 절반으로 줄었습니다.'
+  ] },
   { v: '1.69', d: '11/12', t: '상점 재고 대폭 확대', i: [
     '장비를 모두 사서 상점이 텅 비던 문제를 고쳤습니다. 기존 장비마다 숙련된(+15%)·정예(+30%) 버전이 상점 전용으로 추가되어, 무기·방어구·반지가 훨씬 다양하게 진열됩니다.',
     '새 장비는 같은 등급 안에서 능력치가 더 높고 가격도 더 비쌉니다. 전설·신화 등장 확률은 그대로입니다.'
