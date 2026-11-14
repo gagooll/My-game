@@ -2038,7 +2038,9 @@ function shoot(w) {
   P.kx -= c * 30; P.ky -= s * 30; sfx(bow ? 420 : 560, 0.1, bow ? 'square' : 'triangle', 0.04, bow ? -200 : 200);
 }
 function hurtPlayer(d, sx, sy, kb) {
-  if (P.inv > 0 || state !== 'play') return;
+  if (state !== 'play') return;
+  P.idle = 0;
+  if (P.inv > 0) return;
   const red = Math.min(0.92, gsum('red') + (P.guard > 0 ? 0.4 : 0) + (P.shield > 0 ? 0.7 : 0) + (P.parry > 0 ? 0.5 : 0) + (P.bdef > 0 ? 0.3 : 0));
   if (P.parry > 0 && SK[P.parryQ]) { const q = P.parryQ; for (const m of monsters) if (!m.dead && m.spawnT <= 0 && Math.hypot(m.x - P.x, m.y - P.y) < 52) { const dm = pDmg() * 2.2 * sDmg(q) * dmgMul(); hitMonster(m, dm, Math.atan2(m.y - P.y, m.x - P.x), 240, false); if (sm(q, 'stun')) disable(m, 'stun', 1.2); } fxs.push({ k: 'shock', t: 0, d: 0.35, r: 52, x: P.x, y: P.y - 4 }); ring(P.x, P.y - 8, '#ffd24a', 52, 0.35); addText(P.x, P.y - 36, 'PARRY!', '#ffd24a', 7); sfx(500, 0.1, 'square', 0.06, -200); }
   if (P.shield > 0 && smf('shield', 'refl')) { for (const m of monsters) if (!m.dead && m.spawnT <= 0 && Math.hypot(m.x - P.x, m.y - P.y) < 46) hitMonster(m, pBolt() * 1.5, Math.atan2(m.y - P.y, m.x - P.x), 200, false); ring(P.x, P.y - 8, '#bff6ff', 46, 0.35); }
@@ -3446,18 +3448,18 @@ function drawMonster(m) {
   shadow(m.x, m.y, m.bt === 'demon' ? 13 : m.bt === 'orc' ? 8 : m.bt === 'slime' ? 5 * m.sc : m.bt === 'bat' ? 3 : 6);
   const flip = m.face < 0, fl = m.flash > 0;
   if (m.bt === 'bat') {
-    const spr = SP.bat[Math.floor(m.anim * 10) % 2]; blit(m.flash > 0 ? flashOf(spr) : spr, m.x, m.y - 10 + Math.sin(m.anim * 8) * 2, 7, 6, m.face < 0);
+    const spr = SP.bat[Math.floor(m.anim * 10) % 2], by = m.y - 10 + Math.sin(m.anim * 8) * 2; blit(m.flash > 0 ? flashOf(spr) : spr, m.x, by, 7, 6, m.face < 0); m.ib = [Math.round(m.x) - 7, Math.round(by) - 6, spr.width, spr.height];
   } else if (m.bt === 'slime') {
     let f = 0, hop = 0;
     if (m.state === 'squash') f = 1; else if (m.state === 'hop') { f = m.t < 0.3 ? 3 : 2; hop = Math.sin(Math.PI * Math.min(1, m.t / 0.42)) * 9; } else f = Math.floor(m.anim * 3) % 2 ? 2 : 0;
     let spr = SP[m.type][f]; if (fl) spr = flashOf(spr);
-    if (m.sc > 1) { ctx.save(); ctx.translate(Math.round(m.x), Math.round(m.y - hop + sink)); ctx.scale(m.sc, m.sc); ctx.drawImage(spr, -8, -13); ctx.restore(); } else blit(spr, m.x, m.y - hop + sink, 8, 13);
+    if (m.sc > 1) { ctx.save(); ctx.translate(Math.round(m.x), Math.round(m.y - hop + sink)); ctx.scale(m.sc, m.sc); ctx.drawImage(spr, -8, -13); ctx.restore(); m.ib = [Math.round(m.x) - 8 * m.sc, Math.round(m.y - hop + sink) - 13 * m.sc, spr.width * m.sc, spr.height * m.sc]; } else { blit(spr, m.x, m.y - hop + sink, 8, 13); m.ib = [Math.round(m.x) - 8, Math.round(m.y - hop + sink) - 13, spr.width, spr.height]; }
   } else {
     const f = m.moving ? walkSeq[Math.floor(m.anim * 8) % 4] : 0, bob = m.moving && f ? -1 : (m.moving ? 0 : (Math.floor(m.anim * 2) % 2 ? 1 : 0));
     let spr = SP[m.type][f]; if (fl) spr = flashOf(spr);
     const ax = m.bt === 'demon' ? 22 : m.bt === 'orc' ? 12 : 9, ay = m.bt === 'demon' ? 45 : m.bt === 'orc' ? 27 : 23;
     let wob = 0; if (m.state === 'wind' || m.state === 'slamW' || m.state === 'cast' || m.state === 'chargeW' || m.state === 'nova' || m.state === 'rain') wob = (Math.floor(time * 30) % 2) * 1;
-    blit(spr, m.x + wob, m.y + bob + sink, ax, ay, flip && m.bt !== 'orc' && m.bt !== 'demon' ? true : false);
+    blit(spr, m.x + wob, m.y + bob + sink, ax, ay, flip && m.bt !== 'orc' && m.bt !== 'demon' ? true : false); m.ib = [Math.round(m.x + wob) - ax, Math.round(m.y + bob + sink) - ay, spr.width, spr.height];
     if (m.ai === 'skeleton') {
       let a = 1.1 + Math.sin(m.anim * 6) * 0.1;
       if (m.state === 'wind') a = lerp(1.1, -2.0, Math.min(1, m.t / 0.38)); else if (m.state === 'recover') a = -1.0 + Math.min(1, m.t / 0.12) * 2.3;
@@ -3549,7 +3551,8 @@ function render() {
   for (const t of tall) if (vis(t.x, t.y, 24) && !inHidArena(t.x, t.y)) list.push({ y: t.y - 0.1, d: () => blit(t.spr, t.x, t.y, 8, 29) });
   list.sort((a, b) => a.y - b.y); for (const e of list) e.d();
   for (const m of monsters) if (m.frz > 0) {
-    const w = m.r * 2 + 2, h = m.h + 2, x = Math.round(m.x - w / 2), y = Math.round(m.y - h);
+    let w = m.r * 2 + 2, h = m.h + 2, x = Math.round(m.x - w / 2), y = Math.round(m.y - h);
+    if (m.ib) { const b = m.ib, ix = b[0], iy = b[1], iw = b[2], ih = b[3]; x = ix; y = iy; w = iw; h = ih; }
     ctx.globalAlpha = 0.5; rect(ctx, '#9fe8ff', x, y, w, h); ctx.globalAlpha = 0.9; rect(ctx, '#ffffff', x, y, w, 1); rect(ctx, '#e8ffff', x, y, 1, h); rect(ctx, '#e8ffff', x + w - 1, y, 1, h); rect(ctx, '#7fc8ff', x, y + h - 1, w, 1); ctx.globalAlpha = 1;
   }
   for (const st of storms) {
@@ -4669,6 +4672,12 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.73', d: '11/14', t: '체력 회복 타이머 수정', i: [
+    '몬스터의 공격이 닿기만 해도(무적 시간 때문에 피해가 들어오지 않았더라도) 체력 회복 1초 대기가 처음부터 다시 시작됩니다. 1초 동안 공격을 전혀 받지 않아야 회복이 시작됩니다.',
+  ] },
+  { v: '1.72', d: '11/14', t: '빙결 얼음 위치 수정', i: [
+    '빙결된 몬스터의 얼음이 몬스터가 아닌 허공에 그려지던 문제를 고쳤습니다. 이제 얼음이 몬스터 모습 그대로의 위치와 크기에 맞춰 덮입니다.',
+  ] },
   { v: '1.71', d: '11/13', t: '무기 상자 개봉 연출', i: [
     '보석 상점의 무기상자를 열면 상자가 흔들리다 열리며 빛과 이펙트가 터지고, "○○ 등급 ○○ 무기 획득!"이 크게 표시됩니다. 등급이 높을수록 색이 달라지고 전설 이상은 효과음이 더 화려합니다.',
     '화면을 누르면 닫을 수 있습니다.',
