@@ -393,7 +393,7 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
       <div class="chip"><small>방어구</small><b id="eqA">-</b></div>
       <div class="chip"><small>반지</small><b id="eqR">-</b></div>
     </div>
-    <div class="skillbar" id="skillbar" aria-label="스킬"><button id="invBtn" class="treebtn" type="button"><kbd>I</kbd> 인벤토리</button><button id="achBtn" class="treebtn" type="button"><kbd>J</kbd> 업적</button><button id="formBtn" class="treebtn" type="button" hidden><kbd>G</kbd> <span></span></button><span id="lordChip" class="buff" hidden></span><button id="runeBtn" class="treebtn" type="button"><kbd>U</kbd> 룬</button><button id="treeBtn" class="treebtn" type="button"><kbd>K</kbd> 스킬트리 <b id="spChip">SP 1</b></button></div>
+    <div class="skillbar" id="skillbar" aria-label="스킬"><button id="invBtn" class="treebtn" type="button"><kbd>I</kbd> 인벤토리</button><button id="achBtn" class="treebtn" type="button"><kbd>J</kbd> 업적</button><button id="swapBtn" class="treebtn" type="button" hidden><kbd>X</kbd> 무기 교체</button><button id="formBtn" class="treebtn" type="button" hidden><kbd>G</kbd> <span></span></button><span id="lordChip" class="buff" hidden></span><button id="runeBtn" class="treebtn" type="button"><kbd>U</kbd> 룬</button><button id="treeBtn" class="treebtn" type="button"><kbd>K</kbd> 스킬트리 <b id="spChip">SP 1</b></button></div>
   </section>
 
   <section class="stage">
@@ -463,7 +463,7 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
 
   <div class="touch" id="touch" aria-label="터치 조작">
     <div class="utl">
-      <button data-use="menu" type="button" aria-label="물약">물약</button><button data-inv type="button" aria-label="인벤토리">I</button><button data-rune type="button" aria-label="룬">룬</button><button data-ach type="button" aria-label="업적">업적</button><button data-form type="button" aria-label="형태 변환" hidden style="width:auto;border-radius:20px;padding:0 10px">변신</button><button data-tree type="button" aria-label="스킬트리">K<i id="tSp"></i></button><button data-pause type="button" aria-label="일시정지">Ⅱ</button>
+      <button data-use="menu" type="button" aria-label="물약">물약</button><button data-inv type="button" aria-label="인벤토리">I</button><button data-rune type="button" aria-label="룬">룬</button><button data-ach type="button" aria-label="업적">업적</button><button data-swap type="button" aria-label="무기 교체" hidden style="width:auto;border-radius:20px;padding:0 10px">무기교체</button><button data-form type="button" aria-label="형태 변환" hidden style="width:auto;border-radius:20px;padding:0 10px">변신</button><button data-tree type="button" aria-label="스킬트리">K<i id="tSp"></i></button><button data-pause type="button" aria-label="일시정지">Ⅱ</button>
     </div>
     <div class="skrow" aria-label="스킬">
       <button data-sk="KeyQ" type="button">Q</button><button data-sk="KeyE" type="button">E</button><button data-sk="KeyR" type="button">R</button><button data-sk="KeyF" type="button">F</button><button data-sk="Digit1" type="button">1</button><button data-sk="Digit2" type="button">2</button><button data-sk="Digit3" type="button">3</button><button data-sk="Digit4" type="button">4</button>
@@ -1785,7 +1785,7 @@ function calcRB() {
       case 'undying': o.undy = Math.max(o.undy, v); break; case 'chaos': o.chaos = Math.max(o.chaos, RUNE_RAR[q.r].m); break;
     }
   });
-  if (P.fuseT > 0) for (const k of ['atk', 'aspd', 'hp', 'red', 'ls', 'slow', 'cd']) if (o[k] > 0) o[k] *= 1.5;
+  if (P.fuseT > 0) for (const k of ['atk', 'aspd', 'hp', 'red', 'ls', 'slow', 'cd']) if (o[k] > 0) o[k] *= (P.job2 === 'creator' ? 2 : 1.5);
   o.cd = Math.min(0.6, o.cd); o.slow = Math.min(0.7, o.slow); RB = o;
 }
 const runeB = k => k === 'hp' ? RB.hp * P.bHp : k === 'red' ? RB.red : k === 'ls' ? RB.ls : 0;
@@ -1903,7 +1903,7 @@ function newGame(cls) {
   runSeed = ((Math.random() * 1e6) | 0) + 1;
   buildFloor(1);
   Object.assign(P, { x: fl.start[0] * TS + 8, y: fl.start[1] * TS + 8, vx: 0, vy: 0, kx: 0, ky: 0, hw: 4, hh: 3, r: 6, cOff: 9, hp: 100, maxHp: 100, mp: 50, maxMp: 50, xp: 0, lvl: 1, gold: 0, kills: 0, face: 1, atkCd: 0, magCd: 0, swing: 0, swingMax: 0.22, swingAng: 0, combo: 0, inv: 0, flash: 0, buff: 0, anim: 0, moving: false, mats: {}, enh: {}, learned: {}, nodes: {}, sp: 1, shield: 0, regen: 0, dashHit: null, bHp: 100, bMp: 50, cls, eq: { weapon: K.w, armor: K.a, ring: null }, owned: [K.w, K.a], bag: Object.fromEntries(CONS.map(c => [c.k, c.k === 'hp' ? 1 : 0])), useCd: 0, guard: 0, swift: 0, crit: 0, dash: 0, dvx: 0, dvy: 0, ghostT: 0, nmT: 0, cd: { KeyQ: 0, KeyE: 0, KeyR: 0, KeyF: 0, Space: 0, Digit1: 0, Digit2: 0, Digit3: 0, Digit4: 0 } });
-  P.runes = []; P.rid = 1; P.rs = {}; P.undyUsed = false; calcRB(); P.bHp = K.hp; P.bMp = K.mp; P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = P.maxHp; P.mp = P.maxMp; P.learned[K.sig] = true; P.hwk = {}; P.pw = null; hwApply('dgs'); hwApply('tms'); P.job2 = null; P.grit = P.lim = 0; P.fuseT = 0; P.fuseN = 0; P.runeLord = false; P.baseJ2 = undefined; P.lastCast = null; P.dupN = 0; P.skipJ = 0; P.skipA = 0; P.asc = null; P.jobT = null; P.parry = 0; P.awk = 0; virt.run = false; { const rb = document.getElementById('runBtn'); if (rb) { rb.classList.remove('on'); rb.setAttribute('aria-pressed', 'false'); } }
+  P.runes = []; P.rid = 1; P.rs = {}; P.undyUsed = false; calcRB(); P.bHp = K.hp; P.bMp = K.mp; P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = P.maxHp; P.mp = P.maxMp; P.learned[K.sig] = true; P.hwk = {}; P.w2 = null; P.pw = null; hwApply('dgs'); hwApply('tms'); P.job2 = null; P.grit = P.lim = 0; P.fuseT = 0; P.fuseN = 0; P.runeLord = false; P.baseJ2 = undefined; P.lastCast = null; P.dupN = 0; P.skipJ = 0; P.skipA = 0; P.asc = null; P.jobT = null; P.parry = 0; P.awk = 0; virt.run = false; { const rb = document.getElementById('runBtn'); if (rb) { rb.classList.remove('on'); rb.setAttribute('aria-pressed', 'false'); } }
   monsters = []; items = []; projs = []; parts = []; texts = []; fxs = []; teles = []; decals = []; storms = []; meteors = []; pets = []; petBag = []; flashA = 0; banner = null;
   Object.assign(wave, { n: 0, list: [], spawnT: 0, state: 'break', t: 1.8 });
   cam.x = P.x - W / 2; cam.y = P.y - H / 2;
@@ -2069,6 +2069,12 @@ for (const base of Object.values(GEAR).slice()) {
 }
 const WM_IDS = Object.keys(GEAR).filter(id => /^mx\d+$/.test(id) && id !== 'mx6');
 const wmOn = () => P.job2 === 'weaponmaster';
+function swapWeapon() {
+  if (!wmOn() || state !== 'play') return;
+  if (!P.w2 || !P.owned.includes(P.w2) || !GEAR[P.w2]) { P.w2 = null; if (P.nmT <= 0) { P.nmT = 0.8; addText(P.x, P.y - 26, '보조 무기 없음 (인벤토리)', '#b0a8b4', 7); } return; }
+  const t = P.eq.weapon; P.eq.weapon = P.w2; P.w2 = t; recalc(); P.atkCd = Math.max(P.atkCd, 0.15);
+  const g = GEAR[P.eq.weapon]; addText(P.x, P.y - 30, g.n, '#ffd24a', 8); ring(P.x, P.y - 8, '#ffd24a', 22, 0.3); burst(P.x, P.y - 9, 10, '#ffd24a', 90, 0.4); sfx(700, 0.1, 'square', 0.05, 200);
+}
 const wokPool = g => (!g.gun || P.cls === 'gunner' || wmOn()) && (P.cls !== 'gunner' || wmOn() || g.slot !== 'weapon' || g.gun);
 const jobElig = () => (P.cls === 'novice' ? (P.asc ? 0 : P.lvl >= 5 ? 1 : 0) : (!P.job2 && P.lvl >= 25 ? 2 : 0));
 const jobNext = () => {
@@ -2478,7 +2484,7 @@ JOB2.skysniper = { cls: 'gunner', hidden: true, n: '천공의 사수', d: '천�
   [7, 'volley', { n: '별빛 연사', ic: 'starburst', mp: 30, cd: 12, col: '#ffe35a', d: '별빛 총알 10발을 연속으로 발사합니다.', p: { n: 1, rep: 10, gap: 0.07, spread: 0, spd: 400, life: 0.9, mul: 0.95, kind: 'bullet' } }],
   [8, 'volley', { n: '차원 저격', ic: 'dimsnipe', mp: 40, cd: 9, col: '#ffffff', d: '아주 먼 거리의 적까지 꿰뚫는 강력한 저격 한 발을 발사합니다.', p: { n: 1, spread: 0, spd: 620, life: 1.7, mul: 7.5, kind: 'rail', pierce: true } }],
   [9, 'starfall', { n: '유성 폭격', ic: 'starfall', mp: 100, cd: 60, col: '#ffe35a', awk: true, nodes: [], d: '하늘에서 유성탄 여러 개를 쏟아부어 조준한 곳을 초토화합니다.', pm: { aoe: 0.2, dmg: 0.5 } }]] };
-JOB2.creator = { cls: 'mage', hidden: true, n: '룬의 창조자', d: '룬의 힘을 방출하고 융합하고 복제하는 히든 직업.', b: { mag: 0.2, mpr: 1, red: 0.05 }, sk: [
+JOB2.creator = { cls: 'mage', hidden: true, n: '룬의 창조자', d: '룬의 힘을 방출하고 융합하고 복제하는 히든 직업.', b: { mag: 0.45, mpr: 2.2, red: 0.1, crit: 0.06 }, sk: [
   [2, 'runeburst', { n: '룬 방출', ic: 'runeburst', mp: 40, cd: 9, col: '#c98aff', d: '장착한 룬의 에너지를 폭발시켜 주변 적에게 피해를 줍니다. 장착한 룬이 많고 등급이 높을수록 강해지며, 룬의 효과도 함께 적용됩니다.' }],
   [7, 'runefuse', { n: '룬 융합', ic: 'runefuse', mp: 35, cd: 25, col: '#7ad0ff', d: '장착한 룬의 에너지를 하나로 합쳐 10초간 모든 룬 효과가 1.5배가 됩니다.' }],
   [8, 'runecopy', { n: '룬 복제', ic: 'runecopy', mp: 30, cd: 12, col: '#ffd24a', d: '직전에 쓴 스킬을 복제해 즉시 한 번 더 발동합니다. (룬 창에서는 룬도 복제할 수 있습니다)' }],
@@ -2525,12 +2531,12 @@ HSET('skysniper', [
   [5, 'pulse', { n: '성광탄', ic: 'fireball', mp: 24, cd: 7, col: '#ffe35a', d: '강렬한 빛을 터뜨려 주변 적을 오래 기절시킵니다.', p: { times: 1, R: 80, mul: 1.2, stun: 1.8, kb: 100 } }],
   [6, 'guard', { n: '빛의 방벽', ic: 'shield', mp: 24, cd: 15, col: '#bfe8ff', d: '3초간 빛의 방벽을 두르고 주변 적을 기절시킵니다.', p: { dur: 3, R: 40, mul: 0.5, stun: 0.8 } }]]);
 HSET('creator', [
-  [0, 'ringshot', { n: '룬 화염', ic: 'fireball', mp: 18, cd: 2.5, col: '#ff9a3a', d: '룬의 화염구 5발을 부채꼴로 쏩니다.', p: { n: 5, arc: 0.8, spd: 220, life: 0.9, mul: 1.3, base: 'mag', kind: 'orb', pierce: false } }],
-  [1, 'pulse', { n: '룬 서리', ic: 'ice', mp: 24, cd: 8, col: '#7ad0ff', d: '주변에 룬의 한기를 퍼뜨려 적을 얼려버립니다.', p: { times: 1, R: 75, mul: 1, base: 'mag', frz: 2.5 } }],
-  [3, 'buffself', { n: '룬의 치유', ic: 'heal', mp: 28, cd: 14, col: '#c98aff', d: '체력을 20% 회복하고 마나를 40% 되찾습니다.', p: { heal: 0.2, mp: 0.4 } }],
-  [4, 'blink', { n: '룬 점멸', ic: 'dash', mp: 10, cd: 3, col: '#c98aff', d: '조준한 곳으로 순간이동하며 출발점과 도착점에 룬이 폭발합니다.', p: { dist: 100, R: 40, mul: 1.2, base: 'mag', both: true } }],
-  [5, 'snipe', { n: '룬 광선', ic: 'orb', mp: 22, cd: 5, col: '#c98aff', d: '룬의 광선으로 일직선의 적을 모두 꿰뚫습니다.', p: { len: 280, w: 10, mul: 3, base: 'mag' } }],
-  [6, 'guard', { n: '룬 방벽', ic: 'shield', mp: 24, cd: 15, col: '#7ad0ff', d: '3초간 룬의 방벽을 두르고 주변 적을 얼립니다.', p: { dur: 3, R: 48, mul: 0.8, base: 'mag', frz: 1.5 } }]]);
+  [0, 'ringshot', { n: '룬 화염', ic: 'fireball', mp: 14, cd: 2, col: '#ff9a3a', d: '룬의 화염구 7발을 부채꼴로 쏩니다.', p: { n: 7, arc: 1.0, spd: 240, life: 0.95, mul: 2.0, base: 'mag', kind: 'orb', pierce: false } }],
+  [1, 'pulse', { n: '룬 서리', ic: 'ice', mp: 24, cd: 8, col: '#7ad0ff', d: '주변에 룬의 한기를 퍼뜨려 적을 얼려버립니다.', p: { times: 1, R: 95, mul: 2.2, base: 'mag', frz: 3 } }],
+  [3, 'buffself', { n: '룬의 치유', ic: 'heal', mp: 28, cd: 14, col: '#c98aff', d: '체력을 35% 회복하고 마나를 60% 되찾습니다.', p: { heal: 0.35, mp: 0.6 } }],
+  [4, 'blink', { n: '룬 점멸', ic: 'dash', mp: 10, cd: 3, col: '#c98aff', d: '조준한 곳으로 순간이동하며 출발점과 도착점에 룬이 폭발합니다.', p: { dist: 110, R: 55, mul: 2.4, base: 'mag', both: true } }],
+  [5, 'snipe', { n: '룬 광선', ic: 'orb', mp: 22, cd: 5, col: '#c98aff', d: '룬의 광선으로 일직선의 적을 모두 꿰뚫습니다.', p: { len: 320, w: 14, mul: 5.5, base: 'mag' } }],
+  [6, 'guard', { n: '룬 방벽', ic: 'shield', mp: 24, cd: 15, col: '#7ad0ff', d: '3초간 룬의 방벽을 두르고 주변 적을 얼립니다.', p: { dur: 4, R: 60, mul: 1.6, base: 'mag', frz: 2.2 } }]]);
 const SPJ = {}; for (const id in JOB2) { const L = JOBLOOK[id]; SPJ[id] = [0, 1, 2, 3].map(fr => knightSpr(fr, Object.assign({}, CLS[JOB2[id].cls].pal || {}, L.pal), L.deco)); }
 const curSpr = () => (P.job2 && SPJ[P.job2]) || SPK[P.cls] || SP.knight;
 const awkMod = (code, k) => { if (!SK[code].awk || !P.awk) return 0; const a = P.awk; return ({ dmg: (a >= 3 ? 0.4 : 0) + (a >= 5 ? 0.6 : 0), cd: (a >= 3 ? -0.15 : 0) + (a >= 5 ? -0.15 : 0), aoe: a >= 5 ? 0.3 : 0, mp: a >= 5 ? -0.2 : 0 })[k] || 0; };
@@ -2812,7 +2818,7 @@ const LIB = {
   runeburst(qq) {
     const sl = (P.rs && P.eq && P.rs[P.eq.weapon]) || [], rs = [];
     sl.forEach((id, i) => { if (id && runeUnlocked(i)) { const q = runeOf(id); if (q) rs.push(q); } });
-    const pw = 1 + rs.reduce((a, q) => a + 0.12 * (1 + q.r), 0), R = 58 * (1 + sm(qq, 'aoe')), dmg = pBolt() * 2.0 * sDmg(qq) * dmgMul() * pw;
+    const pw = 1 + rs.reduce((a, q) => a + 0.22 * (1 + q.r), 0), R = 74 * (1 + sm(qq, 'aoe')), dmg = pBolt() * 3.6 * sDmg(qq) * dmgMul() * pw;
     const col = rs.length ? RUNE_RAR[Math.max(...rs.map(q => q.r))].c : SK[qq].col;
     for (const m of monsters) { if (m.dead || m.spawnT > 0) continue; const dx = m.x - P.x, dy = m.y - P.y; if (Math.hypot(dx, dy) < R + m.r) { const crit = Math.random() < critCh(); hitMonster(m, dmg * rnd(0.9, 1.1) * (crit ? 1.8 : 1), Math.atan2(dy, dx), 260, crit); } }
     for (let i = 0; i < 8; i++) { const a = i * 0.785; crack(P.x + Math.cos(a) * R * 0.8, P.y - P.cOff + Math.sin(a) * R * 0.8 + 4); }
@@ -2830,7 +2836,7 @@ const LIB = {
     SKF[c]();
   },
   runecreate(qq) {
-    const R = 190 * (1 + sm(qq, 'aoe')), dmg = pBolt() * 7 * sDmg(qq) * dmgMul();
+    const R = 230 * (1 + sm(qq, 'aoe')), dmg = pBolt() * 13 * sDmg(qq) * dmgMul();
     for (const m of monsters) { if (m.dead || m.spawnT > 0) continue; const dx = m.x - P.x, dy = m.y - P.y; if (Math.hypot(dx, dy) < R + m.r) { const crit = Math.random() < critCh(); hitMonster(m, dmg * rnd(0.9, 1.1) * (crit ? 1.8 : 1), Math.atan2(dy, dx), 300, crit); } }
     for (let i = 0; i < 8; i++) { const a = i * 0.785; crack(P.x + Math.cos(a) * 70, P.y + Math.sin(a) * 70); }
     giveRune(P.x, P.y, 1, 0.08);
@@ -3754,6 +3760,7 @@ const setW = (k, pct, node) => { const v = pct.toFixed(1); if (hc[k] !== v) { hc
 function skipFarm() { if (state === 'play' && wave.state === 'clear' && wave.t > 0.3) wave.t = 0.3; }
 $('skipFarm').addEventListener('click', e => { e.preventDefault(); skipFarm(); });
 function hud() {
+  { const sb = $('swapBtn'), stb = document.querySelector('.touch button[data-swap]'), won = wmOn(); sb.hidden = !won; if (stb) stb.hidden = !won; }
   { const fb = $('formBtn'), tb = document.querySelector('.touch button[data-form]'), ch = $('lordChip'), L = formList(), show = L.length > 1;
     let t = '', tt = '';
     if (show) {
@@ -4035,7 +4042,8 @@ function genStock() {
   const gs = stock.filter(x => x.kind === 'gear' && !x.myth); if (gs.length) { const sp = gs[(Math.random() * gs.length) | 0]; sp.sale = true; sp.price = Math.round(sp.price * 0.65 / 5) * 5; }
 }
 const sellVal = g => Math.round(g.cost * 0.45);
-function equip(id) { const g = GEAR[id], bad = t => { say(t[0], t[1]); sfx(140, 0.15, 'square', 0.05, -60); }; if (g.slot === 'weapon' && !wmOn()) { if (g.gun && P.cls !== 'gunner') return bad(['거너 전용', '총은 거너만 사용할 수 있습니다']); if (P.cls === 'gunner' && !g.gun) return bad(['거너 전용 제한', '거너는 총만 장착할 수 있습니다']); } if (g.job && P.job2 !== g.job) return bad(['전용 무기', JOB2[g.job].n + ' 전용 무기입니다']); P.eq[g.slot] = id; recalc(); }
+function equip(id) { if (P.w2 === id) P.w2 = null; const g = GEAR[id], bad = t => { say(t[0], t[1]); sfx(140, 0.15, 'square', 0.05, -60); }; if (g.slot === 'weapon' && !wmOn()) { if (g.gun && P.cls !== 'gunner') return bad(['거너 전용', '총은 거너만 사용할 수 있습니다']); if (P.cls === 'gunner' && !g.gun) return bad(['거너 전용 제한', '거너는 총만 장착할 수 있습니다']); } if (g.job && P.job2 !== g.job) return bad(['전용 무기', JOB2[g.job].n + ' 전용 무기입니다']); P.eq[g.slot] = id; recalc(); }
+function setW2(id) { if (!wmOn() || !GEAR[id] || GEAR[id].slot !== 'weapon' || (GEAR[id].job && GEAR[id].job !== P.job2)) return; P.w2 = P.w2 === id ? null : id; recalc(); }
 function renderShop() {
   const keep = ov.shop.scrollTop; $('shopGold').textContent = P.gold; $('shopWave').textContent = wave.n;
   const rc = 25 + 15 * rerolls, rr = $('rerollBtn'); rr.textContent = '재고 새로고침 ' + rc + 'G'; rr.disabled = P.gold < rc;
@@ -4193,9 +4201,11 @@ function renderInv() {
     const g = GEAR[id]; eq.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: nm[sl] + ' · ' + gearDesc(g), btns: [{ t: '장착 중', dis: true }], re: renderInv }));
   }
   const bag = $('invBag'); bag.textContent = '';
-  const order = { weapon: 0, armor: 1, ring: 2 }, others = P.owned.filter(id => P.eq[GEAR[id].slot] !== id).sort((x, y) => order[GEAR[x].slot] - order[GEAR[y].slot] || GEAR[y].rar - GEAR[x].rar);
+  if (P.w2 && !P.owned.includes(P.w2)) P.w2 = null;
+  if (wmOn() && P.w2) { const g = GEAR[P.w2]; eq.appendChild(card({ pic: gearIcon(P.w2), name: gname(P.w2), rar: g.rar, desc: '보조 무기 (X키로 교체) · ' + gearDesc(g), btns: [{ t: '지금 교체', fn: () => swapWeapon() }, { t: '보조 해제', alt: true, fn: () => setW2(P.w2) }], re: renderInv })); }
+  const order = { weapon: 0, armor: 1, ring: 2 }, others = P.owned.filter(id => P.eq[GEAR[id].slot] !== id && !(wmOn() && P.w2 === id)).sort((x, y) => order[GEAR[x].slot] - order[GEAR[y].slot] || GEAR[y].rar - GEAR[x].rar);
   if (!others.length) { const e = document.createElement('p'); e.className = 'empty-note'; e.textContent = '교체할 장비가 없습니다. 몬스터를 잡거나 상점에서 구하세요.'; bag.appendChild(e); }
-  others.forEach(id => { const g = GEAR[id]; bag.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: nm[g.slot] + ' · ' + gearDesc(g), btns: [(!wmOn() && P.cls === 'gunner' && g.slot === 'weapon' && !g.gun) ? { t: '거너 사용 불가', dis: true, fn: () => {} } : { t: '장착', fn: () => equip(id) }], re: renderInv })); });
+  others.forEach(id => { const g = GEAR[id]; bag.appendChild(card({ pic: gearIcon(id), name: gname(id), rar: g.rar, desc: nm[g.slot] + ' · ' + gearDesc(g), btns: [(!wmOn() && P.cls === 'gunner' && g.slot === 'weapon' && !g.gun) ? { t: '거너 사용 불가', dis: true, fn: () => {} } : { t: '장착', fn: () => equip(id) }].concat(wmOn() && g.slot === 'weapon' && !(g.job && g.job !== P.job2) ? [{ t: '보조 무기로', alt: true, fn: () => setW2(id) }] : []), re: renderInv })); });
   renderPets();
   matChips($('invMats'));
   const pr = $('invPot'); pr.textContent = '';
@@ -4432,6 +4442,8 @@ function openRune() {
 }
 function closeRune() { if (state !== 'rune') return; state = 'play'; showOv(null); sfx(300, 0.05, 'square', 0.03); }
 $('formBtn').addEventListener('click', () => { audioInit(); toggleForm(); });
+$('swapBtn').addEventListener('click', () => { audioInit(); swapWeapon(); });
+document.querySelectorAll('.touch button[data-swap]').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); swapWeapon(); }));
 document.querySelectorAll('.touch button[data-form]').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); toggleForm(); }));
 $('runeBtn').addEventListener('click', () => { audioInit(); if (state === 'play') openRune(); });
 $('runeClose').addEventListener('click', closeRune);
@@ -4539,6 +4551,7 @@ window.addEventListener('keydown', e => {
   if (state === 'hj') { e.preventDefault(); if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'KeyY') hjAnswer(true); else if (e.code === 'Escape' || e.code === 'KeyN') hjAnswer(false); return; }
   if (e.code === 'KeyJ' && (state === 'play' || state === 'ach')) { e.preventDefault(); if (!e.repeat) { if (state === 'play') openAch(); else closeAch(); } return; }
   if (state === 'ach') { if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); closeAch(); } return; }
+  if (e.code === 'KeyX' && state === 'play') { e.preventDefault(); if (!e.repeat) swapWeapon(); return; }
   if (e.code === 'KeyG' && state === 'play') { e.preventDefault(); if (!e.repeat) toggleForm(); return; }
   if (e.code === 'KeyU' && (state === 'play' || state === 'rune')) { e.preventDefault(); if (!e.repeat) { if (state === 'play') openRune(); else closeRune(); } return; }
   if (state === 'rune') { if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); closeRune(); } return; }
