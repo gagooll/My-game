@@ -2352,9 +2352,9 @@ const TPL = {
   grit: { n: '투지', mp: 15, cd: 16, col: '#ff5a4a', d: '10초간 체력이 낮을수록 공격력이 높아집니다. (체력이 바닥에 가까우면 최대 +100%)', nodes: [N('a', '긴 투지', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
   limit: { n: '한계돌파', mp: 30, cd: 40, col: '#ffd24a', d: '12초간 공격력·마법력·체력·마나·이동속도·공격속도·치명타·방어가 모두 20% 늘어납니다.', nodes: [N('a', '긴 폭발', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
   runeburst: { n: '룬 방출', mp: 40, cd: 9, col: '#c98aff', d: '장착한 룬의 에너지를 폭발시켜 주변 적에게 피해를 줍니다. 장착한 룬이 많고 등급이 높을수록 강해지며, 룬의 효과도 함께 적용됩니다.', nodes: GN(['c1', '넓은 방출', '범위 +50%', 2, 'b', 'c2', { aoe: 0.5 }], ['c2', '룬 공명', '피해 +60%', 2, 'b', 'c1', { dmg: 0.6 }]) },
-  runefuse: { n: '룬 융합', mp: 35, cd: 25, col: '#7ad0ff', d: '장착한 룬의 에너지를 하나로 합쳐 10초간 모든 룬 효과가 1.5배가 됩니다.', nodes: [N('a', '긴 융합', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
+  runefuse: { n: '룬 융합', mp: 35, cd: 25, col: '#7ad0ff', d: '장착한 룬의 에너지를 하나로 합쳐 10초간 모든 룬 효과가 2배가 되고 체력이 계속 회복됩니다.', nodes: [N('a', '긴 융합', '지속시간 +50%', 1, null, null, { dur: 0.5 }), N('b', '빠른 재사용', '쿨타임 -25%, 마나 -15%', 1, 'a', null, { cd: -0.25, mp: -0.15 })] },
   runecopy: { n: '룬 복제', mp: 30, cd: 12, col: '#ffd24a', d: '직전에 쓴 스킬을 복제해 즉시 한 번 더 발동합니다.', nodes: [N('a', '빠른 재사용', '쿨타임 -25%', 1, null, null, { cd: -0.25 }), N('b', '마나 절약', '마나 -30%', 1, 'a', null, { mp: -0.3 })] },
-  runecreate: { n: '룬 창조', mp: 90, cd: 70, col: '#ffd24a', d: '룬의 에너지를 모두 해방해 주변 모든 적에게 큰 피해를 주고, 새로운 룬을 하나 창조합니다.', nodes: [] },
+  runecreate: { n: '룬 창조', mp: 90, cd: 70, col: '#ffd24a', d: '룬의 에너지를 모두 해방해 주변 모든 적에게 큰 피해를 주고, 새로운 룬을 하나 창조하며 체력과 마나를 30% 회복합니다.', nodes: [] },
   parry: { n: '막기', mp: 14, cd: 8, col: '#ffd24a', d: '4초간 자세를 잡아 받는 피해를 절반으로 줄이고, 공격받을 때마다 주변 적에게 반격 피해를 줍니다.', nodes: GN(['c1', '강철 반격', '반격 피해 +80%', 2, 'b', 'c2', { dmg: 0.8 }], ['c2', '충격 반격', '반격에 맞은 적을 1.2초 기절', 2, 'b', 'c1', { stun: 1 }]) },
   smash: { n: '강타', mp: 12, cd: 3.5, col: '#ffd24a', d: '전방을 크게 내려쳐 적을 멀리 날려 보냅니다.', nodes: GN(['c1', '대지 가르기', '범위 +50%', 2, 'b', 'c2', { aoe: 0.5 }], ['c2', '기절 타격', '맞은 적을 1.5초 기절', 2, 'b', 'c1', { stun: 1 }]) },
   roar: { n: '전투 함성', mp: 20, cd: 18, col: '#ff8a3a', d: '8초간 공격력이 50% 오릅니다.', nodes: [N('a', '긴 함성', '지속시간 +40%', 1, null, null, { dur: 0.4 }), N('b', '전투 회복', '사용 시 체력 20% 회복', 1, 'a', null, { heal: 1 }), N('c1', '공포의 함성', '주변 적을 2초 기절', 2, 'b', 'c2', { fear: 1 }), N('c2', '질주 함성', '8초간 이동속도 증가', 2, 'b', 'c1', { haste: 1 })] },
@@ -2485,10 +2485,10 @@ JOB2.skysniper = { cls: 'gunner', hidden: true, n: '천공의 사수', d: '천�
   [8, 'volley', { n: '차원 저격', ic: 'dimsnipe', mp: 40, cd: 9, col: '#ffffff', d: '아주 먼 거리의 적까지 꿰뚫는 강력한 저격 한 발을 발사합니다.', p: { n: 1, spread: 0, spd: 620, life: 1.7, mul: 7.5, kind: 'rail', pierce: true } }],
   [9, 'starfall', { n: '유성 폭격', ic: 'starfall', mp: 100, cd: 60, col: '#ffe35a', awk: true, nodes: [], d: '하늘에서 유성탄 여러 개를 쏟아부어 조준한 곳을 초토화합니다.', pm: { aoe: 0.2, dmg: 0.5 } }]] };
 JOB2.creator = { cls: 'mage', hidden: true, n: '룬의 창조자', d: '룬의 힘을 방출하고 융합하고 복제하는 히든 직업.', b: { mag: 0.45, mpr: 2.2, red: 0.1, crit: 0.06 }, sk: [
-  [2, 'runeburst', { n: '룬 방출', ic: 'runeburst', mp: 40, cd: 9, col: '#c98aff', d: '장착한 룬의 에너지를 폭발시켜 주변 적에게 피해를 줍니다. 장착한 룬이 많고 등급이 높을수록 강해지며, 룬의 효과도 함께 적용됩니다.' }],
-  [7, 'runefuse', { n: '룬 융합', ic: 'runefuse', mp: 35, cd: 25, col: '#7ad0ff', d: '장착한 룬의 에너지를 하나로 합쳐 10초간 모든 룬 효과가 1.5배가 됩니다.' }],
+  [2, 'runeburst', { n: '룬 방출', ic: 'runeburst', mp: 40, cd: 9, col: '#c98aff', d: '장착한 룬의 에너지를 폭발시켜 주변 적에게 피해를 줍니다. 장착한 룬이 많고 등급이 높을수록 강해지며, 룬의 효과도 함께 적용됩니다. 체력도 회복합니다.' }],
+  [7, 'runefuse', { n: '룬 융합', ic: 'runefuse', mp: 35, cd: 25, col: '#7ad0ff', d: '장착한 룬의 에너지를 하나로 합쳐 10초간 모든 룬 효과가 2배가 되고 체력이 계속 회복됩니다.' }],
   [8, 'runecopy', { n: '룬 복제', ic: 'runecopy', mp: 30, cd: 12, col: '#ffd24a', d: '직전에 쓴 스킬을 복제해 즉시 한 번 더 발동합니다. (룬 창에서는 룬도 복제할 수 있습니다)' }],
-  [9, 'runecreate', { n: '룬 창조', ic: 'runecreate', mp: 90, cd: 70, col: '#ffd24a', awk: true, nodes: [], d: '룬의 에너지를 모두 해방해 주변 모든 적에게 큰 피해를 주고, 새로운 룬을 하나 창조합니다.' }]] };
+  [9, 'runecreate', { n: '룬 창조', ic: 'runecreate', mp: 90, cd: 70, col: '#ffd24a', awk: true, nodes: [], d: '룬의 에너지를 모두 해방해 주변 모든 적에게 큰 피해를 주고, 새로운 룬을 하나 창조하며 체력과 마나를 30% 회복합니다.' }]] };
 JOB2.gunslinger = { cls: 'gunner', n: '건슬링어', d: '쌍권총으로 쉴 새 없이 쏘아대는 총잡이. 권총을 두 정씩 쏩니다.', b: { crit: 0.1, spd: 0.08 }, sk: [
   [2, 'volley', { n: '쌍권총 난사', ic: 'rapid', mp: 34, cd: 9, col: '#ffe9a0', d: '양손의 권총으로 총알 12발을 연달아 쏩니다.', p: VOL({ kind: 'bullet', n: 2, spread: 0.12, spd: 380, life: 0.8, mul: 0.7, rep: 6, gap: 0.08, pierce: false }) }],
   [7, 'volley', { n: '헤드샷', ic: 'arrows', mp: 28, cd: 6, col: '#ffd24a', d: '치명적인 한 발. 모든 것을 관통합니다.', p: VOL({ kind: 'bullet', n: 1, spread: 0, spd: 560, life: 1.0, mul: 4.5 }) }],
@@ -2824,9 +2824,11 @@ const LIB = {
     for (let i = 0; i < 8; i++) { const a = i * 0.785; crack(P.x + Math.cos(a) * R * 0.8, P.y - P.cOff + Math.sin(a) * R * 0.8 + 4); }
     ring(P.x, P.y - 8, col, R, 0.6); ring(P.x, P.y - 8, '#ffffff', R * 0.6, 0.4); for (const q of rs) burst(P.x, P.y - 9, 10, RUNE_RAR[q.r].c, 120, 0.7); burst(P.x, P.y - 9, 14, SK[qq].col, 100, 0.6);
     shake = Math.max(shake, 3); flashA = Math.max(flashA, 0.1); sfx(260, 0.3, 'triangle', 0.07, 300);
+    const hl = (f) => { const v = Math.round(P.maxHp * f); P.hp = Math.min(P.maxHp, P.hp + v); addText(P.x, P.y - 40, '+' + v, '#6aff8a', 8); };
+    hl(0.06 + 0.02 * rs.length);
   },
   runefuse(qq) {
-    P.fuseT = Math.max(P.fuseT || 0, 10 * (1 + sm(qq, 'dur'))); calcRB(); recalc();
+    P.fuseT = Math.max(P.fuseT || 0, 10 * (1 + sm(qq, 'dur'))); P.regen = Math.max(P.regen || 0, P.fuseT); calcRB(); recalc();
     ring(P.x, P.y - 8, SK[qq].col, 36, 0.6); ring(P.x, P.y - 8, '#c98aff', 22, 0.4); burst(P.x, P.y - 9, 22, SK[qq].col, 100, 0.7); addText(P.x, P.y - 28, '룬 융합!', SK[qq].col, 9); sfx(520, 0.25, 'triangle', 0.06, 300);
   },
   runecopy(qq) {
@@ -2840,6 +2842,7 @@ const LIB = {
     for (const m of monsters) { if (m.dead || m.spawnT > 0) continue; const dx = m.x - P.x, dy = m.y - P.y; if (Math.hypot(dx, dy) < R + m.r) { const crit = Math.random() < critCh(); hitMonster(m, dmg * rnd(0.9, 1.1) * (crit ? 1.8 : 1), Math.atan2(dy, dx), 300, crit); } }
     for (let i = 0; i < 8; i++) { const a = i * 0.785; crack(P.x + Math.cos(a) * 70, P.y + Math.sin(a) * 70); }
     giveRune(P.x, P.y, 1, 0.08);
+    P.hp = Math.min(P.maxHp, P.hp + Math.round(P.maxHp * 0.3)); P.mp = Math.min(P.maxMp, P.mp + Math.round(P.maxMp * 0.3)); addText(P.x, P.y - 40, '+' + Math.round(P.maxHp * 0.3), '#6aff8a', 8);
     ring(P.x, P.y - 8, '#ffd24a', R, 0.9); ring(P.x, P.y - 8, '#c98aff', R * 0.6, 0.7); ring(P.x, P.y - 8, '#ffffff', R * 0.3, 0.5); burst(P.x, P.y - 9, 50, '#ffd24a', 160, 1, 2); flashA = Math.max(flashA, 0.5); shake = Math.max(shake, 7); sfx(180, 0.6, 'sawtooth', 0.08, 500);
   },
   quickstep(qq) {
