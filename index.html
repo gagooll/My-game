@@ -1994,7 +1994,7 @@ function disable(m, kind, dur) {
 function swingSword() {
   const w = gw(), t = WT[w.type];
   if (t.ranged) return shoot(w);
-  P.atkCd = t.cd / ((1 + RB.aspd) * limM()); P.swing = P.swingMax = Math.min(0.22, t.cd * 0.6); P.combo ^= 1;
+  P.idle = 0; P.atkCd = t.cd / ((1 + RB.aspd) * limM()); P.swing = P.swingMax = Math.min(0.22, t.cd * 0.6); P.combo ^= 1;
   const a = aimAng(); P.swingAng = a; const reach = t.reach + w.rar * 2;
   P.kx += Math.cos(a) * 55; P.ky += Math.sin(a) * 55;
   fxs.push({ k: 'slash', a, t: 0, d: 0.2, flip: P.combo, r: reach, col: w.slash || SLASH[w.rar], w: w.type === 'axe' ? 7 : w.type === 'dagger' ? 3 : 5 });
@@ -2015,7 +2015,7 @@ function swingSword() {
 }
 function shootGun(w) {
   const G = GUN[w.type], a = aimAng(), dual = P.job2 === 'gunslinger' && (w.type === 'pistol' || w.type === 'magnum' || w.type === 'smg');
-  P.atkCd = WT[w.type].cd / ((1 + RB.aspd) * limM()); P.swing = P.swingMax = 0.1;
+  P.idle = 0; P.atkCd = WT[w.type].cd / ((1 + RB.aspd) * limM()); P.swing = P.swingMax = 0.1;
   const base = pDmg() * dmgMul() * G.mul * (dual ? 0.8 : 1), n = G.cnt || 1;
   for (const side of (dual ? [-1, 1] : [0])) {
     for (let i = 0; i < n; i++) {
@@ -2033,7 +2033,7 @@ function shootGun(w) {
 function shoot(w) {
   if (WT[w.type].gun) return shootGun(w);
   const bow = w.type === 'bow', a = aimAng(), c = Math.cos(a), s = Math.sin(a), sp = bow ? 290 : 170;
-  P.atkCd = WT[w.type].cd / ((1 + RB.aspd) * limM()); P.swing = P.swingMax = 0.12;
+  P.idle = 0; P.atkCd = WT[w.type].cd / ((1 + RB.aspd) * limM()); P.swing = P.swingMax = 0.12;
   projs.push({ kind: bow ? 'arrow' : 'orb', x: P.x + c * 9, y: P.y - P.cOff + s * 9, vx: c * sp, vy: s * sp, a, dmg: pDmg() * dmgMul() * (bow ? 1.1 : 0.9 * (1 + gsum('mag') * 0.4)), life: bow ? 0.9 : 1.1, r: bow ? 3 : 4, friendly: true });
   P.kx -= c * 30; P.ky -= s * 30; sfx(bow ? 420 : 560, 0.1, bow ? 'square' : 'triangle', 0.04, bow ? -200 : 200);
 }
@@ -2881,7 +2881,7 @@ function castSkill(code) {
   if (s.fn === 'heal' && P.hp >= P.maxHp) { if (P.nmT <= 0) { P.nmT = 0.4; addText(P.x, P.y - 26, 'HP FULL', '#b0a8b4', 7); } return; }
   const mp = sMp(code);
   if (P.mp < mp) { if (P.nmT <= 0) { P.nmT = 0.4; addText(P.x, P.y - 26, 'NO MANA', '#7aa6ff', 7); sfx(120, 0.1, 'square', 0.04); } return; }
-  P.mp -= mp; P.cd[code] = sCd(code); SKF[code](); dqAdd('cast', 1); if (s.fn !== 'runecopy') P.lastCast = code;
+  P.idle = 0; P.mp -= mp; P.cd[code] = sCd(code); SKF[code](); dqAdd('cast', 1); if (s.fn !== 'runecopy') P.lastCast = code;
 }
 function updPlayer(dt) {
   P.formT = (P.formT || 0) + dt;
@@ -4672,6 +4672,9 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.74', d: '11/14', t: '공격 시 체력 회복 중단', i: [
+    '회복 중에 공격하거나 스킬을 쓰면 회복이 끊기고, 다시 1초 동안 공격하지도 피해를 받지도 않아야 회복이 이어집니다. 1초가 지나기 전에 또 공격하거나 맞으면 1초가 처음부터 다시 시작됩니다.',
+  ] },
   { v: '1.73', d: '11/14', t: '체력 회복 타이머 수정', i: [
     '몬스터의 공격이 닿기만 해도(무적 시간 때문에 피해가 들어오지 않았더라도) 체력 회복 1초 대기가 처음부터 다시 시작됩니다. 1초 동안 공격을 전혀 받지 않아야 회복이 시작됩니다.',
   ] },
