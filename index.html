@@ -4110,7 +4110,7 @@ function doEnhance(id) {
   }, 650);
 }
 function doCraft(id) {
-  const r = RCP[id]; if (P.cls === 'gunner' && !wmOn() && !GEAR[id].gun) return; if (GEAR[id].gun && GEAR[id].rar === 6 && P.cls !== 'gunner') return; if (P.owned.includes(id) || P.owned.includes(TRANS[id]) || P.gold < r.gold || !hasMats(r.mats)) return;
+  const r = RCP[id]; if (P.cls === 'gunner' && !wmOn() && !GEAR[id].gun) return; if (GEAR[id].gun && GEAR[id].rar === 6 && P.cls !== 'gunner' && !wmOn()) return; if (P.owned.includes(id) || P.owned.includes(TRANS[id]) || P.gold < r.gold || !hasMats(r.mats)) return;
   P.gold -= r.gold; for (const k in r.mats) P.mats[k] -= r.mats[k]; P.owned.push(id);
   setEnhMsg('제작 성공! ' + GEAR[id].n + ' 을(를) 얻었습니다. 인벤토리(I)에서 장착하세요.', 'great'); say('CRAFTED', GEAR[id].n);
   sfx(660, 0.12, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.15, 'square', 0.05, 200), 90); setTimeout(() => sfx(1320, 0.25, 'square', 0.05, 200), 190); renderEnh();
@@ -4131,7 +4131,7 @@ function renderEnh() {
   const cb = $('craftList'); cb.textContent = '';
   for (const id in RCP) {
     if (P.cls === 'gunner' && !wmOn() && !GEAR[id].gun) continue;
-    if (GEAR[id].gun && GEAR[id].rar === 6 && P.cls !== 'gunner') continue;
+    if (GEAR[id].gun && GEAR[id].rar === 6 && P.cls !== 'gunner' && !wmOn()) continue;
       if (!(GEAR[id].rar === 6 || wmOn()) && !!GEAR[id].gun !== (P.cls === 'gunner')) continue;
     const g = GEAR[id], r = RCP[id], own = P.owned.includes(id) || P.owned.includes(TRANS[id]);
     cb.appendChild(card({ pic: gearIcon(id), name: g.n, rar: g.rar, desc: gearDesc(g) + ' · 재료: ' + matStr(r.mats),
@@ -4927,4 +4927,4 @@ function frame0(now) {
 }
 requestAnimationFrame(frame);
 })();
-  </script>
+</script>
