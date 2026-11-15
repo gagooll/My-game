@@ -1,3 +1,4 @@
+
 <title>Dungeon Adventure</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -630,7 +631,7 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
 <script>
 (() => {
 'use strict';
-const W = 384, H = 216, TS = 16, MW = 64, MH = 44;
+const W = 384, H = 216, TS = 16, MW = 64, FH = 44, MH = 69;
 const $ = id => document.getElementById(id);
 const cv = $('game'); cv.width = W; cv.height = H;
 const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
@@ -1121,7 +1122,7 @@ function layoutCrypt() {
   put('w', [[2, 26], [3, 26], [4, 26], [2, 27], [3, 27]]);
   put('w', [[39, 27], [40, 27], [41, 27], [40, 26], [41, 26]]);
   put('c', [[7, 3], [7, 6], [36, 3], [36, 6], [7, 23], [7, 26], [36, 23], [36, 26], [14, 12], [29, 12], [14, 17], [29, 17]]);
-  for (let y = 1; y < MH - 1; y++) for (let x = 1; x < MW - 1; x++) {
+  for (let y = 1; y < FH - 1; y++) for (let x = 1; x < MW - 1; x++) {
     if (map[y][x] === '.' && R() < 0.028 && Math.hypot(x - 21 - OX, y - 17 - OY) > 4) map[y][x] = 'k';
   }
   const rm = (x, y, w, h) => ({ x: x + OX, y: y + OY, w, h });
@@ -1132,7 +1133,7 @@ function genFloor(f) {
   const rng = mulberry32(f * 9973 + 17 + runSeed * 7919), ri = (a, b) => a + Math.floor(rng() * (b - a + 1));
   const rooms = [];
   for (let t = 0; t < 500 && rooms.length < 7; t++) {
-    const w = ri(7, 13), h = ri(6, 10), x = ri(3, MW - w - 4), y = ri(3, MH - h - 6);
+    const w = ri(7, 13), h = ri(6, 10), x = ri(3, MW - w - 4), y = ri(3, FH - h - 6);
     if (rooms.some(r => x < r.x + r.w + 4 && x + w + 4 > r.x && y < r.y + r.h + 4 && y + h + 4 > r.y)) continue;
     rooms.push({ x, y, w, h });
   }
@@ -1152,7 +1153,7 @@ function genFloor(f) {
       if (rng() < 0.5) putRaw('c', [[r.x + 1, r.y + 1], [r.x + r.w - 2, r.y + r.h - 2]]);
     }
   });
-  for (let y = 1; y < MH - 1; y++) for (let x = 1; x < MW - 1; x++) if (map[y][x] === '.' && rng() < 0.03 && Math.hypot(x - sc[0], y - sc[1]) > 3) map[y][x] = 'k';
+  for (let y = 1; y < FH - 1; y++) for (let x = 1; x < MW - 1; x++) if (map[y][x] === '.' && rng() < 0.03 && Math.hypot(x - sc[0], y - sc[1]) > 3) map[y][x] = 'k';
   return { start: sc, boss: cen(rooms[bi]), rooms, secretIdx: null, chestN: Math.min(8, 4 + f), trapN: Math.min(22, 8 + 2 * f), skip: [0, bi] };
 }
 function trySecret(r, rng) {
@@ -1162,7 +1163,7 @@ function trySecret(r, rng) {
     if (sx < 2 || sx + sw + 1 >= MW - 1) continue;
     for (const dn of [down, !down]) {
       const wy = dn ? r.y + r.h : r.y - 1, y0 = dn ? wy : wy - sh - 1, y1 = dn ? wy + sh + 1 : wy;
-      if (y0 < 1 || y1 >= MH - 1) continue; let ok = true;
+      if (y0 < 1 || y1 >= FH - 1) continue; let ok = true;
       for (let y = y0; y <= y1 && ok; y++) for (let x = sx - 1; x <= sx + sw; x++) if (map[y][x] !== '#') { ok = false; break; }
       if (!ok) continue;
       const ry = dn ? wy + 1 : wy - sh; carveRaw(sx, ry, sx + sw - 1, ry + sh - 1);
@@ -1330,43 +1331,11 @@ function drawMini() {
 /* 보스의 방: 일반 맵과 이어지지 않은 별도 공간 */
 let arena = null;
 function carveArena() {
-  const rng = mulberry32(floorNum * 7717 + 3 + runSeed * 6007); arena = null;
-  for (const RG of [3, 1]) for (const [w, h] of [[17, 11], [15, 9], [13, 9], [11, 7], [9, 7]]) {
-    const cand = [];
-    for (let y0 = 3; y0 + h < MH - 3; y0++) for (let x0 = 3; x0 + w < MW - 3; x0++) {
-      let ok = true;
-      for (let y = y0 - RG; y <= y0 + h - 1 + RG && ok; y++) for (let x = x0 - RG; x <= x0 + w - 1 + RG; x++) if (map[y][x] !== '#') { ok = false; break; }
-      if (ok) cand.push([x0, y0]);
-    }
-    if (!cand.length) continue;
-    const [x0, y0] = cand[Math.floor(rng() * cand.length)];
-    carveRaw(x0, y0, x0 + w - 1, y0 + h - 1);
-    putRaw('p', [[x0 + 2, y0 + 2], [x0 + w - 3, y0 + 2], [x0 + 2, y0 + h - 3], [x0 + w - 3, y0 + h - 3]]);
-    putRaw('S', [[x0 + (w >> 1) - 3, y0 + 1], [x0 + (w >> 1) + 3, y0 + 1]]);
-    arena = { x: x0, y: y0, w, h, cx: x0 + (w >> 1), cy: y0 + (h >> 1) - 1, seen: false }; fl.boss = [arena.cx, arena.cy];
-    return;
-  }
-  // 빈 벽 공간이 없으면: 지형을 가장 적게 지우는 곳에 벽으로 둘러싼 별도 보스방을 만든다
-  const w = 11, h = 7, cand = [];
-  for (let y0 = 3; y0 + h < MH - 3; y0++) for (let x0 = 3; x0 + w < MW - 3; x0++) {
-    let cost = 0;
-    for (let y = y0 - 1; y <= y0 + h; y++) for (let x = x0 - 1; x <= x0 + w; x++) if (map[y][x] !== '#') cost++;
-    cand.push([x0, y0, cost]);
-  }
-  if (!cand.length) return;
-  cand.sort((p, q) => p[2] - q[2]);
-  const isF = c => c !== '#', cnt = () => { let n = 0; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (isF(map[y][x])) n++; return n; };
-  const reach = (sx, sy) => { const seen = new Uint8Array(MW * MH), st = [[sx, sy]]; seen[sy * MW + sx] = 1; let n = 0; while (st.length) { const [x, y] = st.pop(); n++; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (nx > 0 && ny > 0 && nx < MW - 1 && ny < MH - 1 && !seen[ny * MW + nx] && isF(map[ny][nx])) { seen[ny * MW + nx] = 1; st.push([nx, ny]); } } } return n; };
-  const sx = fl.start[0], sy = fl.start[1]; let good = null;
-  for (const [x0, y0] of cand.slice(0, 40)) {
-    const bak = []; for (let y = y0 - 1; y <= y0 + h; y++) { bak.push(map[y].slice()); for (let x = x0 - 1; x <= x0 + w; x++) map[y][x] = '#'; }
-    const total = cnt(); if (isF(map[sy][sx]) && reach(sx, sy) === total) { good = [x0, y0]; break; }
-    for (let k = 0; k < bak.length; k++) map[y0 - 1 + k] = bak[k];
-  }
-  if (!good) return;
-  const [x0, y0] = good;
+  /* 보스방: 일반 층과 완전히 분리된 별도 구역(맵 아래쪽 띠)에 만든다 */
+  arena = null;
+  const w = 27, h = 17, x0 = (MW - w) >> 1, y0 = FH + 4;
   carveRaw(x0, y0, x0 + w - 1, y0 + h - 1);
-  putRaw('p', [[x0 + 2, y0 + 2], [x0 + w - 3, y0 + 2], [x0 + 2, y0 + h - 3], [x0 + w - 3, y0 + h - 3]]);
+  putRaw('p', [[x0 + 2, y0 + 2], [x0 + w - 3, y0 + 2], [x0 + 2, y0 + h - 3], [x0 + w - 3, y0 + h - 3], [x0 + (w >> 1) - 6, y0 + (h >> 1)], [x0 + (w >> 1) + 6, y0 + (h >> 1)]]);
   putRaw('S', [[x0 + (w >> 1) - 3, y0 + 1], [x0 + (w >> 1) + 3, y0 + 1]]);
   arena = { x: x0, y: y0, w, h, cx: x0 + (w >> 1), cy: y0 + (h >> 1) - 1, seen: false }; fl.boss = [arena.cx, arena.cy];
 }
@@ -1384,7 +1353,7 @@ function tryVault() {
     for (let y = r.y; y < r.y + r.h; y++) { c.push([r.x - 1, y, -1, 0]); c.push([r.x + r.w, y, 1, 0]); }
     for (const [fx, ty, dx, dy] of c) {
       const bx = fx + dx, by = ty + dy;
-      if (fx < 3 || fx > MW - 4 || ty < 3 || ty > MH - 4 || !map[ty] || map[ty][fx] !== '#' || !map[by] || map[by][bx] !== '#') continue;
+      if (fx < 3 || fx > MW - 4 || ty < 3 || ty > FH - 4 || !map[ty] || map[ty][fx] !== '#' || !map[by] || map[by][bx] !== '#') continue;
       spots.push({ sc, fx, fy: ty, back: [fx - dx, ty - dy] });
     }
   }
@@ -1392,7 +1361,7 @@ function tryVault() {
   const sp = spots[(Math.random() * spots.length) | 0];
   for (const [w, h] of [[13, 9], [11, 7], [9, 7]]) {
     const cand = [];
-    for (let y0 = 3; y0 + h < MH - 3; y0++) for (let x0 = 3; x0 + w < MW - 3; x0++) {
+    for (let y0 = 3; y0 + h < FH - 3; y0++) for (let x0 = 3; x0 + w < MW - 3; x0++) {
       if (sp.fx >= x0 - 3 && sp.fx <= x0 + w + 2 && sp.fy >= y0 - 3 && sp.fy <= y0 + h + 2) continue;
       let ok = true;
       for (let y = y0 - 1; y <= y0 + h && ok; y++) for (let x = x0 - 1; x <= x0 + w; x++) if (map[y][x] !== '#') { ok = false; break; }
@@ -3073,12 +3042,16 @@ function updMonster(m, dt) {
       if (m.state === 'chase') {
         if (d > 24) chase(m, sp, dt);
         if (m.cd <= 0) {
-          if (!m.summoned && m.hp < m.maxHp * 0.5) { m.state = 'summon'; m.t = 0; ring(m.x, m.y - 6, '#b06bff', 60, 0.8); }
+          if (!m.summoned && m.hp < m.maxHp * (m.type === 'lich' || m.type === 'abyssal' ? 0.7 : 0.5)) { m.state = 'summon'; m.t = 0; ring(m.x, m.y - 6, '#b06bff', 60, 0.8); }
           else {
-            const opts = d < 70 ? ['slam', 'slam', 'nova', 'charge'] : ['cast', 'charge', 'nova', 'rain', 'rain'];
+            const BP = BPAT[m.type] || BPAT.demon, opts = d < 70 ? BP[0] : BP[1];
             let pk; for (let k = 0; k < 4; k++) { pk = opts[(Math.random() * opts.length) | 0]; if (pk !== m.last) break; } m.last = pk;
             if (pk === 'slam') { m.state = 'slamW'; m.t = 0; teles.push({ x: m.x, y: m.y, r: m.type === 'titan' ? 76 : 54, t: 0, d: 0.9, owner: m }); }
             else if (pk === 'cast') { m.state = 'cast'; m.t = 0; }
+            else if (pk === 'spiral') { m.state = 'spiral'; m.t = 0; m.spn = 0; m.sd = Math.random() < 0.5 ? 1 : -1; m.sa = Math.atan2(P.y - m.y, P.x - m.x); ring(m.x, m.y - 10, m.type === 'lich' ? '#7affd8' : '#a06bff', 40, 0.6); sfx(160, 0.5, 'triangle', 0.05, 200); }
+            else if (pk === 'cross') { m.state = 'cross'; m.t = 0; m.cn = 0; ring(m.x, m.y - 10, m.type === 'frostlord' ? '#9ae8ff' : '#d79bff', 44, 0.7); for (let i = 0; i < (m.type === 'runekeeper' ? 8 : 4); i++) { const a = i * (m.type === 'runekeeper' ? 0.785 : 1.571); for (let k = 1; k <= 4; k++) teles.push({ x: m.x + Math.cos(a) * k * 22, y: m.y + Math.sin(a) * k * 22, r: 8, t: 0, d: 0.8, owner: m }); } }
+            else if (pk === 'blink') { let bx = m.x, by = m.y; for (let k = 0; k < 14; k++) { const a = Math.random() * 6.283, x = P.x + Math.cos(a) * 44, y = P.y + Math.sin(a) * 44; if (!blocked(x, y, m.hw, m.hh) && (!inArenaPx(m.x, m.y) || inArenaPx(x, y))) { bx = x; by = y; break; } } m.bx = bx; m.by = by; m.state = 'blinkW'; m.t = 0; teles.push({ x: bx, y: by, r: 54, t: 0, d: 0.7, owner: m }); ring(m.x, m.y - 10, '#ffe35a', 30, 0.5); sfx(700, 0.3, 'square', 0.05, 400); }
+            else if (pk === 'quake') { m.state = 'quake'; m.t = 0; m.qn = 0; teles.push({ x: m.x, y: m.y, r: 108, t: 0, d: 0.9, owner: m }); ring(m.x, m.y, '#c8a06a', 108, 0.9); sfx(70, 0.6, 'sawtooth', 0.08, -30); }
             else if (pk === 'charge') { m.state = 'chargeW'; m.t = 0; m.ca = Math.atan2(P.y - m.y, P.x - m.x); for (let i = 1; i <= 6; i++) teles.push({ x: m.x + Math.cos(m.ca) * i * 20, y: m.y + Math.sin(m.ca) * i * 20, r: 12, t: 0, d: 0.85, owner: m }); sfx(120, 0.4, 'sawtooth', 0.05, 80); }
             else if (pk === 'nova') { m.state = 'nova'; m.t = 0; m.nv = 0; ring(m.x, m.y - 6, '#ffb03a', 46, 0.6); sfx(180, 0.5, 'triangle', 0.05, 200); }
             else { m.state = 'rain'; m.t = 0; m.rn = []; const nn = (enr ? 8 : 6) + (m.type === 'skylord' ? 5 : 0); for (let i = 0; i < nn; i++) { const rx = P.x + (i < 2 ? rnd(-10, 10) : rnd(-80, 80)), ry = P.y + (i < 2 ? rnd(-10, 10) : rnd(-60, 60)); if (solidPx(rx, ry)) continue; m.rn.push({ x: rx, y: ry }); teles.push({ x: rx, y: ry, r: 20, t: 0, d: 1.0, owner: m }); } ring(m.x, m.y - 6, '#ff5a3a', 40, 0.6); sfx(260, 0.5, 'triangle', 0.05, -100); }
@@ -3092,7 +3065,22 @@ function updMonster(m, dt) {
         if (Math.random() < 0.6) parts.push({ x: m.x + rnd(-6, 6), y: m.y + rnd(-2, 2), vx: rnd(-10, 10), vy: -rnd(4, 14), life: 0.4, max: 0.4, col: '#8a7560', size: 2, g: 0 });
         if (!m.hitC && Math.hypot(P.x - m.x, P.y - m.y) < m.r + P.r + 3) { hurtPlayer(m.dmg * 1.3, m.x, m.y, 300); m.hitC = true; }
         const wall = Math.hypot(m.x - ox, m.y - oy) < stp * 0.4;
-        if (wall || m.t >= 0.6) { if (wall) { shake = Math.max(shake, 7); burst(m.x, m.y - 6, 18, '#8a7560', 110, 0.6, 3); ring(m.x, m.y, '#ff8a6a', 30, 0.35); sfx(80, 0.3, 'sawtooth', 0.08, -40); } m.state = 'recover'; m.t = 0; m.cd = wall ? 2.6 : (enr ? 1.2 : 2); }
+        if (wall || m.t >= 0.6) { if (wall) { shake = Math.max(shake, 7); burst(m.x, m.y - 6, 18, '#8a7560', 110, 0.6, 3); ring(m.x, m.y, '#ff8a6a', 30, 0.35); sfx(80, 0.3, 'sawtooth', 0.08, -40); } if (m.type === 'infernal' && !m.dbl && !wall) { m.dbl = true; m.ca = Math.atan2(P.y - m.y, P.x - m.x); for (let i = 1; i <= 6; i++) teles.push({ x: m.x + Math.cos(m.ca) * i * 20, y: m.y + Math.sin(m.ca) * i * 20, r: 12, t: 0, d: 0.5, owner: m }); m.state = 'chargeW'; m.t = 0.35; } else { m.dbl = false; m.state = 'recover'; m.t = 0; m.cd = wall ? 2.6 : (enr ? 1.2 : 2); } }
+      } else if (m.state === 'spiral') {
+        m.t += dt; m.moving = false; const nMax = enr ? 34 : 26;
+        while (m.spn < nMax && m.t >= 0.5 + m.spn * 0.075) { const a = m.sa + m.sd * m.spn * 0.38, k = m.spn % 2; for (let q = 0; q < 2; q++) { const aa = a + q * Math.PI; projs.push({ x: m.x, y: m.y - 18, vx: Math.cos(aa) * (66 + k * 14), vy: Math.sin(aa) * (66 + k * 14), dmg: m.dmg * 0.42, life: 3.4, r: 4, friendly: false, kind: m.type === 'lich' || m.type === 'abyssal' || m.type === 'runekeeper' ? 'eorb' : undefined }); } m.spn++; if (m.spn % 3 === 0) sfx(240 + m.spn * 6, 0.08, 'square', 0.03, 60); }
+        if (m.spn >= nMax && m.t > 0.5 + nMax * 0.075 + 0.3) { m.state = 'recover'; m.t = 0; m.cd = enr ? 1.5 : 2.3; }
+      } else if (m.state === 'cross') {
+        m.t += dt; m.moving = false; const nd = m.type === 'runekeeper' ? 8 : 4;
+        if (m.cn < 3 && m.t >= 0.8 + m.cn * 0.35) { const off = m.cn % 2 ? (m.type === 'runekeeper' ? 0.39 : 0.785) : 0; for (let i = 0; i < nd; i++) { const a = i * 6.283 / nd + off; projs.push({ x: m.x, y: m.y - 18, vx: Math.cos(a) * 96, vy: Math.sin(a) * 96, dmg: m.dmg * 0.5, life: 3, r: 4, friendly: false, kind: m.type !== 'demon' ? 'eorb' : undefined }); } m.cn++; sfx(300, 0.15, 'triangle', 0.05, 200); ring(m.x, m.y - 10, m.type === 'frostlord' ? '#9ae8ff' : '#d79bff', 26, 0.3); }
+        if (m.cn >= 3 && m.t > 1.9) { m.state = 'recover'; m.t = 0; m.cd = enr ? 1.4 : 2.3; }
+      } else if (m.state === 'blinkW') {
+        m.t += dt; m.moving = false;
+        if (m.t >= 0.7) { burst(m.x, m.y - 10, 16, '#ffe35a', 100, 0.5); m.x = m.bx; m.y = m.by; burst(m.x, m.y - 10, 16, '#ffe35a', 100, 0.5); if (Math.hypot(P.x - m.x, P.y - m.y) < 54 + P.r * 0.5) hurtPlayer(m.dmg * 1.1, m.x, m.y, 260); ring(m.x, m.y, '#ffe35a', 54, 0.4); shake = Math.max(shake, 5); sfx(90, 0.3, 'sawtooth', 0.08, -40); m.state = 'recover'; m.t = 0; m.cd = enr ? 0.9 : 1.5; }
+      } else if (m.state === 'quake') {
+        m.t += dt; m.moving = false; const RS = [34, 68, 102];
+        if (m.qn < 3 && m.t >= 0.9 + m.qn * 0.28) { const R0 = RS[m.qn], dd = Math.hypot(P.x - m.x, P.y - m.y); if (Math.abs(dd - R0) < 17 + P.r * 0.5) hurtPlayer(m.dmg * 1.1, m.x, m.y, 260); ring(m.x, m.y, '#ff8a4a', R0, 0.35); burst(m.x, m.y, 14, '#8a7560', R0 * 2, 0.5, 3); shake = Math.max(shake, 6); sfx(80, 0.3, 'sawtooth', 0.08, -40); m.qn++; }
+        if (m.qn >= 3 && m.t > 1.9) { m.state = 'recover'; m.t = 0; m.cd = enr ? 1.6 : 2.6; }
       } else if (m.state === 'nova') {
         m.t += dt; m.moving = false;
         const ringShot = off => { const n = (enr ? 18 : 14) + (m.type === 'infernal' ? 8 : 0); for (let i = 0; i < n; i++) { const a = (i + off) / n * 6.283 + (m.nv || 0) * 0.2; projs.push({ x: m.x, y: m.y - 18, vx: Math.cos(a) * 74, vy: Math.sin(a) * 74, dmg: m.dmg * 0.5, life: 3.2, r: 4, friendly: false, kind: m.type !== 'demon' && m.type !== 'titan' && m.type !== 'infernal' ? 'eorb' : undefined }); } sfx(200, 0.25, 'sawtooth', 0.05, 150); ring(m.x, m.y - 10, '#ffb03a', 30, 0.3); };
@@ -3131,6 +3119,16 @@ function updMonster(m, dt) {
     }
   }
 }
+const BPAT = {
+  demon: [['slam', 'slam', 'nova', 'charge'], ['cast', 'charge', 'nova', 'rain', 'rain']],
+  lich: [['spiral', 'nova', 'cast', 'slam'], ['spiral', 'cast', 'cast', 'rain']],
+  skylord: [['blink', 'slam', 'cast'], ['blink', 'blink', 'rain', 'rain', 'cast']],
+  frostlord: [['cross', 'slam', 'nova'], ['cross', 'cast', 'cast', 'nova']],
+  infernal: [['charge', 'charge', 'slam', 'nova'], ['charge', 'rain', 'rain', 'nova']],
+  abyssal: [['spiral', 'slam', 'nova'], ['spiral', 'rain', 'rain', 'cast']],
+  titan: [['quake', 'slam', 'slam', 'charge'], ['quake', 'charge', 'rain']],
+  runekeeper: [['cross', 'nova', 'slam'], ['cross', 'cast', 'rain', 'spiral']]
+};
 let hitSrc = 'p';
 function hitMonster(m, dmg, ang, kb, crit) {
   m.byPet = hitSrc === 'pet';
@@ -4688,6 +4686,14 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.76', d: '11/15', t: '보스방 별도 구역', i: [
+    '보스방이 층 지형 안이 아니라 층과 완전히 분리된 별도 구역에 만들어집니다. 항상 가로 27 × 세로 17칸의 넓은 방이며, 층의 길이나 방 배치를 깎지 않습니다.',
+  ] },
+  { v: '1.75', d: '11/15', t: '보스방 확장 · 보스별 고유 패턴', i: [
+    '보스방이 훨씬 넓어졌습니다. 공간이 충분한 층에서는 가로 27칸까지 커지고, 넓은 방에는 중앙 기둥도 추가됩니다.',
+    '보스마다 쓰는 공격이 달라졌습니다. 룬의 수호자: 8방향 룬 광선 / 죽음의 군주·심연의 군주: 회전하는 탄막 / 천공의 군주: 순간이동 후 내려찍기 / 서리 군주: 십자 빙결탄 / 염옥의 군주: 연속 돌진 / 대지의 거신: 3겹 충격파.',
+    '죽음의 군주와 심연의 군주는 체력이 70%일 때 부하를 소환합니다.',
+  ] },
   { v: '1.74', d: '11/14', t: '공격 시 체력 회복 중단', i: [
     '회복 중에 공격하거나 스킬을 쓰면 회복이 끊기고, 다시 1초 동안 공격하지도 피해를 받지도 않아야 회복이 이어집니다. 1초가 지나기 전에 또 공격하거나 맞으면 1초가 처음부터 다시 시작됩니다.',
   ] },
