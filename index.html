@@ -323,7 +323,7 @@ body.mobile .skillbar, body.mobile .inv .chip:first-child { display: none; }
 .acts .run { right: 6%; bottom: 58%; width: 30%; height: 30%; background: rgba(40, 40, 60, .55); border-color: rgba(236, 228, 210, .5); display: grid; place-items: center; padding: 0; }
 .acts .run canvas { width: 62%; height: 62%; image-rendering: pixelated; image-rendering: crisp-edges; pointer-events: none; }
 .acts .run.on { background: rgba(240, 180, 40, .55); border-color: #ffd24a; }
-.acts .swp { right: 10%; bottom: 104%; width: 30%; height: 30%; font-size: 11px; line-height: 1.15; background: rgba(160, 120, 20, .55); border-color: #ffd24a; box-shadow: 0 0 8px rgba(255, 210, 74, .5); }
+.acts .swp { right: 6%; bottom: 104%; width: 34%; height: 34%; z-index: 2; font-size: 11px; line-height: 1.15; background: rgba(160, 120, 20, .55); border-color: #ffd24a; box-shadow: 0 0 8px rgba(255, 210, 74, .5); }
 .acts .dsh { right: 58%; bottom: 6%; width: 36%; height: 36%; font-size: 12px; background: rgba(50, 160, 170, .5); border-color: #bff6ff; }
 body:not([data-st="play"]) .touch > :not(.utl) { display: none; }
 body:not([data-st="play"]):not([data-st="potion"]) .utl { display: none; }
@@ -1920,7 +1920,7 @@ function newGame(cls) {
   runSeed = ((Math.random() * 1e6) | 0) + 1;
   buildFloor(1);
   Object.assign(P, { x: fl.start[0] * TS + 8, y: fl.start[1] * TS + 8, vx: 0, vy: 0, kx: 0, ky: 0, hw: 4, hh: 3, r: 6, cOff: 9, hp: 100, maxHp: 100, mp: 50, maxMp: 50, xp: 0, lvl: 1, gold: 0, kills: 0, face: 1, atkCd: 0, magCd: 0, swing: 0, swingMax: 0.22, swingAng: 0, combo: 0, inv: 0, flash: 0, buff: 0, anim: 0, moving: false, mats: {}, enh: {}, learned: {}, nodes: {}, sp: 1, shield: 0, regen: 0, dashHit: null, bHp: 100, bMp: 50, cls, eq: { weapon: K.w, armor: K.a, ring: null }, owned: [K.w, K.a], bag: Object.fromEntries(CONS.map(c => [c.k, c.k === 'hp' ? 1 : 0])), useCd: 0, guard: 0, swift: 0, crit: 0, dash: 0, dvx: 0, dvy: 0, ghostT: 0, nmT: 0, cd: { KeyQ: 0, KeyE: 0, KeyR: 0, KeyF: 0, Space: 0, Digit1: 0, Digit2: 0, Digit3: 0, Digit4: 0 } });
-  P.runes = []; P.rid = 1; P.rs = {}; P.undyUsed = false; calcRB(); P.bHp = K.hp; P.bMp = K.mp; P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = P.maxHp; P.mp = P.maxMp; P.learned[K.sig] = true; P.hwk = {}; P.w2 = null; P.pw = null; hwApply('dgs'); hwApply('tms'); P.job2 = null; P.grit = P.lim = 0; P.fuseT = 0; P.fuseN = 0; P.runeLord = false; P.baseJ2 = undefined; P.lastCast = null; P.dupN = 0; P.skipJ = 0; P.skipA = 0; P.asc = null; P.jobT = null; P.parry = 0; P.awk = 0; virt.run = false; { const rb = document.getElementById('runBtn'); if (rb) { rb.classList.remove('on'); rb.setAttribute('aria-pressed', 'false'); } }
+  P.runes = []; P.rid = 1; P.rs = {}; P.undyUsed = false; calcRB(); P.bHp = K.hp; P.bMp = K.mp; P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = P.maxHp; P.mp = P.maxMp; P.learned[K.sig] = true; P.hwk = {}; P.w2 = null; P.pw = null; hwApply('dgs'); hwApply('tms'); P.job2 = null; P.runeReady = false; P.wmUnlocked = false; P.lordUnlocked = false; P.spUnlocked = false; P.tbUnlocked = false; P.shK = 0; P.hjCool = 0; P.wmForm = 0; P.grit = P.lim = 0; P.fuseT = 0; P.fuseN = 0; P.runeLord = false; P.baseJ2 = undefined; P.lastCast = null; P.dupN = 0; P.skipJ = 0; P.skipA = 0; P.asc = null; P.jobT = null; P.parry = 0; P.awk = 0; virt.run = false; { const rb = document.getElementById('runBtn'); if (rb) { rb.classList.remove('on'); rb.setAttribute('aria-pressed', 'false'); } }
   monsters = []; items = []; projs = []; parts = []; texts = []; fxs = []; teles = []; decals = []; storms = []; meteors = []; pets = []; petBag = []; flashA = 0; banner = null;
   Object.assign(wave, { n: 0, list: [], spawnT: 0, state: 'break', t: 1.8 });
   cam.x = P.x - W / 2; cam.y = P.y - H / 2;
@@ -3875,7 +3875,7 @@ const setW = (k, pct, node) => { const v = pct.toFixed(1); if (hc[k] !== v) { hc
 function skipFarm() { if (state === 'play' && wave.state === 'clear' && wave.t > 0.3) wave.t = 0.3; }
 $('skipFarm').addEventListener('click', e => { e.preventDefault(); skipFarm(); });
 function hud() {
-  { const sb = $('swapBtn'), stb = document.querySelector('.touch button[data-swap]'), won = wmOn() && P.eq.weapon === 'wmarms'; sb.hidden = !won; if (stb) stb.hidden = !won; }
+  { const sb = $('swapBtn'), stb = document.querySelector('.touch button[data-swap]'), won = wmOn(), eqd = P.eq.weapon === 'wmarms'; sb.hidden = !won; sb.style.opacity = eqd ? '' : '.55'; if (stb) { stb.hidden = !won; stb.style.opacity = eqd ? '' : '.55'; } }
   { const fb = $('formBtn'), tb = document.querySelector('.touch button[data-form]'), ch = $('lordChip'), L = formList(), show = L.length > 1;
     let t = '', tt = '';
     if (show) {
@@ -4044,7 +4044,7 @@ function renderSlots() {
 function loadGame(sv) {
   if (sv.dead) return;
   newGame(); runSeed = sv.seed; buildFloor(sv.floor);
-  Object.assign(P, sv.P); P.runes = P.runes || []; P.rid = P.rid || 1; P.rs = P.rs || {}; setClassSkills(P.cls, P.job2); P.hwk = P.hwk || {}; if (P.lordUnlocked) giveHW('dgs'); if (P.runeLord) giveHW('tms'); hwApply('dgs'); hwApply('tms'); hwSync(); wmCheck(); spCheck(); 
+  Object.assign(P, { runeReady: false, wmUnlocked: false, lordUnlocked: false, spUnlocked: false, tbUnlocked: false, shK: 0, hjCool: 0, runeLord: false }, sv.P); P.runes = P.runes || []; P.rid = P.rid || 1; P.rs = P.rs || {}; setClassSkills(P.cls, P.job2); P.hwk = P.hwk || {}; if (P.lordUnlocked) giveHW('dgs'); if (P.runeLord) giveHW('tms'); hwApply('dgs'); hwApply('tms'); hwSync(); wmCheck(); spCheck(); 
   P.x = fl.start[0] * TS + 8; P.y = fl.start[1] * TS + 8; P.vx = P.vy = P.kx = P.ky = 0; P.dash = 0; P.inv = 0.8; P.shield = P.parry = P.swift = P.guard = P.crit = P.buff = 0; P.jobT = null; P.dashHit = null; updAwk(true);
   for (const c in P.cd) P.cd[c] = 0;
   calcRB(); P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = Math.min(P.hp, P.maxHp); P.mp = Math.min(P.mp, P.maxMp);
@@ -4804,6 +4804,13 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.80', d: '11/18', t: '새 게임 시작 시 전직 창 오류 수정', i: [
+    '새로 시작해도 이전 플레이의 히든 조건 기록이 남아 시작하자마자 전직 확인창이 뜨던 문제를 고쳤습니다. 새 게임에서는 관련 기록이 모두 초기화됩니다.',
+  ] },
+  { v: '1.79', d: '11/18', t: '모바일 무기 교체 버튼', i: [
+    '웨폰마스터는 만물의 무장을 끼기 전에도 모바일에 무기 교체 버튼이 보입니다(미장착 시 반투명, 누르면 장착 안내).',
+    '버튼을 조금 키웠습니다.',
+  ] },
   { v: '1.78', d: '11/18', t: '신규 1차 직업 음유시인', i: [
     '새로운 1차 직업 음유시인이 추가되었습니다. 음표와 선율로 싸우며 악기(플루트·북·바이올린·하프·지휘봉)만 장착할 수 있습니다. 악기는 상점·제작에서 얻고, 신화 악기 5종도 제작할 수 있습니다.',
     '2차 전직: 전투 악사(공격·연속 콤보 특화), 전장의 지휘자(버프·보호·군중 제어).',
