@@ -1741,6 +1741,15 @@ const RECIPES = [
   ['mx17', '신화의 전격총 라이트닝', 6, 3900, 'arc', 72, { crit: 0.12, spd: 0.05, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
   ['mx11', '신화의 유탄포 이그니스', 6, 3900, 'gl', 72, { ls: 0.05, gun: true }, { myth: 5, core: 8, hide: 8, shard: 6 }, 3000],
 ];
+{
+  const MM = { jelly: 5, bone: 3 }, TIERS = [['수제', 0, { jelly: 5, bone: 3 }, 60, 1], ['정교한', 1, { hide: 7, wing: 4 }, 120, 1.9], ['장인의', 2, { shard: 7, wing: 3, bone: 3 }, 170, 3], ['명장의', 3, { core: 3, shard: 4, hide: 6 }, 430, 4.6], ['전설의', 4, { core: 5, hide: 8, shard: 6 }, 760, 6.6]];
+  const GR = [['spear', 'cs', '창', { spear: true }, 1.1, {}], ['flute', 'cif', '플루트', { inst: true }, 1, {}], ['drum', 'cid', '북', { inst: true }, 1.3, {}], ['violin', 'civ', '바이올린', { inst: true }, 0.8, { crit: 0.08 }], ['harp', 'cih', '하프', { inst: true }, 0.85, { mag: 0.2 }], ['baton', 'cib', '지휘봉', { inst: true }, 1.05, { mpr: 1 }]];
+  for (const [type, pre, nm, fl, mul, ex] of GR) for (let i = 0; i < 5; i++) { const [pf, rar, mats, gold, am] = TIERS[i]; RECIPES.push([pre + i, pf + ' ' + nm, rar, gold * 2, type, Math.round(4 * am * mul + 2), Object.assign({}, fl, ex), mats, gold]); }
+  const MY = { myth: 5, core: 8, hide: 8, shard: 6 };
+  [['lc7', '용왕의 장창 바하무트', 'spear', 64, { spear: true, fx: 'boss', crit: 0.06 }], ['lc8', '폭풍의 창 이슈타르', 'spear', 62, { spear: true, fx: 'chain', spd: 0.05 }], ['lc9', '심해의 삼지창 포세이돈', 'spear', 66, { spear: true, fx: 'reach', ls: 0.04 }], ['lc10', '성광의 창 롱기누스', 'spear', 68, { spear: true, fx: 'dragon', crit: 0.08 }], ['lc11', '혈월의 창 카르마', 'spear', 63, { spear: true, fx: 'bolt', ls: 0.06 }],
+   ['mb6', '요정왕의 피리 오베론', 'flute', 60, { inst: true, crit: 0.1 }], ['mb7', '폭풍의 피리 아에올로스', 'flute', 64, { inst: true, spd: 0.08 }], ['mb8', '지옥의 전쟁북 케르베로스', 'drum', 98, { inst: true, ls: 0.07 }], ['mb9', '대지의 북 가이아', 'drum', 104, { inst: true }], ['mb10', '악마의 협주 벨리알', 'violin', 54, { inst: true, crit: 0.26 }], ['mb11', '월광의 바이올린 셀레네', 'violin', 50, { inst: true, crit: 0.2, spd: 0.1 }], ['mb12', '천사의 하프 라파엘', 'harp', 56, { inst: true, mag: 1.2, mpr: 5 }], ['mb13', '인어의 하프 세이렌', 'harp', 58, { inst: true, mag: 1.5, mpr: 6 }], ['mb14', '혼돈의 지휘봉 카오스', 'baton', 66, { inst: true, crit: 0.14, mag: 0.8 }], ['mb15', '황금 지휘봉 아폴론', 'baton', 62, { inst: true, mpr: 5, mag: 1 }]
+  ].forEach(([id, n, type, atk, o]) => RECIPES.push([id, n, 6, 4000, type, atk, o, MY, 3000]));
+}
 const RCP = {};
 RECIPES.forEach(([id, n, rar, cost, type, atk, o, mats, gold]) => { GEAR[id] = Object.assign({ id, slot: 'weapon', n, rar, cost, type, atk, craft: true }, o); RCP[id] = { mats, gold }; });
 for (const id of ['mb1', 'mb2', 'mb3', 'mb4', 'mb5']) GEAR[id].inst = true;
@@ -2148,8 +2157,8 @@ function swapWeapon() {
   addText(P.x, P.y - 30, ARMS[P.wmForm].n, '#ffd24a', 8); ring(P.x, P.y - 8, '#ffd24a', 22, 0.3); burst(P.x, P.y - 9, 10, '#ffd24a', 90, 0.4); sfx(700, 0.1, 'square', 0.05, 200);
 }
 const gw_ = g => g.inst ? 'bard' : g.spear ? 'lancer' : '';
-const wrongG = g => g.slot === 'weapon' && (gw_(g) ? gw_(g) !== P.cls : (P.cls === 'bard' || P.cls === 'lancer'));
-const wokG = g => g.slot !== 'weapon' || (gw_(g) ? (gw_(g) === P.cls || (g.spear && P.cls !== 'bard')) : !(P.cls === 'bard' || P.cls === 'lancer'));
+const wrongG = g => g.slot === 'weapon' && !(wmOn() && g.rar === 6) && (gw_(g) ? gw_(g) !== P.cls : (P.cls === 'bard' || P.cls === 'lancer'));
+const wokG = g => g.slot !== 'weapon' || (gw_(g) ? gw_(g) === P.cls : !(P.cls === 'bard' || P.cls === 'lancer'));
 const badW = g => g.slot === 'weapon' && (wrongG(g) || (!wmOn() && P.cls === 'gunner' && !g.gun));
 const wokPool = g => wokG(g) && (!g.gun || P.cls === 'gunner' || wmOn()) && (P.cls !== 'gunner' || wmOn() || g.slot !== 'weapon' || g.gun || g.spear);
 const jobElig = () => (P.cls === 'novice' ? (P.asc ? 0 : P.lvl >= 5 ? 1 : 0) : (!P.job2 && P.lvl >= 25 ? 2 : 0));
@@ -2230,6 +2239,7 @@ function hjTick() {
   if (state !== 'play' || hjQ || !P.owned || P.hjCool > 0) return;
   if (P.job2 && JOB2[P.job2] && JOB2[P.job2].hidden) return;
   for (const id of ['shadowlord', 'creator', 'weaponmaster', 'skysniper', 'timemaestro']) {
+    if (JOB2[id].cls !== P.cls) continue;
     if (HJ[id].ok()) { hjAsk('', '조건 달성: ' + HJ[id].c + '\n히든 직업 [' + JOB2[id].n + '](으)로 전직하겠습니까?\n(전직하면 이전 직업으로 돌아갈 수 없습니다.)', HJ[id].go); return; }
   }
 }
@@ -3170,7 +3180,7 @@ const NPCD = { trainer: { n: '창술 교관', col: '#6a8ac8' }, hunter: { n: '�
 const spearsOwned = () => (P.owned || []).filter(id => GEAR[id] && GEAR[id].spear).length;
 const hasG = id => ((P.owned || []).includes(id) ? 1 : 0);
 const JREQ = {
-  lancer: [{ t: '캐릭터 레벨 30', cur: () => P.lvl, need: 30 }, { t: '창 숙련도 100 (몬스터 처치)', cur: () => P.kills, need: 100 }, { t: '창 5개 수집', cur: spearsOwned, need: 5 }, { t: '창기사 전직 시험 클리어', cur: () => (L_().tr.lancer ? 1 : 0), need: 1 }],
+  lancer: [{ t: '캐릭터 레벨 30', cur: () => P.lvl, need: 30 }, { t: '창 숙련도 100 (몬스터 처치)', cur: () => P.kills, need: 100 }, { t: '창기사 전직 시험 클리어', cur: () => (L_().tr.lancer ? 1 : 0), need: 1 }],
   dragonlancer: [{ t: '창기사 레벨 50', cur: () => P.lvl, need: 50 }, { t: '드래곤의 비늘 15개', cur: () => mat('dscale'), need: 15 }, { t: '화염 드래곤 처치', cur: () => L_().fd, need: 1 }, { t: '드래곤의 창(용기사의 창) 획득', cur: () => hasG('lc2'), need: 1 }, { t: '용의 시험 클리어', cur: () => (L_().tr.dragon ? 1 : 0), need: 1 }],
   spearmaster: [{ t: '창기사 레벨 50', cur: () => P.lvl, need: 50 }, { t: '창 숙련도 500 (창 적중)', cur: () => L_().hits, need: 500 }, { t: '정예 몬스터 50마리 처치', cur: () => L_().elite, need: 50 }, { t: '창의 시험 클리어', cur: () => (L_().tr.spear ? 1 : 0), need: 1 }],
 };
@@ -4336,8 +4346,8 @@ function renderSlots() {
     const inp = document.createElement('input'); inp.type = 'text'; inp.maxLength = 14; inp.value = sv.name || '모험 ' + i; inp.setAttribute('aria-label', '저장 이름 ' + i);
     const commit = () => { const cur = readSlot(i); if (cur) { cur.name = inp.value.trim() || '모험 ' + i; inp.value = cur.name; writeSlot(i, cur); } };
     inp.addEventListener('change', commit); inp.addEventListener('blur', commit); inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
-    const sm2 = document.createElement('small'), d = new Date(sv.t || 0), jn = sv.P.job2 && JOB2[sv.P.job2] ? JOB2[sv.P.job2].n : CLS[sv.P.cls].n;
-    if (sv.dead && sv.rec) { const r = sv.rec, rj = r.job2 && JOB2[r.job2] ? JOB2[r.job2].n : CLS[r.cls].n; row.classList.add('dead'); sm2.textContent = '☠ 기록 · ' + rj + ' LV ' + r.lvl + ' · FLOOR ' + r.floor + ' · WAVE ' + r.wave + ' · 처치 ' + r.kills + ' · 골드 ' + r.gold; }
+    const sm2 = document.createElement('small'), d = new Date(sv.t || 0), jn = sv.P.asc ? '초월자' : sv.P.job2 && JOB2[sv.P.job2] ? JOB2[sv.P.job2].n : CLS[sv.P.cls].n;
+    if (sv.dead && sv.rec) { const r = sv.rec, rj = r.job || (r.job2 && JOB2[r.job2] ? JOB2[r.job2].n : CLS[r.cls].n); row.classList.add('dead'); sm2.textContent = '☠ 기록 · ' + rj + ' LV ' + r.lvl + ' · FLOOR ' + r.floor + ' · WAVE ' + r.wave + ' · 처치 ' + r.kills + ' · 골드 ' + r.gold; }
     else sm2.textContent = jn + ' LV ' + sv.P.lvl + ' · FLOOR ' + sv.floor + ' · ' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
     si.append(inp, sm2);
     const go = document.createElement('button'); go.type = 'button'; go.textContent = '이어하기'; go.addEventListener('click', () => { const v = readSlot(i); if (v && !v.dead) startGame(v, i); });
@@ -4468,7 +4478,7 @@ function genStock() {
   const gs = stock.filter(x => x.kind === 'gear' && !x.myth); if (gs.length) { const sp = gs[(Math.random() * gs.length) | 0]; sp.sale = true; sp.price = Math.round(sp.price * 0.65 / 5) * 5; }
 }
 const sellVal = g => Math.round(g.cost * 0.45);
-function equip(id) { if (P.w2 === id) P.w2 = null; const g = GEAR[id], bad = t => { say(t[0], t[1]); sfx(140, 0.15, 'square', 0.05, -60); }; if (g.slot === 'weapon' && g.spear && P.cls !== 'lancer') return bad(['창기사 전용', '창은 창기사 계열만 장착할 수 있습니다']); if (g.slot === 'weapon' && P.cls === 'lancer' && !g.spear) return bad(['창기사 전용 제한', '창기사는 창만 장착할 수 있습니다']); if (g.slot === 'weapon' && g.inst && P.cls !== 'bard') return bad(['음유시인 전용', '악기는 음유시인만 사용할 수 있습니다']); if (g.slot === 'weapon' && P.cls === 'bard' && !g.inst) return bad(['음유시인 전용 제한', '음유시인은 악기만 장착할 수 있습니다']); if (g.slot === 'weapon' && !wmOn()) { if (g.gun && P.cls !== 'gunner') return bad(['거너 전용', '총은 거너만 사용할 수 있습니다']); if (P.cls === 'gunner' && !g.gun) return bad(['거너 전용 제한', '거너는 총만 장착할 수 있습니다']); } if (g.job && P.job2 !== g.job) return bad(['전용 무기', JOB2[g.job].n + ' 전용 무기입니다']); P.eq[g.slot] = id; recalc(); }
+function equip(id) { if (P.w2 === id) P.w2 = null; const g = GEAR[id], bad = t => { say(t[0], t[1]); sfx(140, 0.15, 'square', 0.05, -60); }; if (g.slot === 'weapon' && g.spear && P.cls !== 'lancer' && !(wmOn() && g.rar === 6)) return bad(['창기사 전용', '창은 창기사 계열만 장착할 수 있습니다']); if (g.slot === 'weapon' && P.cls === 'lancer' && !g.spear) return bad(['창기사 전용 제한', '창기사는 창만 장착할 수 있습니다']); if (g.slot === 'weapon' && g.inst && P.cls !== 'bard' && !(wmOn() && g.rar === 6)) return bad(['음유시인 전용', '악기는 음유시인만 사용할 수 있습니다']); if (g.slot === 'weapon' && P.cls === 'bard' && !g.inst) return bad(['음유시인 전용 제한', '음유시인은 악기만 장착할 수 있습니다']); if (g.slot === 'weapon' && !wmOn()) { if (g.gun && P.cls !== 'gunner') return bad(['거너 전용', '총은 거너만 사용할 수 있습니다']); if (P.cls === 'gunner' && !g.gun) return bad(['거너 전용 제한', '거너는 총만 장착할 수 있습니다']); } if (g.job && P.job2 !== g.job) return bad(['전용 무기', JOB2[g.job].n + ' 전용 무기입니다']); P.eq[g.slot] = id; recalc(); }
 function renderShop() {
   const keep = ov.shop.scrollTop; $('shopGold').textContent = P.gold; $('shopWave').textContent = wave.n;
   const rc = 25 + 15 * rerolls, rr = $('rerollBtn'); rr.textContent = '재고 새로고침 ' + rc + 'G'; rr.disabled = P.gold < rc;
@@ -4533,7 +4543,7 @@ function doEnhance(id) {
   }, 650);
 }
 function doCraft(id) {
-  const r = RCP[id]; if (gw_(GEAR[id]) !== (P.cls === 'bard' || P.cls === 'lancer' ? P.cls : '')) return; if (GEAR[id].job && GEAR[id].job !== P.job2) return; if (P.cls === 'gunner' && !wmOn() && !GEAR[id].gun) return; if (GEAR[id].gun && GEAR[id].rar === 6 && P.cls !== 'gunner' && !wmOn()) return; if (P.owned.includes(id) || P.owned.includes(TRANS[id]) || P.gold < r.gold || !hasMats(r.mats)) return;
+  const r = RCP[id]; if ((gw_(GEAR[id]) !== (P.cls === 'bard' || P.cls === 'lancer' ? P.cls : '') && !(wmOn() && GEAR[id].rar === 6))) return; if (GEAR[id].job && GEAR[id].job !== P.job2) return; if (P.cls === 'gunner' && !wmOn() && !GEAR[id].gun) return; if (GEAR[id].gun && GEAR[id].rar === 6 && P.cls !== 'gunner' && !wmOn()) return; if (P.owned.includes(id) || P.owned.includes(TRANS[id]) || P.gold < r.gold || !hasMats(r.mats)) return;
   P.gold -= r.gold; for (const k in r.mats) P.mats[k] -= r.mats[k]; P.owned.push(id);
   setEnhMsg('제작 성공! ' + GEAR[id].n + ' 을(를) 얻었습니다. 인벤토리(I)에서 장착하세요.', 'great'); say('CRAFTED', GEAR[id].n);
   sfx(660, 0.12, 'square', 0.05, 300); setTimeout(() => sfx(990, 0.15, 'square', 0.05, 200), 90); setTimeout(() => sfx(1320, 0.25, 'square', 0.05, 200), 190); renderEnh();
@@ -4553,7 +4563,7 @@ function renderEnh() {
   }
   const cb = $('craftList'); cb.textContent = '';
   for (const id in RCP) {
-    if (gw_(GEAR[id]) !== (P.cls === 'bard' || P.cls === 'lancer' ? P.cls : '')) continue;
+    if ((gw_(GEAR[id]) !== (P.cls === 'bard' || P.cls === 'lancer' ? P.cls : '') && !(wmOn() && GEAR[id].rar === 6))) continue;
     if (GEAR[id].job && GEAR[id].job !== P.job2) continue;
     if (P.cls === 'gunner' && !wmOn() && !GEAR[id].gun) continue;
     if (GEAR[id].gun && GEAR[id].rar === 6 && P.cls !== 'gunner' && !wmOn()) continue;
@@ -4646,7 +4656,7 @@ const achSave = () => { try { localStorage.setItem(ACH_KEY, JSON.stringify(ACH))
 const ACHS = [];
 [[500, 10, '초보 사냥꾼'], [1000, 20, '숙련 사냥꾼'], [1500, 30, '던전의 학살자'], [2000, 45, '던전의 재앙'], [2500, 60, '파괴의 화신'], [3000, 80, '학살의 군주']].forEach(([t, g, ti]) => ACHS.push({ id: 'k' + t, k: 'kills', t, g, ti, n: '몬스터 ' + t + '마리 처치', d: '몬스터를 누적 ' + t + '마리 처치합니다.' }));
 [[10, 30, '보스 슬레이어'], [15, 45, '거인 사냥꾼'], [20, 60, '군주 토벌자'], [25, 80, '전설의 토벌대'], [30, 110, '보스의 천적']].forEach(([t, g, ti]) => ACHS.push({ id: 'b' + t, k: 'bosses', t, g, ti, n: '보스 ' + t + '마리 처치', d: '보스를 누적 ' + t + '마리 처치합니다.' }));
-[[7, 60, '신화 수집가'], [8, 80, '신화의 계승자'], [9, 100, '신화 군주'], [10, 140, '신화의 지배자']].forEach(([t, g, ti]) => ACHS.push({ id: 'm' + t, k: 'myth', t, g, ti, n: '신화 무기 ' + t + '개 수집', d: '신화 등급 무기를 ' + t + '종 수집합니다. (가장 많이 모은 기록 기준)' }));
+[[7, 60, '신화 수집가'], [8, 80, '신화의 계승자'], [9, 100, '신화 군주'], [10, 140, '신화의 지배자'], [15, 160, '신화 수집왕'], [20, 200, '신화 도서관'], [30, 260, '신화의 신'], [40, 340, '신화의 화신']].forEach(([t, g, ti]) => ACHS.push({ id: 'm' + t, k: 'myth', t, g, ti, n: '신화 무기 ' + t + '개 수집', d: '신화 등급 무기를 ' + t + '종 수집합니다. (가장 많이 모은 기록 기준)' }));
 const TITLES = {}; ACHS.forEach(a => { TITLES[a.id] = a.ti; });
 const GBUFFS = ['bxp', 'batk', 'bdef', 'bgold', 'bcrt'];
 const GBUFF_TXT = [['bxp', 'EXP×2'], ['batk', 'ATK×1.5'], ['bdef', 'DEF+30%'], ['bgold', 'GOLD×2'], ['bcrt', 'CRIT+25%']];
@@ -5113,16 +5123,30 @@ document.querySelectorAll('.touch button[data-v]').forEach(b => {
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.87', d: '11/20', t: '전직 확인창 오류 수정', i: [
+    '다른 계열 직업(예: 음유시인)에게 해당 계열이 아닌 히든 직업 전직 확인창이 뜨던 문제를 고쳤습니다.',
+  ] },
+  { v: '1.86', d: '11/20', t: '전용 무기 정리 · 신화 무기 대량 추가', i: [
+    '창은 창기사 계열, 총은 거너 계열, 악기는 음유시인 전용으로 정리했습니다. 다른 직업은 상점·드롭·제작 목록에서 해당 무기를 볼 수 없습니다.',
+    '창과 악기도 일반부터 전설까지 제작 레시피가 추가되어, 전용 무기를 일반~신화 모든 등급으로 제작할 수 있습니다.',
+    '신화 무기가 대량 추가되었습니다. 창 5종, 악기 10종이 새로 추가되었습니다.',
+    '웨폰마스터는 모든 직업의 신화 무기(총·창·악기 포함)를 제작하고 장착할 수 있습니다.',
+    '신화 무기 수집 업적이 추가되었습니다. (15·20·30·40개)',
+  ] },
+  { v: '1.85', d: '11/20', t: '창기사 조건 수정 · 저장 목록 직업 표시', i: [
+    '창기사 전직 조건에서 \'창 5개 수집\'을 제외했습니다.',
+    '저장 목록과 사망 기록에서 초월자가 초보자로 표시되던 문제를 고쳤습니다.',
+  ] },
   { v: '1.84', d: '11/19', t: '창기사 계열 조건 조정', i: [
     '창기사 계열 상위 조건 중 요구 레벨을 100에서 70으로 낮췄습니다.',
   ] },
   { v: '1.83', d: '11/19', t: '창기사 후천 전직', i: [
-    '이미 1차·2차 전직을 마친 캐릭터도 창기사를 얻을 수 있습니다. 창기사 전직 조건(레벨 30, 처치 100, 창 5개 수집, 전직 시험)을 만족하면 창술 교관에게 말을 걸어 창기사로 전직할 수 있습니다. 스킬 포인트는 환급되고 2차 전직은 다시 진행합니다.',
+    '이미 1차·2차 전직을 마친 캐릭터도 창기사를 얻을 수 있습니다. 창기사 전직 조건(레벨 30, 처치 100, 전직 시험)을 만족하면 창술 교관에게 말을 걸어 창기사로 전직할 수 있습니다. 스킬 포인트는 환급되고 2차 전직은 다시 진행합니다.',
     '창을 모든 직업(음유시인 제외)이 상점·드롭·제작에서 수집할 수 있습니다. 장착은 창기사만 가능합니다.',
   ] },
   { v: '1.82', d: '11/18', t: '신규 1차 직업 창기사 · 창 무기', i: [
     '새로운 무기 종류 창이 추가되었습니다. 긴 사거리로 일직선의 적을 모두 관통해 찌르며, 창기사 계열만 장착할 수 있습니다. (훈련용 창·사냥용 창·강철 장창·기병창·용기사의 창·뇌전의 창은 상점, 멸룡의 창·천뢰신창·태초의 창은 제작)',
-    '신규 1차 직업 창기사: 연속 찌르기·창 투척·용맹한 돌진·회전 창격·창의 의지. 전직 조건(레벨 30, 처치 100, 창 5개 수집, 전직 시험)은 전직 창에서 진행도로 확인할 수 있습니다.',
+    '신규 1차 직업 창기사: 연속 찌르기·창 투척·용맹한 돌진·회전 창격·창의 의지. 전직 조건(레벨 30, 처치 100, 전직 시험)은 전직 창에서 진행도로 확인할 수 있습니다.',
     '2차 전직: 드래곤 랜서(용의 힘을 담은 화염 공격), 창의 지배자(빠른 연속·관통 공격). 각 직업의 전직 조건과 진행도가 표시됩니다.',
     '전직 NPC 창술 교관이 농사 구간에 나타나 전직 시험을 줍니다.',
     '신규 보스 고대의 화염룡(화염룡의 둥지)과 천뢰의 군주(번개의 신전)가 보스 웨이브에 등장하고, 화염 드래곤·뇌전 몬스터와 새 재료(드래곤의 비늘·용의 심장·천뢰의 파편·번개의 핵)가 추가되었습니다.',
