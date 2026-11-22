@@ -546,7 +546,7 @@ body.mobile.zoomed .zoomrow { right: auto; left: 50%; transform: translateX(-50%
 
 <div class="shopov" id="ovJobs" hidden role="dialog" aria-label="직업 목록">
   <div class="shopwrap">
-    <div class="shophead"><div><h2>JOBS</h2><p>모든 직업입니다. 초보자로 시작해 Lv5에 1차 전직(음유시인·엔지니어는 Lv7), Lv25에 2차 전직(음유시인·엔지니어는 Lv30, 계열마다 2가지), Lv50부터 각성합니다.</p></div></div>
+    <div class="shophead"><div><h2>JOBS</h2><p>모든 직업입니다. 초보자로 시작해 Lv5에 1차 전직(음유시인·엔지니어·창기사는 Lv7), Lv25에 2차 전직(음유시인·엔지니어·창기사는 Lv30, 계열마다 2가지), Lv50부터 각성합니다.</p></div></div>
     <div id="jobsBody" style="display:grid;gap:18px"></div>
     <div class="shopfoot"><button class="btn" id="jobsClose" type="button">닫기</button></div>
   </div>
@@ -2277,7 +2277,7 @@ const wrongG = g => g.slot === 'weapon' && !(wmOn() && g.rar === 6) && (gw_(g) ?
 const wokG = g => g.slot !== 'weapon' || (gw_(g) ? gw_(g) === P.cls : !RESTR.includes(P.cls));
 const badW = g => g.slot === 'weapon' && (wrongG(g) || (!wmOn() && P.cls === 'gunner' && !g.gun));
 const wokPool = g => wokG(g) && (!g.gun || P.cls === 'gunner' || wmOn()) && (P.cls !== 'gunner' || wmOn() || g.slot !== 'weapon' || g.gun || g.spear);
-const jobElig = () => (P.cls === 'novice' ? (P.asc ? 0 : P.lvl >= 5 ? 1 : 0) : (!P.job2 && P.lvl >= (P.cls === 'engineer' || P.cls === 'bard' ? 30 : 25) ? 2 : 0));
+const jobElig = () => (P.cls === 'novice' ? (P.asc ? 0 : P.lvl >= 5 ? 1 : 0) : (!P.job2 && P.lvl >= (P.cls === 'engineer' || P.cls === 'bard' || P.cls === 'lancer' ? 30 : 25) ? 2 : 0));
 const jobNext = () => {
   if (P.cls === 'novice' && !P.asc) { if (P.lvl >= 5 && P.skipJ !== 1) return 1; if (P.lvl >= 25 && P.skipJ === 1 && !P.skipA) return 3; return 0; }
   const e = jobElig(); return e && P.skipJ !== e ? e : 0;
@@ -2491,6 +2491,7 @@ function openJob(stage) {
     const t = document.createElement('b'), d = document.createElement('span'), sl = document.createElement('small');
     if (stage === 1) { t.textContent = CLS[k].n; d.textContent = CLS[k].d; sl.textContent = '시작 스킬 ' + (CSK[k][0][1].n || TPL[CSK[k][0][0]].n);
       if (k === 'bard') { const w = document.createElement('em'); w.textContent = '⚠ 악기만 사용할 수 있습니다. 검·도끼·활·총 등 다른 무기는 장착할 수 없습니다.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); }
+      if (k === 'lancer') { if (P.lvl < 7) t.textContent = '🔒 창기사 (Lv7)'; const w = document.createElement('em'); w.textContent = '⚠ 창만 사용할 수 있습니다. 레벨 7부터 전직 가능.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); }
       if (k === 'gunner') { const w = document.createElement('em'); w.textContent = '⚠ 총만 사용할 수 있습니다. 검·도끼·단검·지팡이·활 등 다른 무기는 장착할 수 없습니다.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); } }
     else { t.textContent = JOB2[k].n; d.textContent = JOB2[k].d; sl.textContent = JOB2[k].sk.map(x => x[2].n).join(' · '); }
     b.append(c, t, d, sl);
@@ -2504,7 +2505,7 @@ function openJob(stage) {
       if (k === 'elemeng') { say('히든 직업 잠김', '연금술 공학자 Lv75 이후 조건을 달성해야 합니다'); sfx(140, 0.15, 'square', 0.05, -60); return; }
       if (JREQ[k] && !jreqOk(k)) { say('전직 조건 미달', '아직 모든 조건을 만족하지 못했습니다'); sfx(140, 0.15, 'square', 0.05, -60); return; }
       if (stage === 1 && k === 'gunner' && !b.dataset.armed) { b.dataset.armed = '1'; sl.textContent = '정말 거너로 전직할까요? 한 번 더 누르면 확정 (총 외 무기 사용 불가)'; sl.style.color = '#ff8a7a'; sfx(300, 0.1, 'square', 0.04, 100); return; }
-      if (stage === 1) { applyJob1(k); if (k === 'engineer') egFix(); } else applyJob2(k);
+      if (stage === 1) { applyJob1(k); if (k === 'engineer') egFix(); if (k === 'lancer') { if (!P.owned.includes('lc0')) P.owned.push('lc0'); if (!(GEAR[P.eq.weapon] && GEAR[P.eq.weapon].spear)) P.eq.weapon = 'lc0'; P.w2 = null; recalc(); } } else applyJob2(k);
       P.jobT = null; state = 'play'; showOv(null);
       ring(P.x, P.y - 8, '#ffd24a', 50, 0.7); ring(P.x, P.y - 8, '#4af0d8', 30, 0.5); burst(P.x, P.y - 9, 26, '#ffd24a', 110, 0.9); flashA = Math.max(flashA, 0.25);
       if (k === 'engineer' || (JOB2[k] && JOB2[k].cls === 'engineer')) egFx(k);
@@ -3867,9 +3868,9 @@ const NPCD = { trainer: { n: '창술 교관', col: '#6a8ac8' }, hunter: { n: '�
 const spearsOwned = () => (P.owned || []).filter(id => GEAR[id] && GEAR[id].spear).length;
 const hasG = id => ((P.owned || []).includes(id) ? 1 : 0);
 const JREQ = {
-  lancer: [{ t: '캐릭터 레벨 30', cur: () => P.lvl, need: 30 }, { t: '창 숙련도 100 (몬스터 처치)', cur: () => P.kills, need: 100 }, { t: '창기사 전직 시험 클리어', cur: () => (L_().tr.lancer ? 1 : 0), need: 1 }],
-  dragonlancer: [{ t: '창기사 레벨 50', cur: () => P.lvl, need: 50 }, { t: '드래곤의 비늘 15개', cur: () => mat('dscale'), need: 15 }, { t: '화염 드래곤 처치', cur: () => L_().fd, need: 1 }, { t: '드래곤의 창(용기사의 창) 획득', cur: () => hasG('lc2'), need: 1 }, { t: '용의 시험 클리어', cur: () => (L_().tr.dragon ? 1 : 0), need: 1 }],
-  spearmaster: [{ t: '창기사 레벨 50', cur: () => P.lvl, need: 50 }, { t: '창 숙련도 500 (창 적중)', cur: () => L_().hits, need: 500 }, { t: '정예 몬스터 50마리 처치', cur: () => L_().elite, need: 50 }, { t: '창의 시험 클리어', cur: () => (L_().tr.spear ? 1 : 0), need: 1 }],
+  lancer: [{ t: '캐릭터 레벨 7', cur: () => P.lvl, need: 7 }],
+  dragonlancer: [{ t: '창기사 레벨 30', cur: () => P.lvl, need: 30 }, { t: '드래곤의 비늘 15개', cur: () => mat('dscale'), need: 15 }, { t: '화염 드래곤 처치', cur: () => L_().fd, need: 1 }, { t: '드래곤의 창(용기사의 창) 획득', cur: () => hasG('lc2'), need: 1 }, { t: '용의 시험 클리어', cur: () => (L_().tr.dragon ? 1 : 0), need: 1 }],
+  spearmaster: [{ t: '창기사 레벨 30', cur: () => P.lvl, need: 30 }, { t: '창 숙련도 500 (창 적중)', cur: () => L_().hits, need: 500 }, { t: '정예 몬스터 50마리 처치', cur: () => L_().elite, need: 50 }, { t: '창의 시험 클리어', cur: () => (L_().tr.spear ? 1 : 0), need: 1 }],
 };
 const jreqOk = k => JREQ[k].every(r => r.cur() >= r.need);
 const dsReq = () => [P.lvl >= 70, L_().fd >= 10, L_().ad >= 1, mat('dheart') >= 10, hasG('lc4') > 0];
@@ -3883,7 +3884,7 @@ function hiddenGo(key, id, col) {
 }
 const dsGo = () => { if (dsReady()) hiddenGo('ds', 'dragonslayer', '#ff3a2a'); };
 const teGo = () => { if (teReady()) hiddenGo('te', 'thunderemp', '#9fd8ff'); };
-const canConvert = () => P.cls !== 'novice' && P.cls !== 'lancer' && P.cls !== 'bard' && !P.asc && !(P.job2 && JOB2[P.job2].hidden) && P.lvl >= 15;
+const canConvert = () => false; /* 창기사는 초보자 상태에서만 1차 전직 */
 function lcConvert() {
   if (!canConvert() || !jreqOk('lancer')) return;
   const was = P.job2 ? JOB2[P.job2].n : CLS[P.cls].n;
@@ -3895,9 +3896,8 @@ function lcConvert() {
 }
 function npcWant() {
   const L = L_();
-  if (P.cls === 'novice' && !P.asc && P.lvl >= 15 && !L.tr.lancer) return 'trainer';
   if (canConvert() && (!L.tr.lancer || jreqOk('lancer'))) return 'trainer';
-  if (P.cls === 'lancer' && !P.job2 && P.lvl >= 50 && (!L.tr.dragon || !L.tr.spear)) return 'trainer';
+  if (P.cls === 'lancer' && !P.job2 && P.lvl >= 30 && (!L.tr.dragon || !L.tr.spear)) return 'trainer';
   if (dsReady()) return 'hunter'; if (teReady()) return 'sage'; return '';
 }
 function spawnNpc(id) {
@@ -5999,7 +5999,7 @@ HJ.elemeng = { c: '연금술 공학자 Lv75 · 히든 퀘스트 · 원소의 핵
     const g1 = sec('JOB 1 · 1차 전직 (Lv5)');
     ['warrior', 'mage', 'assassin', 'archer', 'gunner', 'bard', 'lancer', 'engineer'].forEach(k => { const K = CLS[k]; g1.appendChild(card(SPK[k][0], K.n, K.d, 'HP ' + K.hp + ' · MP ' + K.mp + (bonus(K.b) ? ' · ' + bonus(K.b) : ''), CSK[k].map((q, i) => q ? [SLOTS[i][1], sname(q) + ' (Lv' + SLOTS[i][2] + ')'] : null).filter(Boolean), false)); });
     ['warrior', 'mage', 'assassin', 'archer', 'gunner', 'bard', 'lancer', 'engineer'].forEach(k => {
-      const g = sec('JOB 2 · 2차 전직 (Lv' + (k === 'bard' || k === 'engineer' ? 30 : 25) + ') — ' + CLS[k].n + ' 계열');
+      const g = sec('JOB 2 · 2차 전직 (Lv' + (k === 'bard' || k === 'engineer' || k === 'lancer' ? 30 : 25) + ') — ' + CLS[k].n + ' 계열');
       Object.keys(JOB2).filter(j => JOB2[j].cls === k && !JOB2[j].hidden).forEach(j => { const J = JOB2[j]; g.appendChild(card(SPJ[j][0], J.n, J.d, '추가 능력: ' + (bonus(J.b) || '-'), J.sk.map(x => [SLOTS[x[0]][1], x[2].n, x[0] === 9]), true)); });
     });
   };
@@ -6011,6 +6011,10 @@ HJ.elemeng = { c: '연금술 공학자 Lv75 · 히든 퀘스트 · 원소의 핵
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.94', d: '11/22', t: '창기사 전직 조건 변경', i: [
+    '창기사도 음유시인·엔지니어처럼 초보자 상태에서 Lv7 이후 1차 전직으로 선택하고, 2차 전직(드래곤 랜서·창의 지배자)은 Lv30부터 할 수 있습니다.',
+    '창기사 전직 시험과 다른 직업에서의 창기사 전직은 사라졌습니다. 다른 직업으로 1차 전직한 뒤에는 창기사가 될 수 없습니다.',
+  ] },
   { v: '1.93', d: '11/22', t: '음유시인·엔지니어 전직 제한', i: [
     '다른 직업으로 1차 전직을 마친 뒤에는 음유시인이나 엔지니어가 될 수 없습니다. 두 직업은 초보자 상태에서 Lv7 이후 1차 전직으로만 선택할 수 있습니다.',
   ] },
