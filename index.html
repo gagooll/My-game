@@ -1711,6 +1711,49 @@ SP.elemguardian = [0, 1, 2, 3].map(elemguardianSpr); BFX.elemguardian = ['#7affd
 VAR_NOTE.elemguardian = '[전설] 고대 원소 연구소를 지키는 거대 병기. 화염·얼음·번개·대지 속성을 번갈아 바꾸며 낙뢰, 서리 폭풍, 지진, 원소 융합 공격을 사용합니다.';
 let hitCol = '', convG = false, mach = [], lz = [];
 
+/* ---------- 운명의 카지노 ---------- */
+Object.assign(MAT, {
+  gchip: { n: '카지노 칩', col: '#ff5a7a', rgb: '255,90,122' }, mcard: { n: '마법 카드 조각', col: '#c8a8ff', rgb: '200,168,255' },
+  rwheel: { n: '룰렛 톱니바퀴', col: '#ffb03a', rgb: '255,176,58' }, dshard: { n: '신의 주사위 조각', col: '#ffffff', rgb: '255,255,255' },
+  gcoin: { n: '타락한 금화', col: '#ffd24a', rgb: '255,210,74' }, lcard: { n: '전설 카드', col: '#ff9aff', rgb: '255,154,255' },
+  fcore: { n: '운명의 핵', col: '#7affd8', rgb: '122,255,216' }, acrown: { n: '아르카나의 왕관', col: '#ffe35a', rgb: '255,227,90' },
+});
+MATSPR.gchip = mk(10, 10, g => { ell(g, 5, 5, 4, 4, '#7a1a2a'); ell(g, 5, 5, 3, 3, '#ff5a7a'); ell(g, 5, 5, 1, 1, '#ffffff'); for (const [x, y] of [[4, 0], [4, 9], [0, 4], [9, 4]]) rect(g, '#ffffff', x, y, 2, 1); });
+MATSPR.mcard = mk(10, 10, g => { rect(g, '#3a2a6a', 1, 0, 7, 10); rect(g, '#e8e0ff', 2, 1, 5, 8); rect(g, '#c8a8ff', 3, 3, 3, 3); rect(g, '#ffffff', 4, 4, 1, 1); });
+MATSPR.rwheel = EMG('#4a2a0a', '#ffb03a', '#ffffff'); MATSPR.gcoin = EMG('#5a4a0a', '#ffd24a', '#fff2a0');
+MATSPR.dshard = mk(10, 10, g => { poly(g, '#8a8aa8', [[1, 3], [5, 0], [9, 3], [8, 9], [2, 9]]); poly(g, '#ffffff', [[2, 3], [5, 1], [8, 3], [7, 8], [3, 8]]); rect(g, '#222c36', 4, 4, 1, 1); rect(g, '#222c36', 6, 6, 1, 1); });
+MATSPR.lcard = mk(10, 10, g => { rect(g, '#6a1a5a', 1, 0, 8, 10); rect(g, '#fff0ff', 2, 1, 6, 8); rect(g, '#ff9aff', 3, 3, 4, 4); rect(g, '#ffe35a', 4, 4, 2, 2); });
+MATSPR.fcore = mk(10, 10, g => { ell(g, 5, 5, 4, 4, '#0e4a3a'); ell(g, 5, 5, 3, 3, '#3affc0'); for (let i = 0; i < 4; i++) rect(g, ['#ff5a2a', '#7ad8ff', '#ffe35a', '#c89a5a'][i], 2 + (i % 2) * 5, 2 + (i >> 1) * 5, 2, 2); rect(g, '#ffffff', 4, 4, 2, 2); });
+MATSPR.acrown = mk(10, 10, g => { poly(g, '#7a5a0a', [[0, 9], [0, 3], [3, 6], [5, 1], [7, 6], [10, 3], [10, 9]]); poly(g, '#ffe35a', [[1, 8], [1, 4], [3, 7], [5, 2], [7, 7], [9, 4], [9, 8]]); rect(g, '#ff3a5a', 4, 5, 2, 2); });
+const CAF = [
+  ['casguard', 'skeleton', '카지노 경비병', '#c8403a', 0.55, 1.4, 1.2, 1.0, 1.6, '카지노를 지키는 경비병. 전기봉으로 낙점한 자리를 내리쳐 플레이어를 잠시 묶습니다.', {}],
+  ['cardsoldier', 'archer', '마법 카드 병사', '#b06aff', 0.6, 1.2, 1.2, 1.0, 1.6, '마법 카드를 부채꼴로 흩뿌리는 병사. 전설 카드의 조각을 가끔 떨어뜨립니다.', {}],
+  ['roulgolem', 'brute', '룰렛 골렘', '#ffb03a', 0.55, 1.2, 1.1, 0.95, 1.9, '몸에 룰렛이 박힌 골렘. 룰렛을 돌려 주변 여섯 곳에 충격파를 일으킵니다.', {}],
+  ['dicemon', 'bomber', '황금 주사위 괴물', '#ffe35a', 0.6, 1.2, 1.2, 1.1, 1.6, '주사위를 굴려 나온 눈의 수만큼 플레이어 주변을 폭파합니다. 신의 주사위 조각을 떨어뜨립니다.', {}],
+  ['fallengb', 'orc', '타락한 도박사', '#c83a8a', 0.6, 2.2, 1.4, 1, 3.2, '모든 것을 건 타락한 도박사. 판돈에 따라 회복하거나 강력한 일격을 내리꽂습니다.', { elite: true }],
+];
+const CASN = ['casguard', 'cardsoldier', 'roulgolem', 'dicemon'], CASE = 'fallengb', CASB = 'gamegod', CAST = new Set([...CASN, CASE, CASB]);
+for (const [id, ai, n, col, amt, hx, dx, sx, xx, note, ex] of CAF) {
+  const b = DEF[ai]; DEF[id] = Object.assign({}, b, { n, hp: Math.round(b.hp * hx), dmg: Math.round(b.dmg * dx), spd: Math.round(b.spd * sx), xp: Math.round(b.xp * xx), base: b.base || ai, ai }, ex);
+  MAT_DROP[id] = MAT_DROP[ai]; VAR_NOTE[id] = note; SP[id] = SP[ai].map(f => shadeOf(f, col, amt));
+}
+function gamegodSpr(f) {
+  const O = '#14080e', R1 = '#6a1a3a', R2 = '#a02a58', Gd = '#ffd24a', G2 = '#fff2a0', W = '#f4f0ff', b = f % 2, sw = [0, 1, 0, -1][f];
+  return mk(44, 48, g => {
+    poly(g, O, [[22, 14 - b], [38, 24 - b], [40, 47], [4, 47], [6, 24 - b]]); poly(g, R1, [[22, 16 - b], [36, 25 - b], [38, 46], [6, 46], [8, 25 - b]]); poly(g, R2, [[22, 20 - b], [31, 27 - b], [32, 46], [12, 46], [13, 27 - b]]);
+    for (let i = 0; i < 6; i++) { rect(g, i % 2 ? '#14080e' : Gd, 6 + i * 6, 44, 3, 3); }
+    poly(g, O, [[2, 22 - b + sw], [9, 25 - b], [8, 36], [1, 33 + sw]]); poly(g, R1, [[3, 24 - b + sw], [8, 26 - b], [7, 35], [2, 32 + sw]]);
+    poly(g, O, [[42, 22 - b - sw], [35, 25 - b], [36, 36], [43, 33 - sw]]); poly(g, R1, [[41, 24 - b - sw], [36, 26 - b], [37, 35], [42, 32 - sw]]);
+    rect(g, W, 1, 31 + sw, 4, 4); rect(g, O, 2, 32 + sw, 1, 1); rect(g, O, 4, 34 + sw, 1, 1); rect(g, W, 38, 29 - sw, 5, 7); rect(g, '#ff3a5a', 40, 31 - sw, 1, 3);
+    ell(g, 22, 33, 7, 7, O); ell(g, 22, 33, 6, 6, Gd); ell(g, 22, 33, 4, 4, '#7a1a2a'); rect(g, G2, 20, 31, 4, 4); rect(g, '#ff3a5a', 21, 32, 2, 2);
+    rr(g, 14, 6 - b, 16, 15, W, O); rect(g, '#14080e', 17, 12 - b, 4, 3); rect(g, '#14080e', 24, 12 - b, 4, 3); rect(g, '#ff3a5a', 18, 13 - b, 2, 1); rect(g, '#ff3a5a', 25, 13 - b, 2, 1); rect(g, O, 18, 18 - b, 9, 1); for (let i = 0; i < 4; i++) rect(g, W, 19 + i * 2, 17 - b, 1, 2);
+    poly(g, O, [[12, 8 - b], [12, 1 - b], [17, 5 - b], [22, -1 - b], [27, 5 - b], [32, 1 - b], [32, 8 - b]]); poly(g, Gd, [[13, 7 - b], [13, 2 - b], [17, 6 - b], [22, 0 - b], [27, 6 - b], [31, 2 - b], [31, 7 - b]]); rect(g, '#ff3a5a', 21, 3 - b, 2, 2); rect(g, '#7ad8ff', 14, 5 - b, 2, 2); rect(g, '#7ad8ff', 28, 5 - b, 2, 2);
+  });
+}
+DEF.gamegod = { n: '도박의 신', hp: 3400, dmg: 40, spd: 30, r: 14, hw: 15, hh: 8, h: 46, cOff: 23, xp: 640, gold: [320, 420], kb: 0.05, base: 'demon', boss: true, elem: 'mix' };
+SP.gamegod = [0, 1, 2, 3].map(gamegodSpr); BFX.gamegod = ['#ffd24a', '255,210,74']; MAT_DROP.gamegod = MAT_DROP.demon;
+VAR_NOTE.gamegod = '[신화] 운명의 카지노의 지배자. 운명의 룰렛, 신의 주사위, 전설의 카드, 잭팟 폭발, 라스트 베팅으로 모든 것을 건 승부를 겁니다.';
+
 const P = {};
 let monsters = [], items = [], projs = [], parts = [], texts = [], fxs = [], teles = [], decals = [], storms = [], meteors = [];
 const wave = { n: 0, list: [], spawnT: 0, state: 'break', t: 2 };
@@ -1729,7 +1772,8 @@ Object.assign(WT, {
   harp: { n: '하프', cd: 0.7, ranged: true, inst: true }, baton: { n: '지휘봉', cd: 0.42, ranged: true, inst: true } });
 WT.spear = { n: '창', cd: 0.5, spear: true };
 Object.assign(WT, { tool: { n: '공구', cd: 0.38, reach: 27, arc: 1.15 }, gauntlet: { n: '기계 장갑', cd: 0.3, reach: 21, arc: 1.35 }, egun: { n: '에너지 건', cd: 0.3, ranged: true } });
-const RESTR = ['bard', 'lancer', 'engineer'];
+const RESTR = ['bard', 'lancer', 'engineer', 'gambler'];
+Object.assign(WT, { dice: { n: '주사위', cd: 0.42, ranged: true }, card: { n: '카드', cd: 0.26, ranged: true }, chip: { n: '마법 칩', cd: 0.34, ranged: true } });
 const SPEARD = { base: '긴 사거리로 일직선의 모든 적을 관통해 찌릅니다', reach: '공격 사거리가 크게 늘어납니다', dragon: '용족에게 추가 피해(+40%)를 줍니다', bolt: '적중 시 일정 확률로 번개가 내리칩니다', boss: '보스에게 추가 피해(+35%)를 줍니다', chain: '적중한 적에게서 주변으로 번개가 연쇄됩니다', void: '공간을 꿰뚫어 매우 멀리, 두 번 연속으로 관통합니다' };
 const INST = { flute: { d: '두 줄기 음표를 빠르게 쏩니다' }, drum: { d: '묵직한 박자로 전방을 크게 휩쓰는 근접 악기' }, violin: { d: '아주 빠른 연타로 몰아치는 근접 악기' }, harp: { d: '세 갈래 선율을 부채꼴로 퍼뜨리며 적을 관통합니다' }, baton: { d: '적을 꿰뚫는 지휘 음파를 쏩니다' } };
 const GUN = {
@@ -1876,6 +1920,7 @@ const CLS = {
 let selCls = 'novice';
 const awkB = k => !P.awk ? 0 : k === 'atk' && P.awk >= 2 ? (10 + (P.lvl - 1) * 3) * 0.05 : k === 'hp' && P.awk >= 4 ? Math.round(P.bHp * 0.1) : 0;
 CLS.engineer = { n: '엔지니어', icon: '공', d: '기계와 로봇, 발명품으로 싸우는 기술 전문가. 자동 포탑·전투 로봇·미사일을 다룹니다. 공구·기계 장갑·에너지 건만 사용할 수 있습니다. (Lv7 이상 전직)', hp: 105, mp: 70, w: 'et1', a: 'ar0', b: { mech: 0.05 }, sig: 'KeyQ', pal: { red: '#d88a2a', redD: '#7a4a10', redL: '#ffc060', shield: '#4a5a6a', shieldD: '#222c36', shieldL: '#8aa0b4', steelM: '#cfd8ea', steelL: '#ffffff', steelD: '#7a88a8', gold: '#ffd24a', goldL: '#fff2a0' } };
+CLS.gambler = { n: '도박사', icon: '운', d: '운과 확률, 주사위·카드·룰렛으로 싸우는 특수 직업. 랜덤 공격과 확률형 스킬, 공격할수록 차오르는 행운 게이지(가득 차면 잭팟 모드)가 특징입니다. 주사위·카드·칩 무기만 사용할 수 있습니다. (Lv10 이상 전직)', hp: 100, mp: 80, w: 'gd1', a: 'ar0', b: { crit: 0.03 }, sig: 'KeyQ', pal: { red: '#b0203a', redD: '#5a0e1e', redL: '#ff6a86', shield: '#1e1830', shieldD: '#0a0814', shieldL: '#5a4a8a', steelM: '#f4f0ff', steelL: '#ffffff', steelD: '#a8a0c8', gold: '#ffd24a', goldL: '#fff2a0' } };
 const clsB = k => awkB(k) + ((CLS[P.cls] && CLS[P.cls].b[k]) || 0) + ((P.job2 && JOB2[P.job2] && JOB2[P.job2].b[k]) || 0);
 /* ---------- 초월 무기: 전설 무기를 +15까지 강화하면 변신 ---------- */
 const TRANS = {}, TRANS_START = 0;
@@ -1930,13 +1975,13 @@ function calcRB() {
 }
 const runeB = k => k === 'hp' ? RB.hp * P.bHp : k === 'red' ? RB.red : k === 'ls' ? RB.ls : 0;
 const gsum0 = k => (gw()[k] || 0) + (ga()[k] || 0) + (gr() ? gr()[k] || 0 : 0) + enhB(k) + clsB(k) + runeB(k);
-const limM = () => (P.lim > 0 ? 1.2 : 1) * (P.ovl > 0 ? 1.3 : 1);
+const limM = () => (P.lim > 0 ? 1.2 : 1) * (P.ovl > 0 ? 1.3 : 1) * gbSpdM();
 const gsum = k => { const v = gsum0(k); return P.lim > 0 && (k === 'hp' || k === 'mp') ? v + 0.2 * ((k === 'hp' ? P.bHp : P.bMp) + v) : v; };
 const pDmg = () => (10 + (P.lvl - 1) * 3 + gsum('atk')) * (1 + RB.atk) * limM();
 const pBolt = () => (16 + (P.lvl - 1) * 4) * (1 + gsum('mag')) * (1 + RB.atk) * limM();
 const critCh = () => (0.15 + gsum('crit') + (P.crit > 0 ? 0.3 : 0) + (P.bcrt > 0 ? 0.25 : 0)) * limM();
 const gritM = () => (P.grit > 0 && P.maxHp ? 1 + Math.max(0, 1 - P.hp / P.maxHp) : 1);
-const dmgMul = () => (P.buff > 0 ? 1.5 : 1) * (P.batk > 0 ? 1.5 : 1) * gritM() * (P.lcA > 0 ? 1 + P.lcAv : 1);
+const dmgMul = () => (P.buff > 0 ? 1.5 : 1) * (P.batk > 0 ? 1.5 : 1) * gritM() * (P.lcA > 0 ? 1 + P.lcAv : 1) * gbAtkM();
 function recalc() {
   if (GEAR.wmarms) applyArms();
   calcRB(); const oh = P.maxHp, om = P.maxMp; P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp');
@@ -2044,6 +2089,11 @@ function gearSpr(id) {
     if (g.type === 'gauntlet') { s = mk(12, 10, c => { rect(c, '#222c36', 0, 2, 11, 7); rect(c, p[1], 1, 3, 9, 5); rect(c, p[0], 7, 1, 4, 8); rect(c, '#ffffff', 8, 2, 1, 1); rect(c, p[2], 0, 4, 2, 3); if (g.rar >= 3) rect(c, '#7affd8', 4, 5, 2, 1); }); s.ax = 1; s.ay = 5; return (sprCache[id] = s); }
     if (g.type === 'egun') { const mt = !!g.ehj; s = mk(mt ? 22 : 18, 10, c => { rect(c, '#10141c', 0, 3, mt ? 22 : 18, 6); rect(c, p[1], 1, 4, mt ? 20 : 16, 4); rect(c, p[0], 3, 2, 6, 3); rect(c, '#10141c', 2, 8, 3, 2); rect(c, mt ? '#ffffff' : '#7affd8', mt ? 17 : 13, 5, 3, 2); if (mt) { rect(c, '#ff5a2a', 6, 4, 2, 2); rect(c, '#7ad8ff', 9, 4, 2, 2); rect(c, '#ffe35a', 12, 4, 2, 2); rect(c, '#c89a5a', 15, 4, 2, 2); } else rect(c, '#7affd8', 5, 3, 2, 1); }); s.ax = 3; s.ay = 6; return (sprCache[id] = s); }
   }
+  if (g.gmb && g.slot === 'weapon') {
+    if (g.type === 'dice') { const gd = g.rar >= 2; s = mk(12, 12, c => { rect(c, '#222c36', 1, 1, 10, 10); rect(c, gd ? p[0] : '#ffffff', 2, 2, 8, 8); rect(c, gd ? '#fff2a0' : '#d8d8e8', 2, 2, 8, 2); for (const [x, y] of [[3, 3], [8, 3], [5, 5], [3, 8], [8, 8]]) rect(c, '#222c36', x, y, 2, 2); if (g.rar >= 6) { rect(c, '#7affd8', 5, 5, 2, 2); rect(c, '#ff5a7a', 0, 0, 2, 2); rect(c, '#ffe35a', 10, 10, 2, 2); } }); s.ax = 6; s.ay = 6; return (sprCache[id] = s); }
+    if (g.type === 'card') { s = mk(10, 13, c => { rect(c, '#222c36', 0, 0, 10, 13); rect(c, g.rar >= 4 ? '#fff2a0' : '#fff8f0', 1, 1, 8, 11); rect(c, g.rar >= 4 ? '#ff3a5a' : p[0], 3, 3, 4, 4); rect(c, '#222c36', 4, 4, 2, 2); rect(c, p[2], 1, 9, 3, 3); if (g.rar >= 4) { rect(c, '#ffd24a', 0, 0, 10, 1); rect(c, '#ffd24a', 0, 12, 10, 1); } }); s.ax = 5; s.ay = 6; return (sprCache[id] = s); }
+    s = mk(12, 12, c => { ell(c, 6, 6, 5, 5, '#222c36'); ell(c, 6, 6, 4, 4, g.rar >= 3 ? '#ffd24a' : '#ff5a7a'); ell(c, 6, 6, 2, 2, '#ffffff'); if (g.rar >= 3) { rect(c, '#14080e', 5, 1, 2, 2); rect(c, '#14080e', 5, 9, 2, 2); rect(c, '#14080e', 1, 5, 2, 2); rect(c, '#14080e', 9, 5, 2, 2); } else { rect(c, '#ffffff', 5, 1, 2, 1); rect(c, '#ffffff', 5, 10, 2, 1); } }); s.ax = 6; s.ay = 6; return (sprCache[id] = s);
+  }
   if (g.type === 'sword') s = id === 'sw0' ? SP.rusty : swordSpr(p[0], p[1], p[2], 11 + g.rar);
   else if (g.type === 'dagger') s = swordSpr(p[0], p[1], p[2], 7 + (g.rar > 2 ? 1 : 0));
   else if (g.type === 'axe') {
@@ -2071,8 +2121,8 @@ function newGame(cls) {
   runSeed = ((Math.random() * 1e6) | 0) + 1;
   buildFloor(1);
   Object.assign(P, { x: fl.start[0] * TS + 8, y: fl.start[1] * TS + 8, vx: 0, vy: 0, kx: 0, ky: 0, hw: 4, hh: 3, r: 6, cOff: 9, hp: 100, maxHp: 100, mp: 50, maxMp: 50, xp: 0, lvl: 1, gold: 0, kills: 0, face: 1, atkCd: 0, magCd: 0, swing: 0, swingMax: 0.22, swingAng: 0, combo: 0, inv: 0, flash: 0, buff: 0, anim: 0, moving: false, mats: {}, enh: {}, learned: {}, nodes: {}, sp: 1, shield: 0, regen: 0, dashHit: null, bHp: 100, bMp: 50, cls, eq: { weapon: K.w, armor: K.a, ring: null }, owned: [K.w, K.a], bag: Object.fromEntries(CONS.map(c => [c.k, c.k === 'hp' ? 1 : 0])), useCd: 0, guard: 0, swift: 0, crit: 0, dash: 0, dvx: 0, dvy: 0, ghostT: 0, nmT: 0, cd: { KeyQ: 0, KeyE: 0, KeyR: 0, KeyF: 0, Space: 0, Digit1: 0, Digit2: 0, Digit3: 0, Digit4: 0 } });
-  P.runes = []; P.rid = 1; P.rs = {}; P.undyUsed = false; calcRB(); P.bHp = K.hp; P.bMp = K.mp; P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = P.maxHp; P.mp = P.maxMp; P.learned[K.sig] = true; P.hwk = {}; P.w2 = null; P.pw = null; hwApply('dgs'); hwApply('tms'); P.job2 = null; P.runeReady = false; P.wmUnlocked = false; P.lordUnlocked = false; P.spUnlocked = false; P.tbUnlocked = false; P.shK = 0; P.hjCool = 0; P.wmForm = 0; P.lc = null; P.ns = null; P.eg = null; P.ovl = P.mod = P.conv = P.chill = 0; P.rootT = P.rootImm = P.nsDef = 0; P.trial = null; P.lcA = P.lcS = P.lcB = 0; P.npcCd = 0; npc = null; P.grit = P.lim = 0; P.fuseT = 0; P.fuseN = 0; P.runeLord = false; P.baseJ2 = undefined; P.lastCast = null; P.dupN = 0; P.skipJ = 0; P.skipA = 0; P.asc = null; P.jobT = null; P.parry = 0; P.awk = 0; virt.run = false; { const rb = document.getElementById('runBtn'); if (rb) { rb.classList.remove('on'); rb.setAttribute('aria-pressed', 'false'); } }
-  monsters = []; items = []; projs = []; parts = []; texts = []; fxs = []; teles = []; decals = []; storms = []; meteors = []; pets = []; petBag = []; spirits = []; nz = []; mach = []; lz = []; flashA = 0; banner = null;
+  P.runes = []; P.rid = 1; P.rs = {}; P.undyUsed = false; calcRB(); P.bHp = K.hp; P.bMp = K.mp; P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = P.maxHp; P.mp = P.maxMp; P.learned[K.sig] = true; P.hwk = {}; P.w2 = null; P.pw = null; hwApply('dgs'); hwApply('tms'); P.job2 = null; P.runeReady = false; P.wmUnlocked = false; P.lordUnlocked = false; P.spUnlocked = false; P.tbUnlocked = false; P.shK = 0; P.hjCool = 0; P.wmForm = 0; P.lc = null; P.ns = null; P.eg = null; P.ovl = P.mod = P.conv = P.chill = 0; P.gb = null; P.gbDef = 0; P.rootT = P.rootImm = P.nsDef = 0; P.trial = null; P.lcA = P.lcS = P.lcB = 0; P.npcCd = 0; npc = null; P.grit = P.lim = 0; P.fuseT = 0; P.fuseN = 0; P.runeLord = false; P.baseJ2 = undefined; P.lastCast = null; P.dupN = 0; P.skipJ = 0; P.skipA = 0; P.asc = null; P.jobT = null; P.parry = 0; P.awk = 0; virt.run = false; { const rb = document.getElementById('runBtn'); if (rb) { rb.classList.remove('on'); rb.setAttribute('aria-pressed', 'false'); } }
+  monsters = []; items = []; projs = []; parts = []; texts = []; fxs = []; teles = []; decals = []; storms = []; meteors = []; pets = []; petBag = []; spirits = []; nz = []; mach = []; lz = []; gbe = []; flashA = 0; banner = null;
   Object.assign(wave, { n: 0, list: [], spawnT: 0, state: 'break', t: 1.8 });
   cam.x = P.x - W / 2; cam.y = P.y - H / 2;
 }
@@ -2210,6 +2260,7 @@ function shootInst(w) {
 function shoot(w) {
   if (WT[w.type].inst) return shootInst(w);
   if (WT[w.type].gun) return shootGun(w);
+  if (w.type === 'dice' || w.type === 'card' || w.type === 'chip') return gbShoot(w);
   if (w.type === 'egun') {
     const a = aimAng(), c = Math.cos(a), s = Math.sin(a), q = { kind: 'ebolt', x: P.x + c * 10, y: P.y - P.cOff + s * 10, vx: c * 300, vy: s * 300, a, dmg: pDmg() * dmgMul() * 1.0 * (1 + gsum('mech') * 0.5), life: 0.9, r: 3, friendly: true, hit: [], c: '#7affd8' };
     if (w.ehj) { P.eli = ((P.eli || 0) + 1) % 4; q.el = EGEL[P.eli]; q.c = EM[q.el].c; q.hc = EM[q.el].hc; q.dmg *= 1 + gsum('elem'); }
@@ -2226,7 +2277,7 @@ function hurtPlayer(d, sx, sy, kb) {
   P.idle = 0;
   if (P.inv > 0) return;
   if (P.job2 === 'dragonslayer' && monsters.some(x => !x.dead && DEF[x.type] && DEF[x.type].dragon && Math.hypot(x.x - P.x, x.y - P.y) < 160)) d *= 0.85;
-  const red = Math.min(0.92, gsum('red') + (P.guard > 0 ? 0.4 : 0) + (P.shield > 0 ? 0.7 : 0) + (P.parry > 0 ? 0.5 : 0) + (P.bdef > 0 ? 0.3 : 0) + (P.nsDef > 0 ? 0.35 : 0));
+  const red = Math.min(0.92, gsum('red') + (P.guard > 0 ? 0.4 : 0) + (P.shield > 0 ? 0.7 : 0) + (P.parry > 0 ? 0.5 : 0) + (P.bdef > 0 ? 0.3 : 0) + (P.nsDef > 0 ? 0.35 : 0) + (P.gbDef || 0));
   if (P.parry > 0 && SK[P.parryQ]) { const q = P.parryQ; for (const m of monsters) if (!m.dead && m.spawnT <= 0 && Math.hypot(m.x - P.x, m.y - P.y) < 52) { const dm = pDmg() * 2.2 * sDmg(q) * dmgMul(); hitMonster(m, dm, Math.atan2(m.y - P.y, m.x - P.x), 240, false); if (sm(q, 'stun')) disable(m, 'stun', 1.2); } fxs.push({ k: 'shock', t: 0, d: 0.35, r: 52, x: P.x, y: P.y - 4 }); ring(P.x, P.y - 8, '#ffd24a', 52, 0.35); addText(P.x, P.y - 36, 'PARRY!', '#ffd24a', 7); sfx(500, 0.1, 'square', 0.06, -200); }
   if (P.shield > 0 && smf('shield', 'refl')) { for (const m of monsters) if (!m.dead && m.spawnT <= 0 && Math.hypot(m.x - P.x, m.y - P.y) < 46) hitMonster(m, pBolt() * 1.5, Math.atan2(m.y - P.y, m.x - P.x), 200, false); ring(P.x, P.y - 8, '#bff6ff', 46, 0.35); }
   d = Math.max(1, Math.round(d * (1 - red) / limM()));
@@ -2272,12 +2323,12 @@ function swapWeapon() {
   P.wmForm = ((P.wmForm | 0) + 1) % ARMS.length; applyArms(); recalc(); P.atkCd = Math.max(P.atkCd, 0.15);
   addText(P.x, P.y - 30, ARMS[P.wmForm].n, '#ffd24a', 8); ring(P.x, P.y - 8, '#ffd24a', 22, 0.3); burst(P.x, P.y - 9, 10, '#ffd24a', 90, 0.4); sfx(700, 0.1, 'square', 0.05, 200);
 }
-const gw_ = g => g.inst ? 'bard' : g.spear ? 'lancer' : g.eng ? 'engineer' : '';
+const gw_ = g => g.inst ? 'bard' : g.spear ? 'lancer' : g.eng ? 'engineer' : g.gmb ? 'gambler' : '';
 const wrongG = g => g.slot === 'weapon' && !(wmOn() && g.rar === 6) && (gw_(g) ? gw_(g) !== P.cls : RESTR.includes(P.cls));
 const wokG = g => g.slot !== 'weapon' || (gw_(g) ? gw_(g) === P.cls : !RESTR.includes(P.cls));
 const badW = g => g.slot === 'weapon' && (wrongG(g) || (!wmOn() && P.cls === 'gunner' && !g.gun));
 const wokPool = g => wokG(g) && (!g.gun || P.cls === 'gunner' || wmOn()) && (P.cls !== 'gunner' || wmOn() || g.slot !== 'weapon' || g.gun || g.spear);
-const jobElig = () => (P.cls === 'novice' ? (P.asc ? 0 : P.lvl >= 5 ? 1 : 0) : (!P.job2 && P.lvl >= (P.cls === 'engineer' || P.cls === 'bard' || P.cls === 'lancer' ? 30 : 25) ? 2 : 0));
+const jobElig = () => (P.cls === 'novice' ? (P.asc ? 0 : P.lvl >= 5 ? 1 : 0) : (!P.job2 && P.lvl >= (P.cls === 'engineer' || P.cls === 'bard' || P.cls === 'lancer' || P.cls === 'gunner' ? 30 : P.cls === 'gambler' ? 35 : 25) ? 2 : 0));
 const jobNext = () => {
   if (P.cls === 'novice' && !P.asc) { if (P.lvl >= 5 && P.skipJ !== 1) return 1; if (P.lvl >= 25 && P.skipJ === 1 && !P.skipA) return 3; return 0; }
   const e = jobElig(); return e && P.skipJ !== e ? e : 0;
@@ -2300,6 +2351,7 @@ function applyJob1(cls) {
   setClassSkills(cls); P.learned[K.sig] = true;
   if (P.eq.weapon === o.w && K.w !== o.w) { P.eq.weapon = K.w; if (!P.owned.includes(K.w)) P.owned.push(K.w); }
   if (P.eq.armor === o.a && K.a !== o.a) { P.eq.armor = K.a; if (!P.owned.includes(K.a)) P.owned.push(K.a); }
+  if (K.w && GEAR[P.eq.weapon] && badW(GEAR[P.eq.weapon]) && K.w !== P.eq.weapon) { P.eq.weapon = K.w; if (!P.owned.includes(K.w)) P.owned.push(K.w); P.w2 = null; }
   recalcHp();
 }
 /* ---------- 히든 직업: 그림자 군주 ---------- */
@@ -2318,7 +2370,7 @@ function setForm(to) {
   else { const o = P.fs && P.fs[to]; if (o) { Object.assign(P.learned, o.learned); Object.assign(P.nodes, o.nodes); } }
   if ((P.awk || 0) >= 1) P.learned.KeyT = true;
   P.formT = 0; hwSync(); P.mp = Math.min(P.maxMp, P.mp);
-  const lord = to === 'shadowlord' || to === 'creator' || to === 'weaponmaster' || to === 'skysniper', c1 = to === 'elemeng' ? '#7affd8' : to === 'natsov' ? '#6bff8a' : to === 'skysniper' ? '#bfe8ff' : to === 'weaponmaster' ? '#ffd24a' : to === 'creator' ? '#c98aff' : lord ? '#b06bff' : '#4af0d8';
+  const lord = to === 'shadowlord' || to === 'creator' || to === 'weaponmaster' || to === 'skysniper', c1 = to === 'arcana' ? '#b48aff' : to === 'fatearch' ? '#ffe36a' : to === 'elemeng' ? '#7affd8' : to === 'natsov' ? '#6bff8a' : to === 'skysniper' ? '#bfe8ff' : to === 'weaponmaster' ? '#ffd24a' : to === 'creator' ? '#c98aff' : lord ? '#b06bff' : '#4af0d8';
   flashA = Math.max(flashA, 0.45); shake = Math.max(shake, 5); ring(P.x, P.y - 8, c1, 70, 0.8); ring(P.x, P.y - 8, lord ? '#ff3a6a' : '#fff', 40, 0.6); burst(P.x, P.y - 9, 40, c1, 140, 1, 2);
   sfx(lord ? 110 : 330, 0.5, 'sawtooth', 0.07, lord ? 300 : 200); setTimeout(() => sfx(lord ? 220 : 495, 0.5, 'triangle', 0.07, 300), 150);
 }
@@ -2354,7 +2406,7 @@ $('hjNo').addEventListener('click', () => hjAnswer(false));
 function hjTick() {
   if (state !== 'play' || hjQ || !P.owned || P.hjCool > 0) return;
   if (P.job2 && JOB2[P.job2] && JOB2[P.job2].hidden) return;
-  for (const id of ['shadowlord', 'creator', 'weaponmaster', 'skysniper', 'timemaestro', 'natsov', 'elemeng']) {
+  for (const id of ['shadowlord', 'creator', 'weaponmaster', 'skysniper', 'timemaestro', 'natsov', 'elemeng', 'arcana', 'fatearch']) {
     if (JOB2[id].cls !== P.cls) continue;
     if (HJ[id].ok()) { hjAsk('', '조건 달성: ' + HJ[id].c + '\n히든 직업 [' + JOB2[id].n + '](으)로 전직하겠습니까?\n(전직하면 이전 직업으로 돌아갈 수 없습니다.)', HJ[id].go); return; }
   }
@@ -2403,7 +2455,7 @@ function toggleForm() {
 }
 function applyJob2(id) {
   if (P.job2 && JOB2[P.job2].hidden) { P.baseJ2 = id; P.fs = P.fs || {}; P.fs[id] = P.fs[id] || { learned: {}, nodes: {} }; say('2차 전직 완료', JOB2[id].n); return; }
-  refundSlots(JOB2[id].cls === 'lancer' || JOB2[id].cls === 'engineer' ? ['KeyQ', 'KeyE', 'KeyR', 'Digit3', 'Digit4'] : ['KeyR', 'Digit3', 'Digit4'], false);
+  refundSlots(JOB2[id].cls === 'lancer' || JOB2[id].cls === 'engineer' || JOB2[id].cls === 'gambler' ? ['KeyQ', 'KeyE', 'KeyR', 'Digit3', 'Digit4'] : ['KeyR', 'Digit3', 'Digit4'], false);
   P.job2 = id; setClassSkills(P.cls, id); recalcHp();
 }
 function applyAscend(picks) {
@@ -2481,10 +2533,11 @@ function openJob(stage) {
   for (const k in keys) keys[k] = false; for (const k in virt) virt[k] = false; mouse.down = mouse.right = false;
   const row = $('jobRow'); row.textContent = '';
   $('jobTitle').textContent = stage === 1 ? '1차 전직' : '2차 전직';
-  $('jobSub').textContent = stage === 1 ? '직업을 선택하세요. 지금까지 쓴 스킬 포인트는 돌려받고, 직업 스킬 세트로 바뀝니다.' : (P.cls === 'engineer' ? '전문 직업을 선택하세요. (엔지니어 Lv30) 스킬 5개가 전문 스킬로 바뀌고, 해당 스킬에 쓴 포인트는 돌려받습니다.' : '전문 직업을 선택하세요. 3가지 스킬(R·3·4)이 강화된 스킬로 바뀌고, 해당 스킬에 쓴 포인트는 돌려받습니다.');
-  const list = stage === 1 ? ['warrior', 'mage', 'assassin', 'archer', 'gunner', 'bard', 'lancer', 'engineer'] : Object.keys(JOB2).filter(k => JOB2[k].cls === P.cls && !JOB2[k].hidden);
+  $('jobSub').textContent = stage === 1 ? '직업을 선택하세요. 지금까지 쓴 스킬 포인트는 돌려받고, 직업 스킬 세트로 바뀝니다.' : (P.cls === 'gambler' ? '전문 직업을 선택하세요. (도박사 Lv35) 스킬 5개가 전문 스킬로 바뀌고, 해당 스킬에 쓴 포인트는 돌려받습니다.' : P.cls === 'engineer' ? '전문 직업을 선택하세요. (엔지니어 Lv30) 스킬 5개가 전문 스킬로 바뀌고, 해당 스킬에 쓴 포인트는 돌려받습니다.' : '전문 직업을 선택하세요. 3가지 스킬(R·3·4)이 강화된 스킬로 바뀌고, 해당 스킬에 쓴 포인트는 돌려받습니다.');
+  const list = stage === 1 ? ['warrior', 'mage', 'assassin', 'archer', 'gunner', 'bard', 'lancer', 'engineer', 'gambler'] : Object.keys(JOB2).filter(k => JOB2[k].cls === P.cls && !JOB2[k].hidden);
   if (stage === 2 && P.cls === 'archer' && !N_().job) list.push('natsov');
   if (stage === 2 && P.cls === 'engineer' && !EG_().job) list.push('elemeng');
+  if (stage === 2 && P.cls === 'gambler' && !GB_().job) list.push('arcana', 'fatearch');
   for (const k of list) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'jobcard';
     const c = document.createElement('canvas'); c.width = 20; c.height = 24; c.getContext('2d').drawImage(stage === 1 ? SPK[k][0] : SPJ[k][0], 0, 0);
@@ -2492,23 +2545,27 @@ function openJob(stage) {
     if (stage === 1) { t.textContent = CLS[k].n; d.textContent = CLS[k].d; sl.textContent = '시작 스킬 ' + (CSK[k][0][1].n || TPL[CSK[k][0][0]].n);
       if (k === 'bard') { const w = document.createElement('em'); w.textContent = '⚠ 악기만 사용할 수 있습니다. 검·도끼·활·총 등 다른 무기는 장착할 수 없습니다.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); }
       if (k === 'lancer') { if (P.lvl < 7) t.textContent = '🔒 창기사 (Lv7)'; const w = document.createElement('em'); w.textContent = '⚠ 창만 사용할 수 있습니다. 레벨 7부터 전직 가능.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); }
-      if (k === 'gunner') { const w = document.createElement('em'); w.textContent = '⚠ 총만 사용할 수 있습니다. 검·도끼·단검·지팡이·활 등 다른 무기는 장착할 수 없습니다.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); } }
+      if (k === 'gunner') { if (P.lvl < 7) t.textContent = '🔒 거너 (Lv7)'; const w = document.createElement('em'); w.textContent = '⚠ 레벨 7부터 전직 가능. 총만 사용할 수 있습니다. 검·도끼·단검·지팡이·활 등 다른 무기는 장착할 수 없습니다.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); } }
     else { t.textContent = JOB2[k].n; d.textContent = JOB2[k].d; sl.textContent = JOB2[k].sk.map(x => x[2].n).join(' · '); }
     b.append(c, t, d, sl);
     if (k === 'natsov' && stage === 2) { t.textContent = (jreqOk('natsov') ? '' : '🔒 ') + JOB2[k].n + ' (히든)'; sl.textContent = '조건을 모두 달성하면 전직할 수 있습니다'; }
     if (k === 'engineer' && stage === 1) { if (P.lvl < 7) t.textContent = '🔒 엔지니어 (Lv7)'; const w = document.createElement('em'); w.textContent = '⚠ 공구·기계 장갑·에너지 건만 사용할 수 있습니다. 레벨 7부터 전직 가능.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); }
+    if (k === 'gambler' && stage === 1) { if (P.lvl < 10) t.textContent = '🔒 도박사 (Lv10)'; const w = document.createElement('em'); w.textContent = '⚠ 주사위·카드·마법 칩만 사용할 수 있습니다. 레벨 10부터 전직 가능.'; w.style.cssText = 'display:block;margin-top:6px;color:#ff8a7a;font-style:normal;font-size:11px;line-height:1.35'; d.appendChild(w); }
+    if ((k === 'arcana' || k === 'fatearch') && stage === 2) { t.textContent = '🔒 ' + JOB2[k].n + ' (히든)'; sl.textContent = (k === 'arcana' ? '카드 마스터' : '룰렛 마스터') + '로 전직 후 조건을 모두 달성하면 해금됩니다'; b.style.opacity = '0.75'; }
     if (k === 'elemeng' && stage === 2) { t.textContent = '🔒 ' + JOB2[k].n + ' (히든)'; sl.textContent = '연금술 공학자로 전직 후 조건을 모두 달성하면 해금됩니다'; b.style.opacity = '0.75'; }
     if (JREQ[k]) { const bx = document.createElement('div'); bx.style.cssText = 'margin-top:6px;font-size:10px;line-height:1.5;text-align:left'; JREQ[k].forEach(r => { const v = Math.min(r.cur(), r.need), ok = r.cur() >= r.need, e = document.createElement('div'); e.textContent = (ok ? '✔ ' : '✖ ') + r.t + (r.need > 1 ? ' (' + v + '/' + r.need + ')' : ''); e.style.color = ok ? '#6bff8a' : '#ff9a8a'; bx.appendChild(e); }); b.appendChild(bx); if (!jreqOk(k)) b.style.opacity = '.65'; }
     b.addEventListener('click', () => {
       if (state !== 'job') return;
       if (k === 'natsov' && stage === 2 && jreqOk(k)) { P.jobT = null; state = 'play'; showOv(null); nsGo(); return; }
+      if (k === 'arcana' || k === 'fatearch') { say('히든 직업 잠김', (k === 'arcana' ? '카드 마스터' : '룰렛 마스터') + ' Lv75 이후 조건을 달성해야 합니다'); sfx(140, 0.15, 'square', 0.05, -60); return; }
       if (k === 'elemeng') { say('히든 직업 잠김', '연금술 공학자 Lv75 이후 조건을 달성해야 합니다'); sfx(140, 0.15, 'square', 0.05, -60); return; }
       if (JREQ[k] && !jreqOk(k)) { say('전직 조건 미달', '아직 모든 조건을 만족하지 못했습니다'); sfx(140, 0.15, 'square', 0.05, -60); return; }
       if (stage === 1 && k === 'gunner' && !b.dataset.armed) { b.dataset.armed = '1'; sl.textContent = '정말 거너로 전직할까요? 한 번 더 누르면 확정 (총 외 무기 사용 불가)'; sl.style.color = '#ff8a7a'; sfx(300, 0.1, 'square', 0.04, 100); return; }
-      if (stage === 1) { applyJob1(k); if (k === 'engineer') egFix(); if (k === 'lancer') { if (!P.owned.includes('lc0')) P.owned.push('lc0'); if (!(GEAR[P.eq.weapon] && GEAR[P.eq.weapon].spear)) P.eq.weapon = 'lc0'; P.w2 = null; recalc(); } } else applyJob2(k);
+      if (stage === 1) { applyJob1(k); if (k === 'engineer') egFix(); if (k === 'gambler') gbFix(); if (k === 'lancer') { if (!P.owned.includes('lc0')) P.owned.push('lc0'); if (!(GEAR[P.eq.weapon] && GEAR[P.eq.weapon].spear)) P.eq.weapon = 'lc0'; P.w2 = null; recalc(); } } else applyJob2(k);
       P.jobT = null; state = 'play'; showOv(null);
       ring(P.x, P.y - 8, '#ffd24a', 50, 0.7); ring(P.x, P.y - 8, '#4af0d8', 30, 0.5); burst(P.x, P.y - 9, 26, '#ffd24a', 110, 0.9); flashA = Math.max(flashA, 0.25);
       if (k === 'engineer' || (JOB2[k] && JOB2[k].cls === 'engineer')) egFx(k);
+      if (k === 'gambler' || (JOB2[k] && JOB2[k].cls === 'gambler')) gbFx(k);
       saveGame(); say(stage === 1 ? '전직 완료!' : '2차 전직 완료!', (stage === 1 ? CLS[k].n : JOB2[k].n) + ' · 스킬 포인트 ' + P.sp + ' (K)');
       sfx(440, 0.15, 'square', 0.05, 200); setTimeout(() => sfx(660, 0.15, 'square', 0.05, 200), 120); setTimeout(() => sfx(990, 0.3, 'square', 0.05, 200), 240);
     });
@@ -2886,12 +2943,62 @@ Object.assign(TPL, { eturret: LCT('자동 포탑', 20, 12, '#ffd24a', '포탑'),
   apoison: LCT('독성 촉매', 20, 8, '#9aff4a', '독'), afire: LCT('화염 촉매', 26, 10, '#ff7a3a', '화염'), aheal: LCT('회복 장치', 35, 22, '#6bff8a', '회복'), aconv: LCT('속성 변환', 30, 28, '#c8a8ff', '버프'), aboom: LCT('연금술 폭발', 90, 55, '#ff9aff', '궁극기'),
   xfire: LCT('화염 엔진', 30, 14, '#ff7a3a', '화염'), xice: LCT('빙결 장치', 30, 16, '#7ad8ff', '빙결'), xdrone: LCT('번개 드론', 35, 16, '#ffe35a', '드론'), xgolem: LCT('대지 골렘', 45, 28, '#c89a5a', '골렘'), xfuse: LCT('원소 융합', 55, 22, '#7affd8', '융합'), xworld: LCT('창조의 원소 병기', 120, 80, '#ffffff', '궁극기') });
 const ELEMSK = new Set(['xfire', 'xice', 'xdrone', 'xgolem', 'xfuse', 'xworld']);
+
+CSK.gambler = [
+  ['gdice', { n: '행운의 주사위', ic: 'gdice', mp: 12, cd: 4, col: '#ffffff', d: '주사위를 던집니다. 눈이 높을수록 피해가 커지고, 최고 눈이 나오면 크리티컬 효과가 발동합니다.', p: { mul: 1 } }],
+  ['gcard', { n: '황금 카드', ic: 'gcard', mp: 16, cd: 5, col: '#ffd24a', d: '무작위 카드 3장을 부채꼴로 던집니다. ♥화염 ♠번개 ♦빙결 ♣독 — 카드마다 속성과 효과가 다릅니다.', p: { mul: 0.8 } }],
+  ['gdouble', { n: '더블 업', ic: 'gdouble', mp: 15, cd: 10, col: '#6bff8a', d: '다음 공격의 피해가 1.8배가 됩니다. 35% 확률로 추가 강화(2.6배)가 발동합니다.', p: {} }],
+  ['gjackpot', { n: '잭팟', ic: 'gjackpot', mp: 25, cd: 14, col: '#ffd24a', d: '낮은 확률(18%)로 매우 강력한 폭발(×8)을 일으킵니다. 실패해도 약한 피해를 주고, 실패가 쌓일수록 확률이 오릅니다.', p: { ch: 0.18, win: 8, lose: 1.2, R: 70 } }],
+  ['dash', { n: '카드 셔플 대시', ic: 'dash' }],
+  ['gfate', { n: '운명의 교환', ic: 'gfate', mp: 30, cd: 35, col: '#c8a8ff', d: '10초 동안 공격력·방어력·공격 속도 중 2가지가 무작위로 바뀝니다. 대부분 강화(+), 가끔 약화(-)됩니다.', p: { dur: 10 } }],
+  ['gallin', { n: '올인', ic: 'gallin', mp: 20, cd: 20, col: '#ff5a7a', d: '행운 게이지를 모두 소모해 강력한 폭발을 일으킵니다. 소모한 게이지가 많을수록 피해가 커집니다. (게이지 10 이상 필요)', p: { R: 60, base: 2 } }],
+  null, null];
+JOBLOOK.cardmaster = { pal: { red: '#7a2ab0', redD: '#2a0e4a', redL: '#c48aff', shield: '#1e1830', shieldD: '#0a0814', shieldL: '#5a4a8a', steelM: '#f4f0ff', steelL: '#ffffff', steelD: '#a8a0c8', gold: '#ffd24a', goldL: '#fff2a0' },
+  deco: (g, C) => { rect(g, '#1e1830', 4, 1, 12, 4); rect(g, '#c48aff', 5, 2, 10, 1); rect(g, '#f4f0ff', 14, 8, 4, 6); rect(g, '#ff3a5a', 15, 10, 2, 2); rect(g, '#f4f0ff', 2, 9, 3, 5); rect(g, '#14080e', 3, 11, 1, 1); } };
+JOBLOOK.roulette = { pal: { red: '#b0203a', redD: '#5a0e1e', redL: '#ff6a86', shield: '#0e4a2a', shieldD: '#06200e', shieldL: '#3aaa6a', steelM: '#f4f0ff', steelL: '#ffffff', steelD: '#a8a0c8', gold: '#ffd24a', goldL: '#fff2a0' },
+  deco: (g, C) => { rect(g, '#0e4a2a', 4, 1, 12, 4); rect(g, '#ffd24a', 5, 2, 10, 1); ell(g, 16, 11, 3, 3, '#14080e'); ell(g, 16, 11, 2, 2, '#ff3a5a'); rect(g, '#ffffff', 16, 11, 1, 1); rect(g, '#ffffff', 2, 10, 3, 3); rect(g, '#14080e', 3, 11, 1, 1); } };
+JOBLOOK.arcana = { pal: { red: '#5a2ac8', redD: '#1e0e5a', redL: '#b48aff', shield: '#2a1850', shieldD: '#0e0824', shieldL: '#7a5ac8', steelM: '#fff0ff', steelL: '#ffffff', steelD: '#b8a0d8', gold: '#ffe35a', goldL: '#ffffff' },
+  deco: (g, C) => { rect(g, '#1e0e5a', 4, 1, 12, 5); for (const [x, c] of [[5, '#ff5a2a'], [8, '#7ad8ff'], [11, '#ffe35a'], [14, '#7aff8a']]) rect(g, c, x, 0, 2, 2); rect(g, '#ffe35a', 6, 3, 8, 1); rect(g, '#fff0ff', 1, 8, 3, 6); rect(g, '#fff0ff', 16, 8, 3, 6); rect(g, '#ff9aff', 2, 10, 1, 2); rect(g, '#ff9aff', 17, 10, 1, 2); } };
+JOBLOOK.fatearch = { pal: { red: '#c89a1a', redD: '#5a420a', redL: '#ffe36a', shield: '#1a2a4a', shieldD: '#0a1226', shieldL: '#5a7ac8', steelM: '#ffffff', steelL: '#ffffff', steelD: '#b8c0d8', gold: '#ffffff', goldL: '#ffffff' },
+  deco: (g, C) => { rect(g, '#1a2a4a', 4, 1, 12, 5); rect(g, '#ffe36a', 5, 3, 10, 1); rect(g, '#ffffff', 8, 0, 4, 3); rect(g, '#14080e', 9, 1, 1, 1); rect(g, '#14080e', 11, 1, 1, 1); rect(g, '#ffffff', 1, 8, 4, 4); rect(g, '#14080e', 2, 9, 1, 1); rect(g, '#14080e', 4, 11, 1, 1); rect(g, '#7affd8', 16, 9, 3, 3); } };
+JOB2.cardmaster = { cls: 'gambler', n: '카드 마스터', d: '마법 카드와 전설의 덱을 다루는 카드 전문가. 패시브: 카드 공격력 +25%, 희귀 카드 등장 확률 +50%, 카드를 연속으로 쓸수록 추가 피해(최대 8회 중첩, 회당 +4%).', b: { cardp: 0.25, rare: 0.5, cchain: 0.04, hp: 40, crit: 0.04 }, sk: [
+  [0, 'cfire', { n: '화염 카드', ic: 'cfire', mp: 20, cd: 6, col: '#ff7a3a', d: '불타는 카드 3장을 부채꼴로 던져 화염 피해와 화상을 줍니다.', p: { mul: 1.0 } }],
+  [1, 'cdeath', { n: '죽음의 카드', ic: 'cdeath', mp: 22, cd: 8, col: '#a06aff', d: '카드 한 장을 던집니다. 35% 확률로 강력한 추가 피해(×4.5)가 발동합니다. (보스는 효과 감소)', p: { ch: 0.35, mul: 1.4, win: 4.5 } }],
+  [2, 'cgold', { n: '황금 카드', ic: 'cgold', mp: 30, cd: 30, col: '#ffd24a', d: '12초 동안 공격력 +25%, 행운 게이지 획득량 +50%, 확률 +8%.', p: { dur: 12 } }],
+  [7, 'cdeck', { n: '운명의 덱', ic: 'cdeck', mp: 40, cd: 18, col: '#ff9aff', d: '무작위 카드 5장을 연속으로 사용합니다. 숫자가 높을수록 강하며, 희귀 카드(조커)는 큰 광역 피해를 줍니다.', p: { n: 5, mul: 0.9 } }],
+  [8, 'cjoker', { n: '조커 소환', ic: 'cjoker', mp: 45, cd: 30, col: '#ff5a7a', d: '조커 카드를 12초간 발동합니다. 조커가 무작위 속성 카드를 쏘고, 가끔 웃음 폭발로 적을 기절시킵니다. (최대 1기)', p: { dur: 12 } }],
+  [9, 'croyal', { n: '로열 플러시', ic: 'croyal', mp: 100, cd: 70, col: '#ffe35a', awk: true, nodes: [], d: '전설의 다섯 카드(10·J·Q·K·A)가 차례로 날아가 적을 강타하고, 마지막 일격으로 큰 폭발을 일으킵니다.', p: { R: 100, mul: 1.6, win: 7 } }]] };
+JOB2.roulette = { cls: 'gambler', n: '룰렛 마스터', d: '룰렛과 주사위로 확률을 조작하는 도박의 달인. 패시브: 잭팟 확률 +4%, 룰렛 보상 +30%, 주사위 최대 눈 +1, 행운 게이지 획득량 +30%.', b: { jpc: 0.04, rrew: 0.3, dmax: 1, gget: 0.3, hp: 30, crit: 0.04 }, sk: [
+  [0, 'rroulette', { n: '행운의 룰렛', ic: 'rroulette', mp: 25, cd: 20, col: '#ffb03a', d: '룰렛을 돌려 무작위 효과를 얻습니다. 피해·회복·공격 강화·가속·방어·마나 회복·행운 게이지·꽝.', p: {} }],
+  [1, 'rdouble', { n: '더블 식스', ic: 'rdouble', mp: 20, cd: 6, col: '#ffffff', d: '주사위 두 개를 굴립니다. 눈의 합이 높을수록 피해가 커지고, 두 주사위가 모두 최고 눈이면 추가 폭발과 기절.', p: { mul: 0.55 } }],
+  [2, 'rfatectl', { n: '운명 조작', ic: 'rfatectl', mp: 25, cd: 25, col: '#c8a8ff', d: '15초 동안 다음 확률형 스킬의 유리한 효과 확률이 +40%p 증가합니다. (한 번 사용하면 소모, 최대 확률 85%)', p: { dur: 15 } }],
+  [7, 'rjackpot', { n: '황금 잭팟', ic: 'rjackpot', mp: 40, cd: 16, col: '#ffd24a', d: '25% 확률로 거대한 황금 폭발(×12)을 일으킵니다. 실패해도 약한 피해(×1.8). 보스에게는 효과가 줄어듭니다.', p: { ch: 0.25, win: 12, lose: 1.8, R: 80 } }],
+  [8, 'rallin', { n: '올인 러시', ic: 'rallin', mp: 35, cd: 22, col: '#ff5a7a', d: '행운 게이지를 모두 소모해 전방으로 5연속 돌진 공격을 합니다. (게이지 10 이상 필요)', p: { base: 3 } }],
+  [9, 'rlast', { n: '라스트 베팅', ic: 'rlast', mp: 100, cd: 80, col: '#ff3a5a', awk: true, nodes: [], d: '모든 행운을 겁니다. 50% 확률로 초강력 폭발(성공), 실패하면 약한 폭발과 체력 10% 손실. 게이지가 많을수록 성공 피해 증가.', p: { ch: 0.5, R: 120, win: 14, lose: 3 } }]] };
+JOB2.arcana = { cls: 'gambler', hidden: true, lrn: ['KeyQ', 'KeyE', 'KeyR', 'Digit3', 'KeyT'], n: '아르카나의 군주', d: '22장의 전설 아르카나를 지배하는 군주. 패시브 모든 카드 공격력 +30% · 전설 카드 효과 +30% · 카드 재사용 대기시간 -15% · 행운 게이지 획득량 +30%.', b: { cardp: 0.3, lege: 0.3, cdr: 0.15, gget: 0.3, hp: 60, crit: 0.05 }, sk: [
+  [0, 'aucard', { n: '운명의 카드', ic: 'aucard', mp: 30, cd: 8, col: '#ff9aff', d: '속성 전설 카드로 공격합니다. 이동 방향(위 화염·오른쪽 번개·아래 빙결·왼쪽 독)으로 속성을 고르고, 가만히 있으면 순서대로 바뀝니다.', p: { mul: 2.4 } }],
+  [1, 'ainfinite', { n: '무한의 덱', ic: 'ainfinite', mp: 55, cd: 24, col: '#7affd8', d: '카드 12장을 2초 동안 연속 발동합니다.', p: { n: 12, mul: 0.9 } }],
+  [2, 'aalter', { n: '운명 개변', ic: 'aalter', mp: 30, cd: 30, col: '#c8a8ff', d: '불리한 효과(약화·속박·냉각)를 제거하고 유리한 효과로 바꿉니다. 체력 15% 회복, 행운 게이지 +30.', p: {} }],
+  [7, 'ajoker', { n: '신의 조커', ic: 'ajoker', mp: 60, cd: 40, col: '#ffe35a', d: '신의 조커를 14초간 소환합니다. 모든 속성 카드를 쏘고 주기적으로 광역 웃음 폭발을 일으킵니다. (최대 1기)', p: { dur: 14 } }],
+  [9, 'aover', { n: '아르카나 오버로드', ic: 'aover', mp: 130, cd: 90, col: '#ffffff', awk: true, nodes: [], d: '22장의 전설 아르카나가 쏟아져 넓은 범위를 휩쓸고, 마지막에 하나로 모여 대폭발합니다.', p: { R: 140, mul: 0.9, win: 7 } }]] };
+JOB2.fatearch = { cls: 'gambler', hidden: true, lrn: ['KeyQ', 'KeyE', 'KeyR', 'Digit3', 'KeyT'], n: '운명의 설계자', d: '확률의 법칙을 다시 쓰는 설계자. 패시브 모든 확률형 스킬 강화(+20%) · 잭팟 확률 +4% · 행운 게이지 최대치 +30 · 불리한 효과 발생 확률 -50%.', b: { prob: 0.2, jpc: 0.04, gmax: 30, bad: 0.5, hp: 60, crit: 0.04 }, sk: [
+  [0, 'fprob', { n: '확률 지배', ic: 'fprob', mp: 30, cd: 30, col: '#7affd8', d: '12초 동안 모든 확률형 효과의 발동 확률이 +25%p 증가합니다. (최대 확률 85%)', p: { dur: 12 } }],
+  [1, 'frewrite', { n: '운명 재작성', ic: 'frewrite', mp: 25, cd: 25, col: '#c8a8ff', d: '불리한 효과를 다시 굴려 유리한 효과로 바꾸고, 무작위 강화 하나를 얻습니다.', p: {} }],
+  [2, 'fnecess', { n: '필연의 결과', ic: 'fnecess', mp: 25, cd: 20, col: '#ffd24a', d: '다음 확률형 효과 1회가 반드시 성공합니다. (20초 안에 사용, 보스에게는 효과 감소)', p: {} }],
+  [7, 'fdice', { n: '신의 주사위', ic: 'fdice', mp: 55, cd: 22, col: '#ffffff', d: '20면체 신의 주사위를 굴립니다. 눈에 따라 약한 폭발·중간 폭발+회복·강한 폭발+기절·20이면 대폭발과 전체 버프.', p: { R: 80 } }],
+  [9, 'fabs', { n: '절대적 운명', ic: 'fabs', mp: 120, cd: 100, col: '#ffffff', awk: true, nodes: [], d: '8초 동안 모든 확률형 스킬이 최고 등급 효과로 발동합니다. 보스에게는 최고 효과가 줄어들고, 재발동 간격이 제한됩니다.', p: { dur: 8 } }]] };
+Object.assign(TPL, { gdice: LCT('행운의 주사위', 12, 4, '#ffffff', '주사위'), gcard: LCT('황금 카드', 16, 5, '#ffd24a', '카드'), gdouble: LCT('더블 업', 15, 10, '#6bff8a', '버프'), gjackpot: LCT('잭팟', 25, 14, '#ffd24a', '잭팟'), gfate: LCT('운명의 교환', 30, 35, '#c8a8ff', '버프'), gallin: LCT('올인', 20, 20, '#ff5a7a', '올인'),
+  cfire: LCT('화염 카드', 20, 6, '#ff7a3a', '카드'), cdeath: LCT('죽음의 카드', 22, 8, '#a06aff', '카드'), cgold: LCT('황금 카드', 30, 30, '#ffd24a', '버프'), cdeck: LCT('운명의 덱', 40, 18, '#ff9aff', '카드'), cjoker: LCT('조커 소환', 45, 30, '#ff5a7a', '소환'), croyal: LCT('로열 플러시', 100, 70, '#ffe35a', '궁극기'),
+  rroulette: LCT('행운의 룰렛', 25, 20, '#ffb03a', '룰렛'), rdouble: LCT('더블 식스', 20, 6, '#ffffff', '주사위'), rfatectl: LCT('운명 조작', 25, 25, '#c8a8ff', '버프'), rjackpot: LCT('황금 잭팟', 40, 16, '#ffd24a', '잭팟'), rallin: LCT('올인 러시', 35, 22, '#ff5a7a', '올인'), rlast: LCT('라스트 베팅', 100, 80, '#ff3a5a', '궁극기'),
+  aucard: LCT('운명의 카드', 30, 8, '#ff9aff', '카드'), ainfinite: LCT('무한의 덱', 55, 24, '#7affd8', '카드'), aalter: LCT('운명 개변', 30, 30, '#c8a8ff', '버프'), ajoker: LCT('신의 조커', 60, 40, '#ffe35a', '소환'), aover: LCT('아르카나 오버로드', 130, 90, '#ffffff', '궁극기'),
+  fprob: LCT('확률 지배', 30, 30, '#7affd8', '버프'), frewrite: LCT('운명 재작성', 25, 25, '#c8a8ff', '버프'), fnecess: LCT('필연의 결과', 25, 20, '#ffd24a', '버프'), fdice: LCT('신의 주사위', 55, 22, '#ffffff', '주사위'), fabs: LCT('절대적 운명', 120, 100, '#ffffff', '궁극기') });
+const CARDSK = new Set(['cfire', 'cdeath', 'cdeck', 'croyal', 'aucard', 'ainfinite', 'ajoker', 'aover']);
 const SPJ = {}; for (const id in JOB2) { const L = JOBLOOK[id]; SPJ[id] = [0, 1, 2, 3].map(fr => knightSpr(fr, Object.assign({}, CLS[JOB2[id].cls].pal || {}, L.pal), L.deco)); }
 const curSpr = () => (P.job2 && SPJ[P.job2]) || SPK[P.cls] || SP.knight;
 const awkMod = (code, k) => { if (!SK[code].awk || !P.awk) return 0; const a = P.awk; return ({ dmg: (a >= 3 ? 0.4 : 0) + (a >= 5 ? 0.6 : 0), cd: (a >= 3 ? -0.15 : 0) + (a >= 5 ? -0.15 : 0), aoe: a >= 5 ? 0.3 : 0, mp: a >= 5 ? -0.2 : 0 })[k] || 0; };
 const sm = (code, k) => { if (!SK[code]) return 0; let v = ((SK[code].pm && SK[code].pm[k]) || 0) + awkMod(code, k); for (const n of SK[code].nodes) if (P.nodes[code + '.' + n.id] && n.mod[k]) v += n.mod[k]; return v; };
 const sMp = code => Math.max(1, Math.round(SK[code].mp * (1 + sm(code, 'mp'))));
-const sCd = code => Math.max(0.3, SK[code].cd * (1 + sm(code, 'cd')) * (1 - RB.cd) * (ELEMSK.has(SK[code].fn) ? 1 - gsum('ecd') : 1));
+const sCd = code => Math.max(0.3, SK[code].cd * (1 + sm(code, 'cd')) * (1 - RB.cd) * (ELEMSK.has(SK[code].fn) ? 1 - gsum('ecd') : 1) * (CARDSK.has(SK[code].fn) ? 1 - gsum('cdr') : 1));
 const sDmg = code => 1 + sm(code, 'dmg');
 function zap(from, dmg, n) {
   const cand = monsters.filter(t => t !== from && !t.dead && t.spawnT <= 0 && Math.hypot(t.x - from.x, t.y - from.y) < 80).sort((a, b) => Math.hypot(a.x - from.x, a.y - from.y) - Math.hypot(b.x - from.x, b.y - from.y)).slice(0, n);
@@ -3569,7 +3676,7 @@ const ENGD = { tool: '묵직한 공구로 근접 타격합니다', gauntlet: '�
 const EG_ = () => (P.eg = P.eg || { clear: false, gk: 0, k: 0, job: false, q: false, qs: false, qk: 0 });
 const EM = { fire: { c: '#ff7a3a', c2: '#ffd24a', hc: '#ff9a4a', n: '화염' }, ice: { c: '#7ad8ff', c2: '#e8ffff', hc: '#9ae8ff', n: '빙결' }, bolt: { c: '#ffe35a', c2: '#ffffff', hc: '#fff07a', n: '번개' }, earth: { c: '#c89a5a', c2: '#6a4a22', hc: '#e0b878', n: '대지' }, poison: { c: '#9aff4a', c2: '#5a2a9a', hc: '#b8ff6a', n: '독' }, mix: { c: '#7affd8', c2: '#ffffff', hc: '#c8fff0', n: '융합' } };
 const EKS = ['fire', 'ice', 'bolt', 'earth'];
-const ECAP = k => ({ turret: P.job2 === 'mechanic' ? 5 : 3, robot: 2, drone: 2, golem: 1, mech: 1, fengine: 2, idev: 2, healdev: 1, wpn: 1, zone: 4 }[k] || 3);
+const ECAP = k => ({ turret: P.job2 === 'mechanic' ? 5 : 3, robot: 2, drone: 2, golem: 1, mech: 1, fengine: 2, idev: 2, healdev: 1, wpn: 1, zone: 4, joker: 1, gstorm: 1 }[k] || 3);
 function addMach(o) {
   o.hw = o.hw || 4; o.hh = o.hh || 3; o.max = o.life; o.cd = o.cd || 0.3;
   const cap = ECAP(o.k), same = mach.filter(q => q.k === o.k);
@@ -3719,7 +3826,7 @@ LIB.xworld = function (qq) { const S = SK[qq], p = S.p || {}, [x, y] = aimPt(50)
 /* ---------- 연구소 · 적 공격 ---------- */
 function lzStrike(x, y, r, d, dmg, el, kb, pool) { lz.push({ k: 'st', x, y, r, t: 0, d, dmg, el, kb: kb || 120, pool: pool || 0 }); }
 function lzPool(x, y, r, dur, dmg, el) { lz.push({ k: 'pool', x, y, r, t: 0, d: dur, dmg, el, tick: 0.3 }); }
-function egHurt(dmg, x, y, kb, el) { hurtPlayer(dmg, x, y, kb); if (el === 'ice') P.chill = 2.4; }
+function egHurt(dmg, x, y, kb, el) { hurtPlayer(dmg, x, y, kb); if (el === 'ice') P.chill = 2.4; if (el === 'cuff') rootPlayer(0.9); if (el === 'roul') P.chill = Math.max(P.chill || 0, 1.5); }
 function labTick(dt) {
   for (const z of lz) {
     z.t += dt;
@@ -3861,6 +3968,369 @@ function egKill(m) {
     for (let i = 0; i < 8; i++) setTimeout(() => { if (state !== 'play') return; const c = EM[EKS[i % 4]].c, x = m.x + rnd(-22, 22), y = m.y - rnd(0, 40); ring(x, y, c, 24 + i * 6, 0.6); burst(x, y, 14, c, 90, 0.8, 2); sfx(300 + i * 60, 0.15, 'triangle', 0.05, 200); }, i * 170);
     saveGame();
   }
+}
+
+/* ---------- 도박사 · 장비 ---------- */
+[['gd1', '초보자의 주사위', 0, 70, 5, 'dice'], ['gd2', '행운의 카드 덱', 1, 170, 10, 'card'], ['gd3', '황금 주사위', 2, 340, 17, 'dice'], ['gd4', '마법 칩', 2, 350, 17, 'chip'], ['gd5', '황금 룰렛', 3, 720, 28, 'chip'], ['gd6', '전설의 카드 덱', 4, 1550, 42, 'card'],
+].forEach(([id, n, rar, cost, atk, type]) => { GEAR[id] = { id, slot: 'weapon', n, rar, cost, type, atk, gmb: true }; if (rar >= 2) GEAR[id].crit = 0.03 * rar; if (rar >= 3) GEAR[id].gget = 0.05 * (rar - 2); });
+GEAR.gd7 = { id: 'gd7', slot: 'weapon', n: '신의 주사위', rar: 6, cost: 9000, type: 'dice', atk: 122, crit: 0.15, gget: 0.2, jpc: 0.02, gmb: true, sv: true, d: '도박의 신이 쥐고 있던 주사위. 행운 게이지 획득량과 잭팟 확률이 오릅니다.' };
+GEAR.gcrown = { id: 'gcrown', slot: 'ring', n: '운명의 왕관', rar: 6, cost: 8000, gem: '#ffd24a', hp: 60, crit: 0.06, gmax: 20, gget: 0.2, jpc: 0.03, gcr: true, sv: true, d: '도박의 신의 왕관. 행운 게이지 최대치 +20, 획득량 +20%, 잭팟 확률 +3%. (도박사 전용)' };
+const GBD = { dice: '주사위를 던지는 원거리 무기. 눈이 클수록 강하고 6이 나오면 크리티컬', card: '무작위 카드를 빠르게 던지는 원거리 무기', chip: '관통하는 마법 칩을 던지는 원거리 무기' };
+Object.assign(EM, { gold: { c: '#ffd24a', c2: '#fff2a0', hc: '#ffe35a', n: '황금' }, card: { c: '#ff9aff', c2: '#ffffff', hc: '#ffc8ff', n: '카드' }, roul: { c: '#ff5a3a', c2: '#ffe35a', hc: '#ff9a6a', n: '룰렛' }, cuff: { c: '#7a9aff', c2: '#e8f0ff', hc: '#9ab8ff', n: '전기' } });
+/* ---------- 도박사 · 핵심 ---------- */
+function GB_() { return (P.gb = P.gb || { g: 0, jm: 0, dbl: 0, dblT: 0, odds: 0, fx: null, fxT: 0, gold: 0, abs: 0, fp: 0, nec: 0, pity: 0, chain: 0, chT: 0, sel: 0, ra: 0, rd: 0, q: false, qs: false, qk: 0, gk: 0, k: 0, job: '' }); }
+function isGb() { return P.cls === 'gambler'; }
+let gbe = [];
+const SUIT = [['♥', 'fire'], ['♠', 'bolt'], ['♦', 'ice'], ['♣', 'poison']];
+const GBN = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+function gLater(d, fn) { gbe.push({ k: 'tm', t: d, fn }); }
+function gbMax() { return 100 + gsum('gmax'); }
+function gbAtkM() { const G = P.gb; if (!G) return 1; return (G.fxT > 0 && G.fx ? 1 + G.fx.atk : 1) * (G.gold > 0 ? 1.25 : 1) * (G.ra > 0 ? 1.4 : 1); }
+function gbSpdM() { const G = P.gb; if (!G || !(G.fxT > 0) || !G.fx) return 1; return clamp(1 + G.fx.spd, 0.8, 1.25); }
+function gbGain(n) {
+  if (!isGb()) return; const G = GB_(); if (G.jm > 0) return;
+  G.g = Math.min(gbMax(), G.g + n * (1 + gsum('gget') + (G.gold > 0 ? 0.5 : 0)));
+  if (G.g >= gbMax()) { G.jm = 10; say('잭팟 모드!', '10초간 스킬 피해 +25% · 확률 +12%p'); flashA = Math.max(flashA, 0.4); shake = Math.max(shake, 6); for (const c of ['#ffd24a', '#ff5a7a', '#7affd8']) ring(P.x, P.y - 8, c, 50 + Math.random() * 30, 0.7); burst(P.x, P.y - 10, 30, '#ffd24a', 140, 1, 2); sfx(520, 0.2, 'square', 0.06, 300); setTimeout(() => sfx(1040, 0.4, 'triangle', 0.06, 300), 120); }
+}
+function lkP(p, tag) { const G = GB_(); let q = p + (tag === 'jp' ? gsum('jpc') + Math.min(0.3, G.pity * 0.04) : 0) + (G.odds > 0 ? 0.4 : 0) + (G.fp > 0 ? 0.25 : 0) + (G.jm > 0 ? 0.12 : 0) + (G.gold > 0 ? 0.08 : 0); return Math.min(0.85, q * (1 + gsum('prob'))); }
+function lk(p, tag, m) {
+  const G = GB_();
+  if (G.abs > 0) { if (m && m.boss) { if (time - (m.absT || -9) < 1.2) return Math.random() < lkP(p, tag); m.absT = time; } return true; }
+  if (G.nec > 0) { G.nec = 0; return true; }
+  const ok = Math.random() < lkP(p, tag); if (G.odds > 0) G.odds = 0; return ok;
+}
+function rollD(n) {
+  const G = GB_(); if (G.abs > 0) return n; if (G.nec > 0) { G.nec = 0; return n; }
+  let r = rint(1, n); if (Math.random() < gsum('prob') + (G.odds > 0 ? 0.4 : 0) + (G.fp > 0 ? 0.25 : 0)) r = Math.max(r, rint(1, n)); if (G.odds > 0) G.odds = 0; return r;
+}
+const dxm = r => (r === 6 ? 6 + gsum('dmax') : r);
+function cardM(lege) { const G = GB_(); return (1 + gsum('cardp')) * (lege ? 1 + gsum('lege') : 1) * (1 + Math.min(8, G.chain) * gsum('cchain')); }
+function cardCast() { const G = GB_(); G.chain = Math.min(8, G.chain + 1); G.chT = 4; }
+function gStun(m, d) { if (m.boss) { if (time - (m.gstT || -99) < 6) return; m.gstT = time; d *= 0.35; } disable(m, 'stun', d); }
+function gHit(m, mul, ang, kb, el, o) {
+  if (!m || m.dead) return; o = o || {}; const G = GB_();
+  if (o.card) mul *= cardM(o.lege);
+  if (o.sk && G.jm > 0) mul *= 1.25;
+  if (o.big && m.boss) { if (time - (m.gbT || -99) < 3) mul *= 0.3; else { m.gbT = time; mul *= 0.6; } }
+  mhit(m, mul, ang, kb, el, 0);
+  if (!m.dead && o.stun) gStun(m, o.stun);
+  if (o.g) gbGain(o.g);
+}
+function gAoE(x, y, R, mul, el, o) {
+  o = o || {}; let n = 0;
+  for (const m of monsters) { if (m.dead || m.spawnT > 0 || Math.hypot(m.x - x, m.y - m.cOff - y) > R + m.r) continue; gHit(m, mul, Math.atan2(m.y - y, m.x - x), o.kb === undefined ? 90 : o.kb, el, Object.assign({}, o, { g: 0 })); n++; }
+  hitCagesAt(x, y, R, pDmg() * mul);
+  const E = EM[el || 'gold']; ring(x, y, E.c, R, 0.4); ring(x, y, E.c2, R * 0.6, 0.3); burst(x, y - 4, Math.min(30, 8 + R / 4), E.c, 90, 0.5, 2); fxs.push({ k: 'boom', x, y: y - 3, t: 0, d: 0.35, r: R }); shake = Math.max(shake, R > 60 ? 4 : 1.5); sfx(R > 60 ? 90 : 200, 0.15, 'sawtooth', 0.05, -40);
+  if (n) gbGain((o.g === undefined ? 2 : o.g) + Math.min(3, n - 1) * 0.5);
+  return n;
+}
+function gHeal(v) { v = Math.round(v); P.hp = Math.min(P.maxHp, P.hp + v); addText(P.x, P.y - 32, '+' + v, '#6bff8a', 8); ring(P.x, P.y - 8, '#6bff8a', 20, 0.4); }
+function gRefund(qq, msg) { P.mp = Math.min(P.maxMp, P.mp + sMp(qq)); P.cd[qq] = 0; addText(P.x, P.y - 28, msg, '#b0a8b4', 7); }
+function gFly(sh, x1, y1, x2, y2, dur, cb, col) { gbe.push({ k: 'fly', sh, x1, y1, x2, y2, t: dur, dur, a: 0, cb, col: col || '#ffffff' }); }
+function gCard(a, mul, o) {
+  o = o || {}; const su = o.el ? SUIT.find(q => q[1] === o.el) || SUIT[0] : SUIT[(Math.random() * 4) | 0], el = su[1];
+  const rare = o.rare !== false && Math.random() < Math.min(0.5, 0.1 * (1 + gsum('rare'))), G = GB_(), spd = o.spd || 230;
+  projs.push({ kind: 'gproj', sh: 'c', su: su[0], gb: true, ge: o.noel ? '' : el, x: P.x + Math.cos(a) * 9, y: P.y - P.cOff + Math.sin(a) * 9, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, a, dmg: pDmg() * dmgMul() * mul * cardM(o.lege) * (rare ? 1.8 : 1) * (G.jm > 0 ? 1.25 : 1), life: o.life || 1.0, r: 4, friendly: true, hit: [], pierce: !!o.pierce, hc: EM[el].hc, rare, boom: o.boom, cdeath: o.cdeath, big: o.big, lege: o.lege, bg: o.bg || 0, cb: o.cb || 0 });
+  sfx(700 + Math.random() * 200, 0.06, 'triangle', 0.04, 100);
+}
+function gbProc(m, p) {
+  if (p.ge) elemFx(m, p.ge, 1);
+  if (p.ge === 'bolt' && Math.random() < 0.5) { const t = monsters.find(q => q !== m && !q.dead && q.spawnT <= 0 && Math.hypot(q.x - m.x, q.y - m.y) < 70); if (t) { ebeam(m.x, m.y - m.cOff, t.x, t.y - t.cOff, '#ffe35a', '#fff'); gHit(t, 0.35, 0, 30, 'bolt', { g: 0 }); } }
+  if (p.rare) gAoE(m.x, m.y - m.cOff, 28, 0.6, p.ge || 'card', { card: true, g: 0.5 });
+  if (p.boom) gAoE(m.x, m.y - m.cOff, 24, 0.35, p.ge || 'fire', { card: true, g: 0 });
+  if (p.cdeath && lk(0.35 + 0, 'card', m)) { addText(m.x, m.y - m.h - 14, 'DEATH!', '#c8a0ff', 9); gHit(m, 4.5, 0, 150, 'poison', { card: true, big: true, g: 2 }); ring(m.x, m.y - m.cOff, '#a06aff', 30, 0.4); }
+  if (p.bg) gbGain(p.bg);
+}
+function gbShoot(w) {
+  const G = GB_(), a = aimAng(), c = Math.cos(a), s = Math.sin(a), t = w.type;
+  P.idle = 0; P.atkCd = WT[t].cd / ((1 + RB.aspd) * limM()); P.swing = P.swingMax = 0.12; P.kx -= c * 14; P.ky -= s * 14;
+  const dm = G.dbl > 0 ? G.dbl : 1; if (G.dbl > 0) { G.dbl = 0; G.dblT = 0; addText(P.x, P.y - 30, '더블 업!', '#6bff8a', 8); }
+  const base = { gb: true, x: P.x + c * 9, y: P.y - P.cOff + s * 9, a, friendly: true, hit: [], r: 4 }, bd = pDmg() * dmgMul() * dm;
+  if (t === 'dice') {
+    const r = rint(1, 6), mul = 0.45 + dxm(r) * 0.28; addText(P.x, P.y - 26, GBN[r - 1], r === 6 ? '#ffe35a' : '#ffffff', r === 6 ? 11 : 8);
+    projs.push(Object.assign(base, { kind: 'gproj', sh: 'd', n: r, vx: c * 200, vy: s * 200, dmg: bd * mul, life: 0.75, cb: r === 6 ? 1 : 0, bg: r === 6 ? 5 : 3, hc: r === 6 ? '#ffe35a' : '' })); if (r === 6) { ring(P.x + c * 12, P.y - 8 + s * 12, '#ffe35a', 16, 0.3); sfx(900, 0.1, 'triangle', 0.05, 300); }
+  } else if (t === 'card') {
+    const su = SUIT[(Math.random() * 4) | 0], st = Math.random() < 0.12;
+    projs.push(Object.assign(base, { kind: 'gproj', sh: 'c', su: su[0], ge: st ? su[1] : '', vx: c * 270, vy: s * 270, dmg: bd * (0.62 + w.rar * 0.04), life: 0.8, bg: 2, hc: st ? EM[su[1]].hc : '' }));
+  } else {
+    projs.push(Object.assign(base, { kind: 'gproj', sh: 'o', vx: c * 210, vy: s * 210, dmg: bd * 0.85, life: 0.8, pierce: true, bg: 2.5 }));
+    if (Math.random() < 0.15) { const b = a + 0.2; projs.push({ gb: true, kind: 'gproj', sh: 'o', x: P.x + Math.cos(b) * 9, y: P.y - P.cOff + Math.sin(b) * 9, a: b, vx: Math.cos(b) * 210, vy: Math.sin(b) * 210, dmg: bd * 0.6, life: 0.8, r: 4, friendly: true, hit: [], pierce: true, bg: 1 }); }
+  }
+  burst(P.x + c * 10, P.y - P.cOff + s * 10, 3, '#ffe9a0', 60, 0.2); sfx(t === 'dice' ? 420 : 680, 0.06, 'triangle', 0.04, 100);
+}
+/* ---------- 도박사 · 스킬 ---------- */
+function gSk(qq) { const S = SK[qq]; return [S, S.p || {}, GB_(), sDmg(qq)]; }
+LIB.gdice = function (qq) {
+  const [S, p, G, sd] = gSk(qq), r = rollD(6), mx = r === 6, [x, y] = aimPt(120), mul = (0.9 + dxm(r) * 0.45) * (p.mul || 1) * sd;
+  addText(P.x, P.y - 30, GBN[r - 1] + ' ' + r, mx ? '#ffe35a' : '#ffffff', mx ? 12 : 9);
+  gFly('d', P.x, P.y - 10, x, y, 0.35, () => { gAoE(x, y, 26 + r * 2, mul, '', { sk: true, kb: 110, g: 3 }); if (mx) { addText(x, y - 24, 'MAX! CRITICAL', '#ffe35a', 10); gAoE(x, y, 52, mul * 0.8, 'gold', { sk: true, big: true, stun: 0.8, g: 5 }); flashA = Math.max(flashA, 0.15); } });
+};
+LIB.gcard = function (qq) {
+  const [S, p, G, sd] = gSk(qq), a = aimAng(), L = SUIT.map(q => q[1]).sort(() => Math.random() - 0.5);
+  for (let i = -1; i <= 1; i++) gCard(a + i * 0.22, (p.mul || 0.8) * sd, { el: L[i + 1], bg: 1, spd: 240 });
+  addText(P.x, P.y - 30, L.slice(0, 3).map(e => SUIT.find(q => q[1] === e)[0]).join(''), '#ffd24a', 9);
+};
+LIB.gdouble = function (qq) { const G = GB_(), big = lk(0.35, 'dbl'); G.dbl = big ? 2.6 : 1.8; G.dblT = 10; addText(P.x, P.y - 30, big ? '더블 업! 강화 ×2.6' : '더블 업 ×1.8', '#6bff8a', 9); ring(P.x, P.y - 8, '#6bff8a', 28, 0.5); burst(P.x, P.y - 10, 12, '#6bff8a', 70, 0.6, 2); sfx(600, 0.15, 'triangle', 0.05, 300); };
+function jackpot(qq) {
+  const [S, p, G, sd] = gSk(qq), [x, y] = aimPt(90), t = tgtNear(x, y, 60), win = lk(p.ch, 'jp', t);
+  if (win) {
+    G.pity = 0; say('JACKPOT!!', S.n); flashA = Math.max(flashA, 0.45); shake = Math.max(shake, 8);
+    for (let i = 0; i < 24; i++) parts.push({ x: x + rnd(-8, 8), y: y - rnd(0, 10), vx: rnd(-90, 90), vy: -rnd(40, 140), life: rnd(0.6, 1.2), max: 1.2, col: i % 2 ? '#ffd24a' : '#fff2a0', size: 2, g: 200 });
+    gAoE(x, y, p.R, p.win * sd, 'gold', { sk: true, big: true, stun: 1, kb: 200, g: 10 }); gbGain(12); if (typeof P.gold === 'number') P.gold += rint(8, 20); sfx(880, 0.3, 'triangle', 0.07, 400); setTimeout(() => sfx(1320, 0.4, 'triangle', 0.07, 400), 140);
+  } else { G.pity++; addText(x, y - 22, '꽝...', '#b0a8b4', 9); gAoE(x, y, p.R * 0.55, p.lose * sd, 'gold', { sk: true, g: 3 }); }
+}
+LIB.gjackpot = function (qq) { jackpot(qq); };
+LIB.rjackpot = function (qq) { jackpot(qq); };
+function fateRoll(pos) {
+  const G = GB_(), ks = ['atk', 'def', 'spd'].sort(() => Math.random() - 0.5).slice(0, 2), fx = { atk: 0, def: 0, spd: 0 }, pp = Math.min(0.95, 0.65 + 0.35 * gsum('bad') + (G.odds > 0 ? 0.2 : 0) + (G.fp > 0 ? 0.1 : 0)), nm = { atk: '공격력', def: '방어력', spd: '공격 속도' }, ba = { atk: 0.3, def: 0.25, spd: 0.25 }, out = [];
+  for (const k of ks) { const good = pos || G.abs > 0 || Math.random() < pp; fx[k] = (good ? 1 : -0.7) * ba[k]; out.push(nm[k] + (good ? ' ▲' : ' ▼')); }
+  return [fx, out];
+}
+LIB.gfate = function (qq) {
+  const [S, p, G] = gSk(qq), [fx, out] = fateRoll(false); G.fx = fx; G.fxT = p.dur || 10; if (G.odds > 0) G.odds = 0;
+  addText(P.x, P.y - 32, out.join(' · '), '#c8a8ff', 8); ring(P.x, P.y - 8, '#c8a8ff', 34, 0.5); burst(P.x, P.y - 10, 16, '#c8a8ff', 80, 0.7, 2); sfx(400, 0.3, 'triangle', 0.06, 400);
+};
+function allIn(qq, rush) {
+  const [S, p, G, sd] = gSk(qq); if (G.g < 10) { gRefund(qq, '행운 게이지 부족 (10 이상)'); return; }
+  const g = G.g; G.g = 0; G.jm = 0; addText(P.x, P.y - 32, 'ALL IN ' + Math.round(g), '#ff5a7a', 10);
+  if (!rush) { const [x, y] = aimPt(80); gFly('o', P.x, P.y - 10, x, y, 0.3, () => { flashA = Math.max(flashA, 0.25); gAoE(x, y, p.R, (p.base + g * 0.09) * sd, 'roul', { sk: true, big: g >= 60, kb: 220, g: 0, stun: g >= 60 ? 0.8 : 0 }); }); return; }
+  const a = aimAng(), mul = (0.9 + g * 0.03) * (p.base / 3) * sd;
+  for (let i = 0; i < 5; i++) gLater(i * 0.12, () => { moveEnt(P, Math.cos(a) * 22, Math.sin(a) * 22); P.inv = Math.max(P.inv, 0.2); gAoE(P.x, P.y, 30, mul, i === 4 ? 'roul' : 'gold', { sk: true, big: i === 4 && g >= 60, kb: 150, g: 0 }); });
+}
+LIB.gallin = function (qq) { allIn(qq, false); };
+LIB.rallin = function (qq) { allIn(qq, true); };
+/* 카드 마스터 */
+LIB.cfire = function (qq) { const [S, p, G, sd] = gSk(qq), a = aimAng(); cardCast(); for (let i = -1; i <= 1; i++) gCard(a + i * 0.2, (p.mul || 1) * sd, { el: 'fire', boom: true, bg: 1, rare: false, spd: 220 }); addText(P.x, P.y - 30, '♥ 화염 카드', '#ff7a3a', 9); };
+LIB.cdeath = function (qq) { const [S, p, G, sd] = gSk(qq); cardCast(); gCard(aimAng(), (p.mul || 1.4) * sd, { el: 'poison', pierce: true, cdeath: true, bg: 2, rare: false, spd: 260, life: 1.2 }); addText(P.x, P.y - 30, '☠ 죽음의 카드', '#a06aff', 9); };
+LIB.cgold = function (qq) { const [S, p, G] = gSk(qq); G.gold = p.dur || 12; addText(P.x, P.y - 32, '황금 카드! 공격력·행운 UP', '#ffd24a', 9); ring(P.x, P.y - 8, '#ffd24a', 34, 0.6); burst(P.x, P.y - 10, 20, '#ffd24a', 90, 0.8, 2); sfx(700, 0.3, 'triangle', 0.06, 400); };
+LIB.cdeck = function (qq) {
+  const [S, p, G, sd] = gSk(qq); cardCast(); addText(P.x, P.y - 32, '운명의 덱!', '#ff9aff', 9);
+  for (let i = 0; i < (p.n || 5); i++) gLater(i * 0.2, () => { if (state !== 'play') return; const r = rint(1, 5), a = aimAng();
+    if (Math.random() < Math.min(0.5, 0.12 * (1 + gsum('rare')))) { const [x, y] = aimPt(110); addText(x, y - 20, '🃏 JOKER', '#ff5a7a', 9); gFly('c', P.x, P.y - 10, x, y, 0.25, () => gAoE(x, y, 40, 2.2 * sd, 'card', { sk: true, card: true, g: 2 }), '#ff5a7a'); }
+    else gCard(a, (p.mul || 0.9) * (0.6 + 0.25 * r) * sd, { bg: 1, spd: 250 }); });
+};
+function jokerSpawn(god, dur) { gbe = gbe.filter(e => e.k !== 'jk'); gbe.push({ k: 'jk', god, x: P.x, y: P.y - 30, life: dur, cd: 0.4, lc: god ? 2.5 : 3, a: 0 }); ring(P.x, P.y - 20, god ? '#ffe35a' : '#ff5a7a', 30, 0.5); sfx(300, 0.3, 'sawtooth', 0.06, 300); }
+LIB.cjoker = function (qq) { const [S, p] = gSk(qq); cardCast(); jokerSpawn(false, p.dur || 12); addText(P.x, P.y - 34, '조커 소환!', '#ff5a7a', 10); };
+LIB.croyal = function (qq) {
+  const [S, p, G, sd] = gSk(qq), [x, y] = aimPt(110), L = ['10', 'J', 'Q', 'K', 'A']; cardCast(); say('로열 플러시!', S.n);
+  L.forEach((r, i) => gLater(i * 0.28, () => { if (state !== 'play') return; addText(x, y - 20 - i * 3, r, '#ffe35a', 10);
+    gFly('c', P.x, P.y - 10, x, y, 0.25, () => { if (i < 4) gAoE(x, y, 40, (p.mul || 1.6) * (1 + i * 0.15) * sd, SUIT[i][1], { sk: true, card: true, lege: true, kb: 100, g: 2 }); else { flashA = Math.max(flashA, 0.5); shake = Math.max(shake, 10); gAoE(x, y, p.R, p.win * sd, 'gold', { sk: true, card: true, lege: true, big: true, stun: 1.2, kb: 260, g: 8 }); } }, '#ffe35a'); }));
+};
+/* 룰렛 마스터 */
+const ROUL = [['dmg', 22, '피해'], ['heal', 14, '회복'], ['atk', 14, '공격 강화'], ['haste', 12, '가속'], ['def', 10, '방어 강화'], ['mana', 10, '마나 회복'], ['luck', 12, '행운 게이지'], ['bust', 6, '꽝']];
+function roulette(qq) {
+  const [S, p, G, sd] = gSk(qq), rr = 1 + gsum('rrew'), rl = () => { let r = Math.random() * 100; for (const [k, w] of ROUL) { r -= w; if (r <= 0) return k; } return 'bust'; }; let pk;
+  const abs = G.abs > 0 || G.nec > 0; if (G.nec > 0 && !(G.abs > 0)) G.nec = 0;
+  if (abs) pk = 'dmg'; else { pk = rl(); if (pk === 'bust' && (G.odds > 0 || Math.random() < gsum('bad') + (G.fp > 0 ? 0.25 : 0))) pk = rl(); if (pk === 'bust' && Math.random() < gsum('prob')) pk = 'luck'; if (G.odds > 0) G.odds = 0; }
+  const nm = ROUL.find(q => q[0] === pk)[2]; addText(P.x, P.y - 34, '룰렛: ' + nm, '#ffb03a', 9); ring(P.x, P.y - 8, '#ffb03a', 30, 0.5); sfx(500, 0.4, 'triangle', 0.05, 500);
+  const dmgOut = (m2) => { const [x, y] = aimPt(90); gAoE(x, y, abs ? 80 : 60, (abs ? 6 : 3) * rr * sd * m2, 'roul', { sk: true, big: abs, kb: 160, g: 3 }); };
+  if (pk === 'dmg') dmgOut(1); if (pk === 'heal' || abs) gHeal(P.maxHp * (abs ? 0.2 : 0.25) * rr); if (pk === 'atk' || abs) G.ra = 10 * rr; if (pk === 'haste') P.swift = 8 * rr; if (pk === 'def') G.rd = 10 * rr;
+  if (pk === 'mana') P.mp = Math.min(P.maxMp, P.mp + 40 * rr); if (pk === 'luck') gbGain(40 * rr); if (pk === 'bust') { P.hp = Math.max(1, P.hp - P.maxHp * 0.04); addText(P.x, P.y - 22, '꽝!', '#b0a8b4', 9); }
+}
+LIB.rroulette = function (qq) { roulette(qq); };
+LIB.rdouble = function (qq) {
+  const [S, p, G, sd] = gSk(qq), d1 = rollD(6), d2 = rollD(6), sum = dxm(d1) + dxm(d2), [x, y] = aimPt(100), dbl = d1 === 6 && d2 === 6, mul = (0.8 + sum * 0.28) * (p.mul / 0.55) * sd;
+  addText(P.x, P.y - 32, GBN[d1 - 1] + GBN[d2 - 1] + ' = ' + (d1 + d2), dbl ? '#ffe35a' : '#fff', dbl ? 11 : 9);
+  gFly('d', P.x - 4, P.y - 10, x - 6, y, 0.3, null); gFly('d', P.x + 4, P.y - 10, x + 6, y, 0.34, () => { gAoE(x, y, 34, mul, '', { sk: true, kb: 120, g: 3 }); if (dbl) { addText(x, y - 24, 'DOUBLE SIX!', '#ffe35a', 11); flashA = Math.max(flashA, 0.2); gAoE(x, y, 60, mul * 0.9, 'gold', { sk: true, big: true, stun: 1, g: 6 }); } });
+};
+LIB.rfatectl = function (qq) { const [S, p, G] = gSk(qq); G.odds = p.dur || 15; addText(P.x, P.y - 32, '운명 조작! 다음 확률 +40%p', '#c8a8ff', 9); ring(P.x, P.y - 8, '#c8a8ff', 30, 0.5); sfx(500, 0.3, 'triangle', 0.05, 300); };
+LIB.rlast = function (qq) {
+  const [S, p, G, sd] = gSk(qq), [x, y] = aimPt(100), g = G.g, win = lk(p.ch, 'last'); G.g = 0; G.jm = 0; say('라스트 베팅!', '모든 행운을 겁니다'); addText(P.x, P.y - 34, 'ALL BET', '#ff3a5a', 11);
+  gLater(0.5, () => { if (state !== 'play') return;
+    if (win) { flashA = Math.max(flashA, 0.6); shake = Math.max(shake, 12); say('베팅 성공!!', S.n); gAoE(x, y, p.R, p.win * (1 + g / 200) * sd, 'gold', { sk: true, big: true, stun: 1.5, kb: 300, g: 0 }); for (let i = 0; i < 26; i++) parts.push({ x: x + rnd(-10, 10), y: y - rnd(0, 10), vx: rnd(-110, 110), vy: -rnd(50, 160), life: rnd(0.8, 1.4), max: 1.4, col: i % 2 ? '#ffd24a' : '#ff5a7a', size: 2, g: 200 }); }
+    else { addText(x, y - 24, '베팅 실패...', '#b0a8b4', 10); gAoE(x, y, p.R * 0.5, p.lose * sd, 'roul', { sk: true, g: 0 }); P.hp = Math.max(1, P.hp - P.maxHp * 0.1); } });
+};
+/* 아르카나의 군주 */
+const ARC = [['fire', 0, -1], ['bolt', 1, 0], ['ice', 0, 1], ['poison', -1, 0]];
+LIB.aucard = function (qq) {
+  const [S, p, G, sd] = gSk(qq); let el; const vx = P.vx || 0, vy = P.vy || 0;
+  if (Math.hypot(vx, vy) > 15) { let best = -9; for (const [e, dx, dy] of ARC) { const d = vx * dx + vy * dy; if (d > best) { best = d; el = e; } } } else { G.sel = (G.sel + 1) % 4; el = ARC[G.sel][0]; }
+  cardCast(); const su = SUIT.find(q => q[1] === el); addText(P.x, P.y - 34, su[0] + ' 전설 카드 · ' + EM[el].n, EM[el].c, 9); gCard(aimAng(), (p.mul || 2.4) * sd, { el, pierce: true, lege: true, boom: true, bg: 3, rare: false, spd: 260, life: 1.3 });
+};
+LIB.ainfinite = function (qq) { const [S, p, G, sd] = gSk(qq); cardCast(); addText(P.x, P.y - 34, '무한의 덱!', '#7affd8', 10); for (let i = 0; i < (p.n || 12); i++) gLater(i * 0.16, () => { if (state !== 'play') return; gCard(aimAng() + rnd(-0.18, 0.18), (p.mul || 0.9) * sd, { lege: true, bg: 0.5, spd: 260 }); }); };
+function flipFx(G, flip) {
+  if (G.fx) for (const k in G.fx) if (G.fx[k] < 0) G.fx[k] = -G.fx[k] / 0.7;
+  if (flip) { const k = ['atk', 'def', 'spd'][(Math.random() * 3) | 0], b = { atk: 0.3, def: 0.25, spd: 0.25 }; G.fx = G.fx || { atk: 0, def: 0, spd: 0 }; G.fx[k] = Math.max(G.fx[k], b[k]); G.fxT = Math.max(G.fxT, 10); }
+  P.chill = 0; P.rootT = 0;
+}
+LIB.aalter = function (qq) { const [S, p, G] = gSk(qq); flipFx(G, false); gHeal(P.maxHp * 0.15); gbGain(30); addText(P.x, P.y - 40, '운명 개변! 불리함 → 유리함', '#c8a8ff', 8); ring(P.x, P.y - 8, '#c8a8ff', 36, 0.6); burst(P.x, P.y - 10, 20, '#c8a8ff', 90, 0.7, 2); sfx(500, 0.3, 'triangle', 0.05, 400); };
+LIB.ajoker = function (qq) { const [S, p] = gSk(qq); cardCast(); jokerSpawn(true, p.dur || 14); addText(P.x, P.y - 34, '신의 조커!', '#ffe35a', 10); };
+LIB.aover = function (qq) {
+  const [S, p, G, sd] = gSk(qq), [x, y] = aimPt(110), E = ['fire', 'bolt', 'ice', 'poison']; cardCast(); say('아르카나 오버로드!', '22장의 전설 아르카나');
+  for (let i = 0; i < 22; i++) gLater(i * 0.08, () => { if (state !== 'play') return; const px = x + rnd(-p.R * 0.8, p.R * 0.8), py = y + rnd(-p.R * 0.6, p.R * 0.6); gFly('c', px, py - 70, px, py, 0.22, () => gAoE(px, py, 26, (p.mul || 0.9) * sd, E[i % 4], { sk: true, card: true, lege: true, kb: 60, g: 0.5 }), '#ffffff'); });
+  gLater(2.1, () => { if (state !== 'play') return; flashA = Math.max(flashA, 0.6); shake = Math.max(shake, 12); gAoE(x, y, p.R, p.win * sd, 'card', { sk: true, card: true, lege: true, big: true, stun: 1.2, kb: 280, g: 6 }); });
+};
+/* 운명의 설계자 */
+LIB.fprob = function (qq) { const [S, p, G] = gSk(qq); G.fp = p.dur || 12; addText(P.x, P.y - 32, '확률 지배! 확률 +25%p', '#7affd8', 9); ring(P.x, P.y - 8, '#7affd8', 32, 0.5); burst(P.x, P.y - 10, 16, '#7affd8', 80, 0.7, 2); sfx(600, 0.3, 'triangle', 0.05, 300); };
+LIB.frewrite = function (qq) { const [S, p, G] = gSk(qq); flipFx(G, true); addText(P.x, P.y - 34, '운명 재작성!', '#c8a8ff', 9); ring(P.x, P.y - 8, '#c8a8ff', 34, 0.5); sfx(500, 0.3, 'triangle', 0.05, 300); };
+LIB.fnecess = function (qq) { const [S, p, G] = gSk(qq); G.nec = 20; addText(P.x, P.y - 32, '필연의 결과! 다음 확률 효과 확정', '#ffd24a', 8); ring(P.x, P.y - 8, '#ffd24a', 30, 0.5); sfx(700, 0.25, 'triangle', 0.05, 300); };
+LIB.fdice = function (qq) {
+  const [S, p, G, sd] = gSk(qq), r = rollD(20), [x, y] = aimPt(100); addText(P.x, P.y - 34, '⬡ ' + r, r === 20 ? '#ffe35a' : '#fff', r === 20 ? 13 : 10);
+  gFly('d', P.x, P.y - 10, x, y, 0.4, () => {
+    if (r >= 20) { say('신의 주사위 20!', '대폭발 + 전체 강화'); flashA = Math.max(flashA, 0.5); shake = Math.max(shake, 10); gAoE(x, y, 110, 14 * sd, 'gold', { sk: true, big: true, stun: 1.2, kb: 260, g: 8 }); gHeal(P.maxHp * 0.2); G.fx = { atk: 0.3, def: 0.25, spd: 0.25 }; G.fxT = 10; }
+    else if (r >= 13) gAoE(x, y, 80, 7 * sd, 'gold', { sk: true, big: true, stun: 1, kb: 200, g: 5 });
+    else if (r >= 6) { gAoE(x, y, 65, 4 * sd, 'gold', { sk: true, kb: 160, g: 4 }); gHeal(P.maxHp * 0.05); }
+    else gAoE(x, y, 50, 2 * sd, '', { sk: true, kb: 120, g: 3 });
+  });
+};
+LIB.fabs = function (qq) { const [S, p, G] = gSk(qq); G.abs = p.dur || 8; say('절대적 운명!', '확률형 스킬이 최고 등급으로 발동'); flashA = Math.max(flashA, 0.4); for (const c of ['#ffffff', '#7affd8', '#ffd24a']) ring(P.x, P.y - 8, c, 40 + Math.random() * 40, 0.8); burst(P.x, P.y - 10, 30, '#ffffff', 120, 1, 2); sfx(260, 0.5, 'sawtooth', 0.07, 600); };
+/* ---------- 도박사 · 틱 / 개체 / 그리기 ---------- */
+function gbTick(dt) {
+  if (state !== 'play' || !P.cls) return;
+  if (!isGb()) { P.gbDef = 0; if (gbe.length) gbe = []; if (!monsters.some(m => CAST.has(m.type) && !m.dead)) return; casAI(dt); gbBossBar(); return; }
+  const G = GB_();
+  for (const k of ['dblT', 'fxT', 'gold', 'abs', 'fp', 'nec', 'ra', 'rd', 'odds', 'chT']) if (G[k] > 0) G[k] -= dt;
+  if (G.dblT <= 0) G.dbl = 0; if (G.fxT <= 0) G.fx = null; if (G.chT <= 0) G.chain = 0;
+  if (G.jm > 0) { G.jm -= dt; G.g = gbMax() * Math.max(0, G.jm / 10); if (G.jm <= 0) { G.jm = 0; G.g = 0; addText(P.x, P.y - 30, '잭팟 모드 종료', '#b0a8b4', 8); } }
+  if (G.abs > 0 && Math.random() < dt * 1.2) gbGain(1);
+  P.gbDef = (G.fxT > 0 && G.fx ? G.fx.def : 0) + (G.rd > 0 ? 0.3 : 0);
+  if ((P.job2 === 'cardmaster' || P.job2 === 'roulette' || G.job) && P.lvl >= 75 && !G.qs && !G.q) { G.qs = true; say('히든 퀘스트 발생', '「운명의 카지노」 운명의 카지노 몬스터 80마리를 처치하세요'); sfx(660, 0.2, 'triangle', 0.05, 300); }
+  for (const e of gbe) {
+    if (e.k === 'tm') { e.t -= dt; if (e.t <= 0) { e.done = true; e.fn(); } }
+    else if (e.k === 'fly') { e.t -= dt; e.a += dt; if (e.t <= 0) { e.done = true; if (e.cb) e.cb(); } }
+    else if (e.k === 'jk') {
+      e.life -= dt; e.cd -= dt; e.lc -= dt; e.a += dt; const tx = P.x + Math.cos(e.a * 1.4) * 24, ty = P.y - 32 + Math.sin(e.a * 2) * 6; e.x += (tx - e.x) * Math.min(1, dt * 4); e.y += (ty - e.y) * Math.min(1, dt * 4);
+      if (e.cd <= 0) { const t = tgtNear(e.x, e.y, 170); if (t) { e.cd = e.god ? 0.45 : 0.65; const el = SUIT[(Math.random() * 4) | 0][1]; ebeam(e.x, e.y, t.x, t.y - t.cOff, EM[el].c, '#fff'); gHit(t, (e.god ? 1.1 : 0.7) * (e.god ? 1 + gsum('lege') : 1), Math.atan2(t.y - e.y, t.x - e.x), 40, el, { sk: true, card: true, lege: e.god, g: 0.3 }); } else e.cd = 0.2; }
+      if (e.lc <= 0) { e.lc = e.god ? 2.5 : 3; addText(e.x, e.y - 12, 'HAHAHA!', e.god ? '#ffe35a' : '#ff5a7a', 9); gAoE(e.x, e.y + 22, e.god ? 60 : 50, e.god ? 1.6 : 1.0, 'card', { sk: true, card: true, lege: e.god, stun: 0.7, g: 1 }); }
+      if (e.life <= 0) { e.done = true; ring(e.x, e.y, '#ff5a7a', 20, 0.4); }
+    }
+  }
+  if (gbe.some(e => e.done)) gbe = gbe.filter(e => !e.done);
+  casAI(dt); gbBossBar();
+}
+function gbBossBar() { const b = monsters.find(m => m.type === CASB && !m.dead); if (b) { const f = $('bossF'), nb = $('bossBox') && $('bossBox').querySelector('b'); if (f) f.style.background = 'linear-gradient(#fff2a0,#ffd24a,#c83a8a)'; if (nb) nb.textContent = '도박의 신 [신화]'; } }
+function gbChips() {
+  const G = P.gb, c = []; if (!G || !isGb()) return c;
+  if (G.jm > 0) c.push(['잭팟 모드', Math.ceil(G.jm) + 's', '#ffd24a']); if (G.dbl > 0) c.push(['더블 업 ×' + G.dbl, Math.ceil(G.dblT) + 's', '#6bff8a']);
+  if (G.fxT > 0 && G.fx) c.push(['운명의 교환', Math.ceil(G.fxT) + 's', '#c8a8ff']); if (G.gold > 0) c.push(['황금 카드', Math.ceil(G.gold) + 's', '#ffd24a']);
+  if (G.odds > 0) c.push(['운명 조작', Math.ceil(G.odds) + 's', '#c8a8ff']); if (G.fp > 0) c.push(['확률 지배', Math.ceil(G.fp) + 's', '#7affd8']); if (G.nec > 0) c.push(['필연의 결과', Math.ceil(G.nec) + 's', '#ffd24a']);
+  if (G.abs > 0) c.push(['절대적 운명', Math.ceil(G.abs) + 's', '#ffffff']); if (G.ra > 0) c.push(['공격 강화 +40%', Math.ceil(G.ra) + 's', '#ff7a5a']); if (G.rd > 0) c.push(['방어 강화 +30%', Math.ceil(G.rd) + 's', '#6ab0ff']); if (G.chain > 1) c.push(['카드 연속 ×' + G.chain, Math.ceil(G.chT) + 's', '#ff9aff']);
+  return c;
+}
+function gbHud() {
+  if (!isGb()) return; const G = GB_(), mx = gbMax(), w = 110, x = Math.round(W / 2 - w / 2), y = 3 + HO, f = clamp(G.g / mx, 0, 1), jm = G.jm > 0, blink = jm && Math.floor(time * 8) % 2 === 0;
+  ctx.fillStyle = 'rgba(8,6,14,.88)'; ctx.fillRect(x - 1, y - 1, w + 2, 10); ctx.fillStyle = jm ? (blink ? '#fff2a0' : '#ffd24a') : '#7a3ab0'; ctx.fillRect(x, y, Math.round(w * f), 8);
+  ctx.fillStyle = 'rgba(255,255,255,.25)'; for (let i = 1; i < 10; i++) ctx.fillRect(x + Math.round(w * i / 10), y, 1, 8);
+  ctx.strokeStyle = jm ? '#ffd24a' : '#c8a8ff'; ctx.lineWidth = 1; ctx.strokeRect(x - 0.5, y - 0.5, w + 1, 9);
+  txt(jm ? 'JACKPOT MODE' : '행운 ' + Math.floor(G.g) + '/' + mx, W / 2, y + 4.5, '#000', 7); txt(jm ? 'JACKPOT MODE' : '행운 ' + Math.floor(G.g) + '/' + mx, W / 2 - 0.5, y + 4, '#fff', 7);
+}
+function drawGb() {
+  for (const e of gbe) {
+    if (e.k === 'fly') { const u = clamp(1 - e.t / e.dur, 0, 1), x = e.x1 + (e.x2 - e.x1) * u, y = e.y1 + (e.y2 - e.y1) * u - Math.sin(u * Math.PI) * 14; gbSpr(e.sh, x, y, e.a * 12, e.col, 1); }
+    else if (e.k === 'jk') { const sh = Math.sin(e.a * 6) * 0.2; ctx.globalAlpha = 0.3; ell(ctx, Math.round(e.x), Math.round(e.y + 22), 6, 2, '#000'); ctx.globalAlpha = 1; rect(ctx, '#14080e', Math.round(e.x) - 5, Math.round(e.y) - 8, 10, 14); rect(ctx, e.god ? '#fff8d0' : '#fff0f0', Math.round(e.x) - 4, Math.round(e.y) - 7, 8, 12); rect(ctx, e.god ? '#ffe35a' : '#ff3a5a', Math.round(e.x) - 3, Math.round(e.y) - 6, 6, 3); rect(ctx, '#7ad8ff', Math.round(e.x) - 3, Math.round(e.y) - 3, 2, 2); rect(ctx, '#ffe35a', Math.round(e.x) + 1, Math.round(e.y) - 3, 2, 2); rect(ctx, '#14080e', Math.round(e.x) - 2, Math.round(e.y) + 1, 5, 1); void sh; glow(e.x, e.y, 14, e.god ? '255,227,90' : '255,90,122', 0.25); }
+  }
+  const G = P.gb;
+  if (G && isGb()) { if (G.jm > 0) { glow(P.x, P.y - 10, 22 + Math.sin(time * 8) * 3, '255,210,74', 0.35); if (Math.random() < 0.4) parts.push({ x: P.x + rnd(-8, 8), y: P.y - rnd(0, 22), vx: rnd(-8, 8), vy: -rnd(10, 30), life: 0.6, max: 0.6, col: Math.random() < 0.5 ? '#ffd24a' : '#ff5a7a', size: 1, g: 0 }); }
+    if (G.abs > 0) glow(P.x, P.y - 10, 26, '255,255,255', 0.3); }
+  const bb = monsters.find(m => m.type === CASB && !m.dead);
+  if (bb) { ctx.globalAlpha = 0.25 + 0.1 * Math.sin(time * 6); ell(ctx, Math.round(bb.x), Math.round(bb.y + 2), 26, 10, '#ffd24a'); ctx.globalAlpha = 1; }
+}
+function gbSpr(sh, x, y, rot, col, sc) {
+  x = Math.round(x); y = Math.round(y); ctx.save(); ctx.translate(x, y); ctx.rotate(rot * 0.1);
+  if (sh === 'd') { rect(ctx, '#222c36', -4, -4, 8, 8); rect(ctx, '#ffffff', -3, -3, 6, 6); rect(ctx, '#222c36', -2, -2, 1, 1); rect(ctx, '#222c36', 1, 1, 1, 1); rect(ctx, '#222c36', 1, -2, 1, 1); rect(ctx, '#222c36', -2, 1, 1, 1); }
+  else if (sh === 'c') { rect(ctx, '#222c36', -3, -5, 6, 10); rect(ctx, col === '#ffffff' ? '#ffffff' : '#fff8f0', -2, -4, 4, 8); rect(ctx, col === '#ffffff' ? '#ff5a7a' : col, -1, -2, 2, 4); }
+  else { ell(ctx, 0, 0, 4, 4, '#7a1a2a'); ell(ctx, 0, 0, 3, 3, '#ff5a7a'); rect(ctx, '#ffffff', -1, -1, 2, 2); }
+  ctx.restore();
+}
+const SUITC = { fire: '#ff5a3a', bolt: '#ffe35a', ice: '#7ad8ff', poison: '#9aff4a' };
+function drawGproj(p, x, y) {
+  ctx.globalAlpha = 0.3; ell(ctx, x, y, 5, 3, p.hc || '#ffd24a'); ctx.globalAlpha = 1;
+  if (p.sh === 'd') { ctx.save(); ctx.translate(x, y); ctx.rotate(time * 14); rect(ctx, '#222c36', -4, -4, 8, 8); rect(ctx, p.cb ? '#ffe35a' : '#ffffff', -3, -3, 6, 6); rect(ctx, '#222c36', -1, -1, 2, 2); ctx.restore(); }
+  else if (p.sh === 'c') { ctx.save(); ctx.translate(x, y); ctx.rotate(p.a + time * 10); rect(ctx, '#222c36', -3, -4, 6, 8); rect(ctx, p.rare ? '#fff2a0' : '#ffffff', -2, -3, 4, 6); rect(ctx, SUITC[p.ge] || '#ff5a7a', -1, -1, 2, 2); ctx.restore(); }
+  else { ell(ctx, x, y, 4, 4, '#7a1a2a'); ell(ctx, x, y, 3, 3, '#ff5a7a'); rect(ctx, '#ffffff', x - 1, y - 1, 2, 2); }
+}
+/* ---------- 운명의 카지노 · 몬스터 AI ---------- */
+function casAI(dt) {
+  for (const m of monsters) {
+    if (m.dead || m.spawnT > 0 || !CAST.has(m.type) || m.type === CASB || m.frz > 0 || m.stun > 0) continue;
+    if (m.xc === undefined) m.xc = rnd(1.5, 3); m.xc -= dt; const d = Math.hypot(P.x - m.x, P.y - m.y); if (m.xc > 0 || d > 180) continue;
+    if (m.type === 'casguard') { m.xc = 4.4; for (let i = 0; i < 3; i++) lzStrike(P.x + (i ? rnd(-34, 34) : 0), P.y + (i ? rnd(-26, 26) : 0), 22, 0.85 + i * 0.12, m.dmg * 0.9, 'cuff', 80); addText(m.x, m.y - m.h - 10, '체포!', '#9ab8ff', 8); }
+    else if (m.type === 'cardsoldier') { m.xc = 3.6; const a = Math.atan2(P.y - m.y, P.x - m.x); for (let i = -1; i <= 1; i++) projs.push({ x: m.x, y: m.y - 12, vx: Math.cos(a + i * 0.28) * 90, vy: Math.sin(a + i * 0.28) * 90, dmg: m.dmg * 0.5, life: 2.6, r: 4, friendly: false, kind: 'eorb' }); ring(m.x, m.y - 10, '#c8a8ff', 18, 0.3); }
+    else if (m.type === 'roulgolem') { if (d < 110) { m.xc = 5.6; for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283; lzStrike(m.x + Math.cos(a) * 36, m.y + Math.sin(a) * 30, 18, 0.9 + i * 0.1, m.dmg * 0.8, 'roul', 90); } lzStrike(m.x, m.y, 22, 0.8, m.dmg * 0.7, 'roul', 120); } else m.xc = 1; }
+    else if (m.type === 'dicemon') { m.xc = 4; const n = rint(1, 6); addText(m.x, m.y - m.h - 10, GBN[n - 1], '#ffe35a', 10); for (let i = 0; i < n; i++) lzStrike(P.x + rnd(-36, 36), P.y + rnd(-28, 28), 16, 0.9 + i * 0.1, m.dmg * 0.7, 'gold', 70); }
+    else if (m.type === CASE) { m.xc = 4.8; if (Math.random() < 0.5) { m.hp = Math.min(m.maxHp, m.hp + m.maxHp * 0.15); addText(m.x, m.y - m.h - 10, '베팅 성공!', '#6bff8a', 9); ring(m.x, m.y - 10, '#6bff8a', 24, 0.5); } else { addText(m.x, m.y - m.h - 10, '올인!', '#ff5a7a', 9); lzStrike(P.x, P.y, 36, 1.0, m.dmg * 1.5, 'card', 200); } }
+  }
+}
+function bossG(m, enr) {
+  const pk = m.pat;
+  if (pk === 'groul') { for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; lzStrike(m.x + Math.cos(a) * 70, m.y + Math.sin(a) * 56, 20, 0.7 + i * 0.07, m.dmg * 0.9, 'roul', 120); } if (enr) for (let i = 0; i < 8; i++) { const a = i / 8 * 6.283 + 0.4; lzStrike(m.x + Math.cos(a) * 110, m.y + Math.sin(a) * 85, 22, 1.2 + i * 0.07, m.dmg * 0.9, 'roul', 120); } say('운명의 룰렛!', '돌아가는 칸을 피하세요'); }
+  else if (pk === 'gdice') { const n = rint(1, 6); addText(m.x, m.y - m.h - 14, GBN[n - 1] + ' ' + n, '#ffe35a', 12); for (let i = 0; i < n; i++) lzStrike(P.x + (i ? rnd(-50, 50) : 0), P.y + (i ? rnd(-36, 36) : 0), 26, 1.0 + i * 0.15, m.dmg * 1.0, 'gold', 140); if (n === 6) { lzStrike(m.x, m.y, 90, 1.4, m.dmg * 1.4, 'gold', 300); say('신의 주사위 6!', '보스 주변이 폭발합니다'); } }
+  else if (pk === 'gcard') { const a = Math.atan2(P.y - m.y, P.x - m.x); for (let i = -4; i <= 4; i++) projs.push({ x: m.x, y: m.y - 18, vx: Math.cos(a + i * 0.2) * 95, vy: Math.sin(a + i * 0.2) * 95, dmg: m.dmg * 0.45, life: 3, r: 4, friendly: false, kind: 'eorb' }); for (let i = 0; i < (enr ? 6 : 4); i++) lzStrike(P.x + rnd(-60, 60), P.y + rnd(-44, 44), 22, 1.0 + i * 0.12, m.dmg * 0.9, 'card', 100); say('전설의 카드!', '카드 비가 쏟아집니다'); }
+  else if (pk === 'gjack') { lzStrike(m.x, m.y, 110, 1.6, m.dmg * 1.7, 'gold', 340); for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283; projs.push({ x: m.x, y: m.y - 18, vx: Math.cos(a) * 80, vy: Math.sin(a) * 80, dmg: m.dmg * 0.4, life: 3, r: 4, friendly: false, kind: 'eorb' }); } for (let i = 0; i < 4; i++) lzStrike(P.x + rnd(-50, 50), P.y + rnd(-36, 36), 22, 1.2 + i * 0.15, m.dmg * 0.9, 'gold', 100); say('잭팟 폭발!', '범위 밖으로 피하세요!'); }
+  else if (pk === 'glast') {
+    say('라스트 베팅!', '도박의 신이 모든 것을 겁니다');
+    if (Math.random() < 0.5) { for (const [r, n, dl] of [[45, 8, 1.1], [85, 12, 1.5], [125, 16, 1.9]]) for (let i = 0; i < n; i++) { const a = i / n * 6.283 + r; lzStrike(m.x + Math.cos(a) * r, m.y + Math.sin(a) * r * 0.8, 22, dl + i * 0.02, m.dmg * 1.2, 'card', 160); } }
+    else { addText(m.x, m.y - m.h - 14, '베팅 실패!', '#b0a8b4', 11); m.hp = Math.max(1, m.hp - m.maxHp * 0.02); m.cd = 3.2; m.state = 'recover'; m.t = 0; say('베팅 실패!', '도박의 신이 빈틈을 보입니다'); return; }
+  }
+  m.state = 'recover'; m.t = 0; m.cd = enr ? 1.3 : 2.2;
+}
+/* 구역 · 웨이브 */
+function casZoneInfo(type) {
+  if (wave.theme !== '운명의 카지노') return;
+  if (CASN.includes(type) && !(wave.nz & 1)) { wave.nz |= 1; say('카지노 입장', '운명의 카지노'); }
+  else if (type === CASE && !(wave.nz & 2)) { wave.nz |= 2; say('정예 구역', '타락한 도박사가 판돈을 겁니다'); }
+  else if (type === CASB) { wave.nz |= 4; flashA = Math.max(flashA, 0.2); }
+}
+function casGate() {
+  if (wave.theme !== '운명의 카지노') return true;
+  const nx = wave.list[0], alive = monsters.filter(m => !m.dead);
+  if (nx === CASE) return !alive.some(m => CASN.includes(m.type));
+  if (nx === CASB) return alive.length === 0;
+  return true;
+}
+function casList(n, boss) {
+  const L = [], c = Math.min(16, 8 + Math.floor(n / 4));
+  for (let i = 0; i < c; i++) L.push(CASN[(Math.random() * CASN.length) | 0]);
+  for (let i = 0; i < 3 + Math.floor(n / 16); i++) L.push(CASE);
+  if (boss) L.push(CASB);
+  wave.theme = '운명의 카지노'; wave.nz = 0;
+  return L;
+}
+/* 처치 · 드롭 */
+function gbKill(m) {
+  if (!CAST.has(m.type)) return;
+  const G = GB_(), drop = (mid, n) => { for (let i = 0; i < n; i++) items.push({ type: 'mat', mid, x: m.x + rnd(-12, 12), y: m.y + rnd(-8, 8), t: 0, ttl: 40 }); addText(m.x, m.y - m.h - 30, MAT[mid].n + ' ×' + n, MAT[mid].col, 7); }, ch = (p, mid, n) => { if (Math.random() < p) drop(mid, n || 1); };
+  G.k++; if (G.qs && !G.q) { G.qk++; if (G.qk >= 80) { G.q = true; say('히든 퀘스트 완료!', '「운명의 카지노」를 해결했습니다'); flashA = Math.max(flashA, 0.3); sfx(880, 0.3, 'triangle', 0.06, 300); } }
+  if (m.type === 'casguard') { ch(0.3, 'gchip'); ch(0.05, 'lcard'); }
+  else if (m.type === 'cardsoldier') { ch(0.3, 'mcard'); ch(0.07, 'lcard'); }
+  else if (m.type === 'roulgolem') { ch(0.3, 'rwheel'); ch(0.12, 'gchip'); lzPool(m.x, m.y, 26, 3, m.dmg * 0.3, 'roul'); }
+  else if (m.type === 'dicemon') { ch(0.3, 'dshard'); ch(0.12, 'gchip'); }
+  else if (m.type === CASE) { drop('gcoin', rint(1, 2)); ch(0.3, 'lcard'); ch(0.4, 'dshard', 2); ch(0.5, 'gchip', 2); lzStrike(m.x, m.y, 50, 0.8, m.dmg, 'gold', 260); }
+  else if (m.type === CASB) {
+    G.gk++; drop('fcore', 1); drop('acrown', 1); drop('dshard', rint(8, 10)); drop('lcard', rint(3, 4)); drop('gcoin', rint(4, 6));
+    if (Math.random() < (P.owned.includes('gd7') ? 0.1 : G.gk >= 3 ? 1 : 0.35)) { items.push({ type: 'gear', gid: 'gd7', x: m.x + rnd(-10, 10), y: m.y + rnd(-6, 6), t: 0, ttl: 60 }); say('신화 무기 발견!', GEAR.gd7.n); }
+    if (Math.random() < (P.owned.includes('gcrown') ? 0.1 : G.gk >= 2 ? 1 : 0.4)) items.push({ type: 'gear', gid: 'gcrown', x: m.x + rnd(-10, 10), y: m.y + rnd(-6, 6), t: 0, ttl: 60 });
+    say('도박의 신 처치!', '운명의 카지노를 클리어했습니다'); flashA = Math.max(flashA, 0.5); shake = Math.max(shake, 12);
+    for (let i = 0; i < 8; i++) setTimeout(() => { if (state !== 'play') return; const c = ['#ffd24a', '#ff5a7a', '#7affd8', '#c8a8ff'][i % 4], x = m.x + rnd(-22, 22), y = m.y - rnd(0, 40); ring(x, y, c, 24 + i * 6, 0.6); burst(x, y, 14, c, 90, 0.8, 2); sfx(300 + i * 60, 0.15, 'triangle', 0.05, 200); }, i * 170);
+    saveGame();
+  }
+}
+/* 전직 연출 · 해금 */
+function gbFx(k) {
+  flashA = Math.max(flashA, 0.6); shake = Math.max(shake, 8);
+  const cols = k === 'arcana' ? ['#b48aff', '#ffe35a', '#ff9aff', '#7affd8'] : k === 'fatearch' ? ['#ffffff', '#ffe36a', '#7affd8', '#5a7ac8'] : k === 'cardmaster' ? ['#c48aff', '#ffffff', '#ff5a7a', '#ffd24a'] : k === 'roulette' ? ['#ff3a5a', '#ffd24a', '#6bff8a', '#ffffff'] : ['#ffd24a', '#ff5a7a', '#ffffff', '#7affd8'];
+  cols.forEach((c, i) => { ring(P.x, P.y - 8, c, 36 + i * 22, 0.6 + i * 0.1); burst(P.x, P.y - 9, 20, c, 130 + i * 20, 1, 2); });
+  for (let i = 0; i < 30; i++) parts.push({ x: P.x + rnd(-16, 16), y: P.y - rnd(0, 20), vx: rnd(-80, 80), vy: -rnd(60, 180), life: rnd(0.8, 1.5), max: 1.5, col: cols[i % 4], size: 2, g: 220 });
+  addText(P.x, P.y - 44, k === 'gambler' ? CLS.gambler.n : JOB2[k].n, '#ffffff', 11);
+  sfx(200, 0.3, 'square', 0.07, 200); setTimeout(() => sfx(400, 0.3, 'square', 0.07, 300), 120); setTimeout(() => sfx(800, 0.5, 'triangle', 0.07, 400), 240);
+}
+function gbFix() { if (!(GEAR[P.eq.weapon] && GEAR[P.eq.weapon].gmb)) { if (!P.owned.includes('gd1')) P.owned.push('gd1'); P.eq.weapon = 'gd1'; } P.w2 = null; recalc(); }
+function gbReq(id) { return JREQ[id].map(r => r.cur() >= r.need); }
+function gbGo(id) {
+  const G = GB_(); if (P.cls !== 'gambler' || G.job || !gbReq(id).every(Boolean)) return;
+  G.job = id; setForm(id); say('히든 직업 해금!', JOB2[id].n + '(으)로 전직했습니다'); gbFx(id); saveGame();
+}
+function gbInvPanel(box) {
+  if (P.cls !== 'gambler') return;
+  const mkp = (html, bd, bg) => { const d = document.createElement('div'); d.style.cssText = 'flex-basis:100%;margin-top:8px;padding:8px;border:2px solid ' + bd + ';background:' + bg + ';font-size:11px;line-height:1.6;text-align:left;color:#e8f4ff'; d.innerHTML = html; box.appendChild(d); return d; };
+  const G = GB_(), base = P.job2 === 'cardmaster' || G.job === 'arcana' ? 'arcana' : P.job2 === 'roulette' || G.job === 'fatearch' ? 'fatearch' : '';
+  if (base && !G.job) {
+    const d = mkp('<b style="color:#c8a8ff">🔒 히든 직업 · ' + JOB2[base].n + ' (전직 조건)</b>', '#4a3a8a', 'rgba(30,20,60,.4)');
+    JREQ[base].forEach(r => { const ok = r.cur() >= r.need, e = document.createElement('div'); e.textContent = (ok ? '✔ ' : '✖ ') + r.t + (r.need > 1 ? ' (' + Math.min(r.cur(), r.need) + '/' + r.need + ')' : ''); e.style.color = ok ? '#6bff8a' : '#ff9a8a'; d.appendChild(e); });
+    const q = document.createElement('div'); q.style.cssText = 'margin-top:4px;color:#c8e8ff'; q.textContent = P.lvl < 75 ? '히든 퀘스트는 2차 직업 Lv75부터 발생합니다.' : G.q ? '히든 퀘스트 완료!' : '퀘스트 「운명의 카지노」: 카지노 몬스터 처치 ' + Math.min(80, G.qk) + '/80'; d.appendChild(q);
+    if (gbReq(base).every(Boolean)) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = JOB2[base].n + '(으)로 전직'; b.style.cssText = 'margin-top:6px;min-height:40px;width:100%'; b.onclick = () => { gbGo(base); box.textContent = ''; renderInvJob(box); }; d.appendChild(b); }
+  } else if (P.job2 && JOB2[P.job2] && JOB2[P.job2].cls === 'gambler') mkp('<b style="color:#c8a8ff">패시브</b><br>' + JOB2[P.job2].d.replace(/^.*?패시브[: ]*/, ''), '#3a4a5a', 'rgba(20,30,44,.4)');
+  else mkp('<b style="color:#ffd24a">🎲 행운 게이지</b><br>공격이 적중할 때마다 차오르며 가득 차면 10초간 잭팟 모드(스킬 피해 +25%, 확률 +12%p). 도박사 Lv35에서 카드 마스터 / 룰렛 마스터로 전직할 수 있습니다.', '#6a4a1a', 'rgba(60,40,10,.4)');
 }
 /* NPC · 시험 · 전직 조건 */
 let npc = null;
@@ -4135,20 +4605,22 @@ function updMonster(m, dt) {
       }
       break;
     }
-    case 'demon': case 'lich': case 'runekeeper': case 'skylord': case 'frostlord': case 'infernal': case 'abyssal': case 'titan': case 'conductor': case 'ancientdragon': case 'thunderlord': case 'forestguardian': case 'elemguardian': {
+    case 'demon': case 'lich': case 'runekeeper': case 'skylord': case 'frostlord': case 'infernal': case 'abyssal': case 'titan': case 'conductor': case 'ancientdragon': case 'thunderlord': case 'forestguardian': case 'elemguardian': case 'gamegod': {
       const enr = m.hp < m.maxHp * 0.3, sp = enr ? 1.45 : 1;
       if (m.state === 'chase') {
         if (d > 24) chase(m, sp, dt);
         if (m.cd <= 0) {
-          if (!m.summoned && m.hp < m.maxHp * (m.type === 'lich' || m.type === 'abyssal' || m.type === 'conductor' || m.type === 'thunderlord' || m.type === 'forestguardian' || m.type === 'elemguardian' ? 0.7 : 0.5)) { m.state = 'summon'; m.t = 0; ring(m.x, m.y - 6, '#b06bff', 60, 0.8); }
+          if (!m.summoned && m.hp < m.maxHp * (m.type === 'lich' || m.type === 'abyssal' || m.type === 'conductor' || m.type === 'thunderlord' || m.type === 'forestguardian' || m.type === 'elemguardian' || m.type === 'gamegod' ? 0.7 : 0.5)) { m.state = 'summon'; m.t = 0; ring(m.x, m.y - 6, '#b06bff', 60, 0.8); }
           else {
             const BP = BPAT[m.type] || BPAT.demon, opts = d < 70 ? BP[0] : BP[1];
             let pk; for (let k = 0; k < 4; k++) { pk = opts[(Math.random() * opts.length) | 0]; if (pk !== m.last) break; } m.last = pk;
             if (m.type === 'forestguardian' && m.hp < m.maxHp * 0.6 && time - (m.judgeT || -99) > 22) { pk = 'judge'; m.judgeT = time; }
             if (m.type === 'elemguardian' && m.hp < m.maxHp * 0.5 && time - (m.fuseT || -99) > 24) { pk = 'efuse'; m.fuseT = time; }
+            if (m.type === 'gamegod' && m.hp < m.maxHp * 0.5 && time - (m.lastBT || -99) > 26) { pk = 'glast'; m.lastBT = time; }
             if (pk === 'slam') { m.state = 'slamW'; m.t = 0; teles.push({ x: m.x, y: m.y, r: m.type === 'titan' ? 76 : 54, t: 0, d: 0.9, owner: m }); }
             else if (pk === 'cast') { m.state = 'cast'; m.t = 0; }
             else if (pk === 'spiral') { m.state = 'spiral'; m.t = 0; m.spn = 0; m.sd = Math.random() < 0.5 ? 1 : -1; m.sa = Math.atan2(P.y - m.y, P.x - m.x); ring(m.x, m.y - 10, m.type === 'lich' ? '#7affd8' : '#a06bff', 40, 0.6); sfx(160, 0.5, 'triangle', 0.05, 200); }
+            else if (pk === 'groul' || pk === 'gdice' || pk === 'gcard' || pk === 'gjack' || pk === 'glast') { m.state = 'gW'; m.t = 0; m.pat = pk; ring(m.x, m.y - 10, '#ffd24a', 44, 0.7); teles.push({ x: m.x, y: m.y, r: pk === 'gjack' ? 60 : 40, t: 0, d: 0.9, owner: m }); sfx(200, 0.4, 'sawtooth', 0.06, 200); }
             else if (pk === 'elem' || pk === 'efuse') { m.state = 'elW'; m.t = 0; m.pat = pk; if (pk === 'elem') { m.eli = ((m.eli === undefined ? -1 : m.eli) + 1) % 4; m.el = EKS[m.eli]; addText(m.x, m.y - m.h - 14, '원소 전환: ' + EM[m.el].n, EM[m.el].c, 9); } else m.el = 'mix'; ring(m.x, m.y - 10, EM[m.el].c, 44, 0.7); teles.push({ x: m.x, y: m.y, r: 40, t: 0, d: 0.9, owner: m }); sfx(200, 0.4, 'sawtooth', 0.06, 300); }
             else if (pk === 'vine') { m.state = 'vineW'; m.t = 0; m.vq = { x: P.x, y: P.y }; teles.push({ x: P.x, y: P.y, r: 32, t: 0, d: 0.9, owner: m }); ring(m.x, m.y - 10, '#6bff8a', 36, 0.5); sfx(180, 0.4, 'triangle', 0.05, 120); }
             else if (pk === 'thorn') { m.state = 'thornW'; m.t = 0; m.rn = []; const nn = enr ? 9 : 7; for (let i = 0; i < nn; i++) { const rx = P.x + (i < 2 ? rnd(-8, 8) : rnd(-80, 80)), ry = P.y + (i < 2 ? rnd(-8, 8) : rnd(-60, 60)); if (solidPx(rx, ry)) continue; m.rn.push({ x: rx, y: ry }); teles.push({ x: rx, y: ry, r: 20, t: 0, d: 1.0, owner: m }); } ring(m.x, m.y - 6, '#6bff8a', 40, 0.6); sfx(150, 0.5, 'triangle', 0.05, -100); }
@@ -4199,6 +4671,9 @@ function updMonster(m, dt) {
           for (const q of m.rn) { if (Math.hypot(P.x - q.x, P.y - q.y) < 20 + P.r * 0.5) hurtPlayer(m.dmg, q.x, q.y, 200); fxs.push({ k: 'boom', x: q.x, y: q.y - 4, t: 0, d: 0.45, r: 20 }); burst(q.x, q.y - 4, 12, '#ff8a3a', 90, 0.5, 2); ring(q.x, q.y, '#ff5a2a', 20, 0.3); }
           shake = Math.max(shake, 5); sfx(90, 0.35, 'sawtooth', 0.08, -30); m.state = 'recover'; m.t = 0; m.cd = enr ? 1.3 : 2.1;
         }
+      } else if (m.state === 'gW') {
+        m.t += dt; m.moving = false;
+        if (m.t >= (m.pat === 'glast' ? 1.4 : m.pat === 'gjack' ? 1.2 : 0.9)) bossG(m, enr);
       } else if (m.state === 'elW') {
         m.t += dt; m.moving = false;
         if (m.t >= (m.pat === 'efuse' ? 1.2 : 0.9)) { bossEl(m, enr); m.state = 'recover'; m.t = 0; m.cd = enr ? 1.3 : 2.2; }
@@ -4256,7 +4731,7 @@ function updMonster(m, dt) {
       } else if (m.state === 'summon') {
         m.t += dt;
         if (m.t >= 0.8) {
-          for (let i = 0; i < (m.type === 'abyssal' ? 5 : 3); i++) { for (let k = 0; k < 10; k++) { const a = Math.random() * 6.283, x = m.x + Math.cos(a) * 34, y = m.y + Math.sin(a) * 34; if (!blocked(x, y, 5, 4) && los(m.x, m.y - 4, x, y - 4) && (!inArenaPx(m.x, m.y) || inArenaPx(x, y))) { spawnMonster(m.type === 'elemguardian' ? 'shockdrone' : m.type === 'forestguardian' ? 'forestsprite' : m.type === 'ancientdragon' ? 'firedragon' : m.type === 'thunderlord' ? THU_IDS[(Math.random() * THU_IDS.length) | 0] : m.type === 'conductor' ? MUS_IDS[(Math.random() * MUS_IDS.length) | 0] : m.type === 'skylord' ? SKY_IDS[(Math.random() * SKY_IDS.length) | 0] : m.type === 'lich' || m.type === 'abyssal' ? (Math.random() < 0.5 ? 'archer' : 'mage') : 'skeleton', x, y); break; } } }
+          for (let i = 0; i < (m.type === 'abyssal' ? 5 : 3); i++) { for (let k = 0; k < 10; k++) { const a = Math.random() * 6.283, x = m.x + Math.cos(a) * 34, y = m.y + Math.sin(a) * 34; if (!blocked(x, y, 5, 4) && los(m.x, m.y - 4, x, y - 4) && (!inArenaPx(m.x, m.y) || inArenaPx(x, y))) { spawnMonster(m.type === 'gamegod' ? 'dicemon' : m.type === 'elemguardian' ? 'shockdrone' : m.type === 'forestguardian' ? 'forestsprite' : m.type === 'ancientdragon' ? 'firedragon' : m.type === 'thunderlord' ? THU_IDS[(Math.random() * THU_IDS.length) | 0] : m.type === 'conductor' ? MUS_IDS[(Math.random() * MUS_IDS.length) | 0] : m.type === 'skylord' ? SKY_IDS[(Math.random() * SKY_IDS.length) | 0] : m.type === 'lich' || m.type === 'abyssal' ? (Math.random() < 0.5 ? 'archer' : 'mage') : 'skeleton', x, y); break; } } }
           m.summoned = true; m.state = 'recover'; m.t = 0; m.cd = 1.5;
         }
       } else { m.t += dt; if (m.t > 0.5) m.state = 'chase'; }
@@ -4278,7 +4753,8 @@ const BPAT = {
   ancientdragon: [['slam', 'cross', 'nova'], ['charge', 'rain', 'spiral', 'nova']],
   thunderlord: [['charge', 'slam', 'nova'], ['rain', 'cross', 'charge', 'cast', 'nova']],
   forestguardian: [['vine', 'thorn', 'wrath', 'slam'], ['thorn', 'vine', 'call', 'wrath', 'cast']],
-  elemguardian: [['slam', 'elem', 'elem', 'charge'], ['elem', 'elem', 'cast', 'nova', 'rain']]
+  elemguardian: [['slam', 'elem', 'elem', 'charge'], ['elem', 'elem', 'cast', 'nova', 'rain']],
+  gamegod: [['slam', 'groul', 'gdice', 'gcard'], ['groul', 'gdice', 'gcard', 'gjack', 'cast']]
 };
 let hitSrc = 'p';
 function hitMonster(m, dmg, ang, kb, crit) {
@@ -4336,7 +4812,7 @@ function dropItem(type, x, y) { items.push({ type, x: x + rnd(-6, 6), y: y + rnd
 function killMonster(m) {
   m.dead = true; const d = DEF[m.type];
   if (m.type === 'runekeeper') { if (vault) vault.done = true; unlockCreator(); }
-  lcKill(m); nsKill(m); egKill(m);
+  lcKill(m); nsKill(m); egKill(m); gbKill(m);
   const gold = rint(d.gold[0], d.gold[1]) * (1 + Math.floor(wave.n / 3) * 0.2) | 0;
   P.gold += gold * (P.bgold > 0 ? 2 : 1) | 0; P.kills++; achKill(m); petGain(m.boss ? 8 : 1); gainXp(d.xp);
   if (!m.byPet) hwKill();
@@ -4382,6 +4858,7 @@ function makeList(n) {
   if (!boss && n >= 4 && n % 7 === 4 && !wave.theme) { wave.theme = '악단 습격'; for (let i = 0; i < 7; i++) L.push(MUS_IDS[(Math.random() * MUS_IDS.length) | 0]); }
   if (L.includes('skylord')) { for (let i = 0; i < Math.max(5, Math.ceil(cnt * 0.6)); i++) L.push(SKY_IDS[(Math.random() * SKY_IDS.length) | 0]); }
   if (!boss && n >= 6 && n % 7 === 6 && !wave.theme) { wave.theme = '천공 습격'; for (let i = 0; i < 7; i++) L.push(SKY_IDS[(Math.random() * SKY_IDS.length) | 0]); }
+  if (boss ? n % 24 === 0 : (n >= 8 && n % 7 === 1)) return casList(n, boss);
   if (boss ? n % 24 === 16 : (n >= 10 && n % 7 === 3)) return natList(n, boss);
   if (boss ? n % 24 === 20 : (n >= 12 && n % 7 === 5)) return labList(n, boss);
   if (!boss && n >= 5 && n % 3 === 2) { L.push('king'); wave.theme = wave.theme || '왕 슬라임 출현'; }
@@ -4422,7 +4899,7 @@ function openChest(c) {
 function nextWave() {
   wave.n++; wave.list = makeList(wave.n); wave.state = 'fight'; wave.spawnT = 0.3;
   if (wave.n % 4 === 0 && arena) { enterArena(); wave.spawnT = 1.5; }
-  say('WAVE ' + wave.n, wave.n % 4 === 0 ? (wave.theme && /둥지|신전|숲|연구소/.test(wave.theme) ? wave.theme + ' · BOSS' : 'BOSS INCOMING') : wave.theme);
+  say('WAVE ' + wave.n, wave.n % 4 === 0 ? (wave.theme && /둥지|신전|숲|연구소|카지노/.test(wave.theme) ? wave.theme + ' · BOSS' : 'BOSS INCOMING') : wave.theme);
   sfx(200, 0.25, 'triangle', 0.06, 100);
 }
 const FARM_T = 15;
@@ -4432,8 +4909,8 @@ function updWave(dt) {
   if (wave.state === 'break') { wave.t -= dt; if (wave.t <= 0) nextWave(); return; }
   if (wave.state === 'clear') { wave.t -= dt; if (wave.t <= 0) openEnh(); return; }
   wave.spawnT -= dt;
-  if (wave.list.length && wave.spawnT <= 0 && monsters.length < 10 + Math.min(wave.n, 14) && nsGate() && egGate()) {
-    const type = wave.list.shift(); nsZone(type); egZoneInfo(type);
+  if (wave.list.length && wave.spawnT <= 0 && monsters.length < 10 + Math.min(wave.n, 14) && nsGate() && egGate() && casGate()) {
+    const type = wave.list.shift(); nsZone(type); egZoneInfo(type); casZoneInfo(type);
     if (DEF[type].boss) {
       const bx = fl.boss[0] * TS + 8, by = fl.boss[1] * TS + 8; const far = Math.hypot(P.x - bx, P.y - by) > 110; const [x, y] = (far || arena) ? [bx, by] : pickSpawn();
       spawnMonster(type, x, y); say('BOSS', DEF[type].n + ' 등장'); shake = 6; sfx(60, 0.6, 'sawtooth', 0.08, 30);
@@ -4450,6 +4927,7 @@ function updWave(dt) {
 function projTrail(p) {
   const P2 = (col, vx, vy, life, size, g) => parts.push({ x: p.x + rnd(-2, 2), y: p.y + rnd(-2, 2), vx, vy, life, max: life, col, size, g });
   if (p.kind === 'ebolt') { P2(p.c || '#7affd8', rnd(-6, 6), rnd(-6, 6), rnd(0.15, 0.3), 2, 0); return; }
+  if (p.kind === 'gproj') { P2(p.hc || '#ffd24a', rnd(-3, 3), rnd(-3, 3), rnd(0.12, 0.25), 1, 0); return; }
   if (p.kind === 'natarrow') { for (let i = 0; i < 2; i++) P2(Math.random() < 0.5 ? '#6bff8a' : '#ffd24a', rnd(-10, 10), rnd(-10, 10), rnd(0.2, 0.4), 2, 0); return; }
   if (p.kind === 'fire') {
     for (let i = 0; i < 2; i++) P2(['#ff5a2a', '#ffb03a', '#ffe35a'][(Math.random() * 3) | 0], rnd(-14, 14) - p.vx * 0.12, rnd(-22, 6) - p.vy * 0.12, rnd(0.25, 0.45), Math.random() < 0.5 ? 3 : 2, -20);
@@ -4466,7 +4944,7 @@ function projTrail(p) {
 }
 function update(dt) {
   time += dt;
-  for (const k of GBUFFS) if (P[k] > 0) P[k] = Math.max(0, P[k] - dt); if (P.hjCool > 0) P.hjCool -= dt; lcTick(dt); nsTick(dt); egTick(dt);
+  for (const k of GBUFFS) if (P[k] > 0) P[k] = Math.max(0, P[k] - dt); if (P.hjCool > 0) P.hjCool -= dt; lcTick(dt); nsTick(dt); egTick(dt); gbTick(dt);
   if (state === 'play') { P.chkT = (P.chkT || 0) - dt; if (P.chkT <= 0) { P.chkT = 1; spCheck(); wmCheck(); achTick(); } }
   { const jn = jobNext(); if (jn && P.hp > 0) { P.jobT = (P.jobT == null ? 1.4 : P.jobT) - dt; if (P.jobT <= 0) { openJob(jn); return; } } }
   flowT -= dt;
@@ -4497,7 +4975,7 @@ function update(dt) {
         if (Math.hypot(m.x - p.x, (m.y - m.cOff) - p.y) < m.r + p.r) {
           if (p.kind === 'fire') { hitSrc = p.pet ? 'pet' : 'p'; explode(p.x, p.y, p.dmg, p.am); hitSrc = 'p'; p.life = 0; break; }
           const crit = Math.random() < critCh() + (p.cb || 0);
-          hitSrc = p.pet ? 'pet' : 'p'; hitNatF = !!p.nat; hitCol = p.hc || ''; hitMonster(m, p.dmg * rnd(0.9, 1.1) * (crit ? 1.8 : 1), Math.atan2(p.vy, p.vx), 110, crit); hitNatF = false; hitCol = ''; if (p.chain) zap(m, p.dmg * 0.6, p.chain); hitSrc = 'p'; if (p.nat) natProc(m, p); if (p.el) egProc(m, p);
+          hitSrc = p.pet ? 'pet' : 'p'; hitNatF = !!p.nat; hitCol = p.hc || ''; hitMonster(m, p.dmg * rnd(0.9, 1.1) * (crit ? 1.8 : 1), Math.atan2(p.vy, p.vx), 110, crit); hitNatF = false; hitCol = ''; if (p.chain) zap(m, p.dmg * 0.6, p.chain); hitSrc = 'p'; if (p.nat) natProc(m, p); if (p.el) egProc(m, p); if (p.gb) gbProc(m, p);
           if (p.pz) { m.burn = Math.max(m.burn || 0, 4); m.bd = Math.max(2, p.dmg * 0.2); m.pz = true; }
           if (p.kind === 'ice') { disable(m, 'frz', p.fz || 2.2); p.hit.push(m); burst(m.x, m.y - m.cOff, 10, '#bff6ff', 70, 0.4); ring(m.x, m.y - m.cOff, '#7fe8ff', 18, 0.3); continue; }
           if (p.pierce) { p.hit.push(m); burst(m.x, m.y - m.cOff, 6, '#e8f0ff', 70, 0.3); continue; }
@@ -4693,7 +5171,7 @@ function render() {
     ell(ctx, px, py, 13, 6, '#1a0f2a'); ell(ctx, px, py, 11 + Math.round(pul), 5, '#4a2a8a'); ell(ctx, px, py, 8, 4, '#4af0d8'); ell(ctx, px, py, 5, 2, '#e8fffb');
     ctx.globalAlpha = 0.3 + 0.1 * pul; rect(ctx, '#4af0d8', px - 5, py - 34, 10, 34); rect(ctx, '#e8fffb', px - 2, py - 34, 4, 34); ctx.globalAlpha = 1;
   }
-  drawNpc(); drawNs(); drawEg();
+  drawNpc(); drawNs(); drawEg(); drawGb();
   // 아이템
   for (const it of items) {
     if (it.ttl < 4 && Math.floor(it.ttl * 6) % 2 === 0) continue;
@@ -4776,6 +5254,8 @@ function render() {
       ctx.save(); ctx.translate(x, y); ctx.rotate(p.a);
       rect(ctx, '#d9c89a', -6, 0, 10, 1); rect(ctx, '#cfd6e6', 4, -1, 3, 3); rect(ctx, '#e8e0c8', -6, -1, 2, 1); rect(ctx, '#e8e0c8', -6, 1, 2, 1);
       ctx.restore();
+    } else if (p.kind === 'gproj') {
+      drawGproj(p, x, y);
     } else if (p.kind === 'ebolt') {
       ctx.save(); ctx.translate(x, y); ctx.rotate(p.a); ctx.globalAlpha = 0.35; ell(ctx, 0, 0, 6, 3, p.c || '#7affd8'); ctx.globalAlpha = 1; rect(ctx, p.c || '#7affd8', -5, -1, 9, 3); rect(ctx, '#ffffff', -2, 0, 6, 1); ctx.restore();
     } else if (p.kind === 'natarrow') {
@@ -4931,9 +5411,9 @@ function render() {
     if (nz.some(z => z.k === 'storm')) chips.push(['가시 폭풍', Math.ceil(nz.find(z => z.k === 'storm').dur - nz.find(z => z.k === 'storm').t) + 's', '#8aff6a']);
     if (P.nsDef > 0) chips.push(['숲의 가호 DEF+35%', Math.ceil(P.nsDef) + 's', '#ffe35a']);
     if (P.rootT > 0) chips.push(['속박됨', Math.ceil(P.rootT) + 's', '#ff7a5a']);
-    chips.push(...engChips());
+    chips.push(...engChips()); chips.push(...gbChips());
     for (const [lb, tm, col] of chips) { const w = 96; ctx.fillStyle = 'rgba(8,6,14,.88)'; ctx.fillRect(5, gy, w, 11); ctx.fillStyle = col; ctx.globalAlpha = 0.35; ctx.fillRect(6, gy + 1, w - 2, 9); ctx.globalAlpha = 1; ctx.fillRect(5, gy, 2, 11); txt(lb, 10, gy + 6, '#000', 8, 'left'); txt(lb, 9, gy + 5, '#fff', 8, 'left'); txt(tm, 5 + w - 2, gy + 6, '#000', 8, 'right'); txt(tm, 5 + w - 3, gy + 5, '#fff', 8, 'right'); gy += 12; }
-    if (wave.theme === '정령의 숲') { ctx.fillStyle = 'rgba(40,160,80,0.10)'; ctx.fillRect(0, 0, W, H); } if (wave.theme === '고대 원소 연구소') { ctx.fillStyle = 'rgba(60,200,200,0.08)'; ctx.fillRect(0, 0, W, H); } }
+    if (wave.theme === '정령의 숲') { ctx.fillStyle = 'rgba(40,160,80,0.10)'; ctx.fillRect(0, 0, W, H); } if (wave.theme === '고대 원소 연구소') { ctx.fillStyle = 'rgba(60,200,200,0.08)'; ctx.fillRect(0, 0, W, H); } if (wave.theme === '운명의 카지노') { ctx.fillStyle = 'rgba(200,60,120,0.09)'; ctx.fillRect(0, 0, W, H); } gbHud(); }
   if (zoomed) {
     const bw = 90, bar = (y, v, c, label) => { ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(5, y, bw + 2, 8); ctx.fillStyle = c; ctx.fillRect(6, y + 1, Math.round(bw * clamp(v, 0, 1)), 6); txt(label, 8, y + 4, '#fff', 6, 'left'); };
     bar(5 + HO, P.hp / P.maxHp, '#d8404f', 'HP ' + Math.ceil(P.hp)); bar(15 + HO, P.mp / P.maxMp, '#4b8cf2', 'MP ' + Math.floor(P.mp)); bar(25 + HO, P.xp / need(P.lvl), '#4af0d8', 'LV ' + P.lvl + (P.awk ? ' AWK ' + P.awk : ''));
@@ -5096,13 +5576,14 @@ function showOv(k) { for (const n in ov) ov[n].hidden = n !== k; }
 })();
 
 /* ---------- 저장 (이 기기 브라우저에만) ---------- */
-const SLOTS_N = 5, OLD_KEY = 'dungeon-adventure-save-v1';
+const OLD_KEY = 'dungeon-adventure-save-v1';
 let curSlot = null;
+function slotN() { try { return 5 + (ACH.xs ? 1 : 0); } catch (e) { return 5; } }
 const slotKey = i => 'dungeon-adventure-slot-' + i;
 function readSlot(i) { try { const v = JSON.parse(localStorage.getItem(slotKey(i)) || 'null'); return v && v.v === 1 && v.P && CLS[v.P.cls] ? v : null; } catch (e) { return null; } }
 function writeSlot(i, v) { try { localStorage.setItem(slotKey(i), JSON.stringify(v)); return true; } catch (e) { return false; } }
 function delSlot(i) { try { localStorage.removeItem(slotKey(i)); } catch (e) { /* 무시 */ } }
-function freeSlot() { for (let i = 1; i <= SLOTS_N; i++) if (!readSlot(i)) return i; return null; }
+function freeSlot() { for (let i = 1; i <= slotN(); i++) if (!readSlot(i)) return i; return null; }
 (function migrate() { try { const o = localStorage.getItem(OLD_KEY); if (o) { if (!readSlot(1)) { const v = JSON.parse(o); v.name = '이전 저장'; writeSlot(1, v); } localStorage.removeItem(OLD_KEY); } } catch (e) { /* 무시 */ } })();
 function saveGame() {
   try {
@@ -5114,7 +5595,7 @@ function saveGame() {
 window.addEventListener('pagehide', () => { if (state === 'play' || state === 'pause') saveGame(); });
 function renderSlots() {
   const box = $('slotBox'); box.textContent = ''; const h = document.createElement('h3'); h.textContent = 'SAVE SLOTS'; box.appendChild(h);
-  for (let i = 1; i <= SLOTS_N; i++) {
+  for (let i = 1; i <= slotN(); i++) {
     const sv = readSlot(i), row = document.createElement('div'); row.className = 'slot' + (sv ? '' : ' empty');
     const si = document.createElement('div'); si.className = 'si';
     if (!sv) { const t = document.createElement('small'); t.textContent = i + '. 빈 슬롯 — 새 게임을 시작하면 여기에 저장됩니다'; si.appendChild(t); row.appendChild(si); box.appendChild(row); continue; }
@@ -5130,13 +5611,15 @@ function renderSlots() {
     del.addEventListener('click', () => { if (!arm) { arm = 1; del.classList.add('arm'); del.textContent = '정말?'; setTimeout(() => { arm = 0; del.classList.remove('arm'); del.textContent = '삭제'; }, 3000); } else { delSlot(i); renderSlots(); } });
     if (sv.dead) { const rb = document.createElement('button'); rb.type = 'button'; rb.textContent = '기록 보기'; rb.addEventListener('click', () => openRec(sv.rec || { lvl: sv.P.lvl, floor: sv.floor, wave: sv.waveN, kills: sv.P.kills, gold: sv.P.gold, cls: sv.P.cls, job2: sv.P.job2 || null })); row.append(si, rb, del); } else row.append(si, go, del); box.appendChild(row);
   }
-  const full = !freeSlot(); if (full) { const n = document.createElement('small'); n.textContent = '슬롯 5칸이 모두 찼습니다. 새 게임은 저장되지 않으니 하나를 삭제하세요.'; n.style.color = '#ff9aa8'; box.appendChild(n); }
+  const full = !freeSlot(); if (full) { const n = document.createElement('small'); n.textContent = slotN() + '칸의 슬롯이 모두 찼습니다. 새 게임은 저장되지 않으니 하나를 삭제하세요.'; n.style.color = '#ff9aa8'; box.appendChild(n); }
+  if (!ACH.xs) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.style.cssText = 'width:100%;margin-top:8px;min-height:40px'; const ok = ACH.gems >= 110; b.textContent = '저장 슬롯 +1 구매 (보석 110 · 보유 ' + ACH.gems + ')'; b.disabled = !ok; if (!ok) b.style.opacity = '.55';
+    b.addEventListener('click', () => { if (ACH.xs || ACH.gems < 110) return; ACH.gems -= 110; ACH.xs = 1; achSave(); try { sfx(700, 0.2, 'square', 0.05, 400); } catch (e) { } renderSlots(); }); box.appendChild(b); }
   box.hidden = false;
 }
 function loadGame(sv) {
   if (sv.dead) return;
   newGame(); runSeed = sv.seed; buildFloor(sv.floor);
-  Object.assign(P, { eg: null, ovl: 0, mod: 0, conv: 0, chill: 0, ns: null, rootT: 0, rootImm: 0, nsDef: 0, lc: null, trial: null, lcA: 0, lcS: 0, lcB: 0, npcCd: 0, runeReady: false, wmUnlocked: false, lordUnlocked: false, spUnlocked: false, tbUnlocked: false, shK: 0, hjCool: 0, runeLord: false }, sv.P); P.runes = P.runes || []; P.rid = P.rid || 1; P.rs = P.rs || {}; setClassSkills(P.cls, P.job2); P.hwk = P.hwk || {}; if (P.lordUnlocked) giveHW('dgs'); if (P.runeLord) giveHW('tms'); hwApply('dgs'); hwApply('tms'); hwSync(); wmCheck(); spCheck(); 
+  Object.assign(P, { eg: null, gb: null, gbDef: 0, ovl: 0, mod: 0, conv: 0, chill: 0, ns: null, rootT: 0, rootImm: 0, nsDef: 0, lc: null, trial: null, lcA: 0, lcS: 0, lcB: 0, npcCd: 0, runeReady: false, wmUnlocked: false, lordUnlocked: false, spUnlocked: false, tbUnlocked: false, shK: 0, hjCool: 0, runeLord: false }, sv.P); P.runes = P.runes || []; P.rid = P.rid || 1; P.rs = P.rs || {}; setClassSkills(P.cls, P.job2); P.hwk = P.hwk || {}; if (P.lordUnlocked) giveHW('dgs'); if (P.runeLord) giveHW('tms'); hwApply('dgs'); hwApply('tms'); hwSync(); wmCheck(); spCheck(); 
   P.x = fl.start[0] * TS + 8; P.y = fl.start[1] * TS + 8; P.vx = P.vy = P.kx = P.ky = 0; P.dash = 0; P.inv = 0.8; P.shield = P.parry = P.swift = P.guard = P.crit = P.buff = 0; P.jobT = null; P.dashHit = null; updAwk(true);
   for (const c in P.cd) P.cd[c] = 0;
   calcRB(); P.maxHp = P.bHp + gsum('hp'); P.maxMp = P.bMp + gsum('mp'); P.hp = Math.min(P.hp, P.maxHp); P.mp = Math.min(P.mp, P.maxMp);
@@ -5215,6 +5698,7 @@ function gearDesc(g) {
   if (g.gun) a.push(GUN[g.type].d);
   if (g.inst) a.push(INST[g.type].d);
   if (g.eng && g.slot === 'weapon') a.push(ENGD[g.type] + ' (엔지니어 전용)');
+  if (g.gmb && g.slot === 'weapon') a.push(GBD[g.type] + ' (도박사 전용)');
   if (g.ehj) a.push('원소 공학자 전용' + (g.slot === 'weapon' ? ' · 발사할 때마다 화염/얼음/번개/대지 속성이 바뀝니다' : ''));
   if (g.nsb) a.push('자연 피해 +' + Math.round(g.nat * 100) + '% · 정령 공격력 +' + Math.round(g.spr * 100) + '% · 적중 시 확률로 자연의 화살 추가 발사');
   if (g.spear) { a.push(SPEARD[g.fx || 'base']); if (g.trans) a.push('등급: 초월'); }
@@ -5256,7 +5740,7 @@ function genStock() {
   const gs = stock.filter(x => x.kind === 'gear' && !x.myth); if (gs.length) { const sp = gs[(Math.random() * gs.length) | 0]; sp.sale = true; sp.price = Math.round(sp.price * 0.65 / 5) * 5; }
 }
 const sellVal = g => Math.round(g.cost * 0.45);
-function equip(id) { if (P.w2 === id) P.w2 = null; const g = GEAR[id], bad = t => { say(t[0], t[1]); sfx(140, 0.15, 'square', 0.05, -60); }; if (g.nsb && P.cls !== 'archer') return bad(['궁수 전용', '세계수의 활은 궁수 계열만 장착할 수 있습니다']); if (g.ehj && P.job2 !== 'elemeng') return bad(['원소 공학자 전용', '원소 공학자만 장착할 수 있습니다']); if (g.slot === 'weapon' && g.spear && P.cls !== 'lancer' && !(wmOn() && g.rar === 6)) return bad(['창기사 전용', '창은 창기사 계열만 장착할 수 있습니다']); if (g.slot === 'weapon' && P.cls === 'lancer' && !g.spear) return bad(['창기사 전용 제한', '창기사는 창만 장착할 수 있습니다']); if (g.slot === 'weapon' && g.inst && P.cls !== 'bard' && !(wmOn() && g.rar === 6)) return bad(['음유시인 전용', '악기는 음유시인만 사용할 수 있습니다']); if (g.slot === 'weapon' && P.cls === 'bard' && !g.inst) return bad(['음유시인 전용 제한', '음유시인은 악기만 장착할 수 있습니다']); if (g.slot === 'weapon' && !wmOn()) { if (g.gun && P.cls !== 'gunner') return bad(['거너 전용', '총은 거너만 사용할 수 있습니다']); if (P.cls === 'gunner' && !g.gun) return bad(['거너 전용 제한', '거너는 총만 장착할 수 있습니다']); } if (g.job && P.job2 !== g.job) return bad(['전용 무기', JOB2[g.job].n + ' 전용 무기입니다']); P.eq[g.slot] = id; recalc(); }
+function equip(id) { if (P.w2 === id) P.w2 = null; const g = GEAR[id], bad = t => { say(t[0], t[1]); sfx(140, 0.15, 'square', 0.05, -60); }; if (g.gcr && P.cls !== 'gambler') return bad(['도박사 전용', '운명의 왕관은 도박사만 장착할 수 있습니다']); if (g.slot === 'weapon' && g.gmb && P.cls !== 'gambler' && !(wmOn() && g.rar === 6)) return bad(['도박사 전용', '주사위·카드·칩은 도박사만 사용할 수 있습니다']); if (g.slot === 'weapon' && P.cls === 'gambler' && !g.gmb) return bad(['도박사 전용 제한', '도박사는 주사위·카드·칩만 장착할 수 있습니다']); if (g.nsb && P.cls !== 'archer') return bad(['궁수 전용', '세계수의 활은 궁수 계열만 장착할 수 있습니다']); if (g.ehj && P.job2 !== 'elemeng') return bad(['원소 공학자 전용', '원소 공학자만 장착할 수 있습니다']); if (g.slot === 'weapon' && g.spear && P.cls !== 'lancer' && !(wmOn() && g.rar === 6)) return bad(['창기사 전용', '창은 창기사 계열만 장착할 수 있습니다']); if (g.slot === 'weapon' && P.cls === 'lancer' && !g.spear) return bad(['창기사 전용 제한', '창기사는 창만 장착할 수 있습니다']); if (g.slot === 'weapon' && g.inst && P.cls !== 'bard' && !(wmOn() && g.rar === 6)) return bad(['음유시인 전용', '악기는 음유시인만 사용할 수 있습니다']); if (g.slot === 'weapon' && P.cls === 'bard' && !g.inst) return bad(['음유시인 전용 제한', '음유시인은 악기만 장착할 수 있습니다']); if (g.slot === 'weapon' && !wmOn()) { if (g.gun && P.cls !== 'gunner') return bad(['거너 전용', '총은 거너만 사용할 수 있습니다']); if (P.cls === 'gunner' && !g.gun) return bad(['거너 전용 제한', '거너는 총만 장착할 수 있습니다']); } if (g.job && P.job2 !== g.job) return bad(['전용 무기', JOB2[g.job].n + ' 전용 무기입니다']); P.eq[g.slot] = id; recalc(); }
 function renderShop() {
   const keep = ov.shop.scrollTop; $('shopGold').textContent = P.gold; $('shopWave').textContent = wave.n;
   const rc = 25 + 15 * rerolls, rr = $('rerollBtn'); rr.textContent = '재고 새로고침 ' + rc + 'G'; rr.disabled = P.gold < rc;
@@ -5367,7 +5851,7 @@ function renderInvJob() {
     if (P.lvl >= 25) addB('초월자 되기 (스킬 8개 선택)', () => { P.skipA = 0; P.jobT = 0.2; });
   } else if (jobElig() && P.skipJ === jobElig()) addB('2차 전직하기', () => { P.skipJ = 0; P.jobT = 0.2; });
   if (!box.children.length) { const e = document.createElement('span'); e.className = 'empty-note'; e.textContent = P.asc ? '현재 직업: 초월자' : P.cls === 'novice' ? '전직 가능 레벨이 되면 전직 창이 열립니다.' : '현재 직업: ' + jobName(); box.appendChild(e); }
-  nsInvPanel(box); egInvPanel(box);
+  nsInvPanel(box); egInvPanel(box); gbInvPanel(box);
 }
 function petMsg(t, cls) { const m = $('petMsg'); m.textContent = t; m.className = 'enhmsg ' + (cls || ''); }
 function petToggle(p) {
@@ -5440,6 +5924,7 @@ const TITLES = {}; ACHS.forEach(a => { TITLES[a.id] = a.ti; });
 const GBUFFS = ['bxp', 'batk', 'bdef', 'bgold', 'bcrt'];
 const GBUFF_TXT = [['bxp', 'EXP×2'], ['batk', 'ATK×1.5'], ['bdef', 'DEF+30%'], ['bgold', 'GOLD×2'], ['bcrt', 'CRIT+25%']];
 const GSHOP = [
+  { id: 'slot6', n: '저장 슬롯 +1', d: '저장 슬롯을 1칸 늘립니다. (영구 · 1회 구매)', gem: 110 },
   { id: 'bxp', n: '경험치 2배 (5분)', gem: 30, d: '5분 동안 얻는 경험치가 2배가 됩니다. 다시 사면 시간이 늘어납니다.' },
   { id: 'batk', n: '공격력 1.5배 (5분)', gem: 40, d: '5분 동안 주는 피해가 1.5배가 됩니다.' },
   { id: 'bdef', n: '받는 피해 30% 감소 (5분)', gem: 35, d: '5분 동안 받는 피해가 30% 줄어듭니다.' },
@@ -5512,7 +5997,7 @@ function renderAch() {
   GSHOP.forEach(it => {
     const left = GBUFFS.includes(it.id) ? Math.ceil(P[it.id] || 0) : 0;
     sb.appendChild(card({ pic: GEMSPR, name: it.n, rar: 3, desc: it.d + (left ? ' (남은 시간 ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0') + ')' : ''),
-      btns: [{ t: '보석 ' + it.gem, dis: ACH.gems < it.gem, fn: () => gemBuy(it) }], re: renderAch }));
+      btns: [it.id === 'slot6' && ACH.xs ? { t: '구매 완료', dis: true, fn: () => { } } : { t: '보석 ' + it.gem, dis: ACH.gems < it.gem, fn: () => gemBuy(it) }], re: renderAch }));
   });
   const lb = $('achList'); lb.textContent = '';
   ACHS.forEach(a => {
@@ -5547,6 +6032,7 @@ function boxReveal(g, dup, gd) {
 }
 function gemBuy(it) {
   if (ACH.gems < it.gem) return;
+  if (it.id === 'slot6') { if (ACH.xs) return; ACH.gems -= it.gem; ACH.xs = 1; achMsg('저장 슬롯이 1칸 늘어났습니다! (총 6칸)', 'ok'); sfx(700, 0.2, 'square', 0.05, 400); achSave(); renderAch(); try { if (!$('slotBox').hidden) renderSlots(); } catch (e) { } return; }
   if (it.id === 'boxL' || it.id === 'boxH') {
     const g = boxOpen(it.id); if (!g) { achMsg('지금은 열 수 있는 무기가 없습니다.', 'bad'); return; }
     ACH.gems -= it.gem;
@@ -5933,16 +6419,52 @@ JREQ.elemeng = [
 ];
 HJ.elemeng = { c: '연금술 공학자 Lv75 · 히든 퀘스트 · 원소의 핵 30개 · 원소의 수호자 처치 · 고대 원소 장치 획득 조건을 모두 달성했습니다.', ok: () => P.cls === 'engineer' && P.job2 === 'alchemist' && !EG_().job && egReq().every(Boolean), go: () => egGo() };
 
+
+JREQ.gunner = [{ t: '캐릭터 레벨 7', cur: () => P.lvl, need: 7 }];
+JREQ.gambler = [{ t: '캐릭터 레벨 10', cur: () => P.lvl, need: 10 }];
+JREQ.cardmaster = [{ t: '도박사 레벨 35', cur: () => (P.cls === 'gambler' ? P.lvl : 0), need: 35 }];
+JREQ.roulette = [{ t: '도박사 레벨 35', cur: () => (P.cls === 'gambler' ? P.lvl : 0), need: 35 }];
+JREQ.arcana = [
+  { t: '카드 마스터 레벨 75', cur: () => (P.cls === 'gambler' && (P.job2 === 'cardmaster' || GB_().job === 'arcana') ? P.lvl : 0), need: 75 },
+  { t: '전설 카드 5장 수집', cur: () => mat('lcard'), need: 5 },
+  { t: '히든 퀘스트 완료 (운명의 카지노)', cur: () => (GB_().q ? 1 : 0), need: 1 },
+  { t: '도박의 신 처치', cur: () => Math.min(1, GB_().gk), need: 1 },
+  { t: '아르카나의 왕관 획득', cur: () => mat('acrown'), need: 1 },
+];
+JREQ.fatearch = [
+  { t: '룰렛 마스터 레벨 75', cur: () => (P.cls === 'gambler' && (P.job2 === 'roulette' || GB_().job === 'fatearch') ? P.lvl : 0), need: 75 },
+  { t: '신의 주사위 조각 30개 수집', cur: () => mat('dshard'), need: 30 },
+  { t: '히든 퀘스트 완료 (운명의 카지노)', cur: () => (GB_().q ? 1 : 0), need: 1 },
+  { t: '도박의 신 처치', cur: () => Math.min(1, GB_().gk), need: 1 },
+  { t: '운명의 핵 획득', cur: () => mat('fcore'), need: 1 },
+];
+HJ.arcana = { c: '카드 마스터 Lv75 · 전설 카드 5장 · 히든 퀘스트 · 도박의 신 처치 · 아르카나의 왕관 획득 조건을 모두 달성했습니다.', ok: () => P.cls === 'gambler' && P.job2 === 'cardmaster' && !GB_().job && gbReq('arcana').every(Boolean), go: () => gbGo('arcana') };
+HJ.fatearch = { c: '룰렛 마스터 Lv75 · 신의 주사위 조각 30개 · 히든 퀘스트 · 도박의 신 처치 · 운명의 핵 획득 조건을 모두 달성했습니다.', ok: () => P.cls === 'gambler' && P.job2 === 'roulette' && !GB_().job && gbReq('fatearch').every(Boolean), go: () => gbGo('fatearch') };
+{ const IC = {
+  gdice: ['d', '#ffffff'], gcard: ['c', '#ffd24a'], gdouble: ['x2', '#6bff8a'], gjackpot: ['7', '#ffd24a'], gfate: ['?', '#c8a8ff'], gallin: ['!', '#ff5a7a'],
+  cfire: ['c', '#ff7a3a'], cdeath: ['s', '#a06aff'], cgold: ['c', '#ffd24a'], cdeck: ['k', '#ff9aff'], cjoker: ['j', '#ff5a7a'], croyal: ['k', '#ffe35a'],
+  rroulette: ['r', '#ffb03a'], rdouble: ['dd', '#ffffff'], rfatectl: ['?', '#c8a8ff'], rjackpot: ['7', '#ffd24a'], rallin: ['!', '#ff5a7a'], rlast: ['r', '#ff3a5a'],
+  aucard: ['c', '#ff9aff'], ainfinite: ['k', '#7affd8'], aalter: ['?', '#c8a8ff'], ajoker: ['j', '#ffe35a'], aover: ['k', '#ffffff'],
+  fprob: ['%', '#7affd8'], frewrite: ['?', '#c8a8ff'], fnecess: ['!', '#ffd24a'], fdice: ['d', '#ffffff'], fabs: ['*', '#ffffff'] };
+  for (const k in IC) { const [t, col] = IC[k]; ICONS[k] = icn(g => {
+    ell(g, 8, 8, 8, 8, '#14101e'); ell(g, 8, 8, 7, 7, '#2a2040');
+    if (t === 'd' || t === 'dd') { rect(g, '#222c36', 3, 3, 10, 10); rect(g, col, 4, 4, 8, 8); for (const [x, y] of [[5, 5], [10, 5], [7, 8], [5, 10], [10, 10]]) rect(g, '#222c36', x, y, 2, 2); if (t === 'dd') { rect(g, '#ffd24a', 1, 1, 4, 4); rect(g, '#222c36', 2, 2, 1, 1); } }
+    else if (t === 'c' || t === 'k' || t === 'j' || t === 's') { rect(g, '#222c36', 4, 2, 8, 12); rect(g, '#fff8f0', 5, 3, 6, 10); rect(g, col, 6, 5, 4, 4); rect(g, col, 7, 10, 2, 2); if (t === 'k') { rect(g, '#222c36', 2, 3, 8, 12); rect(g, '#fff8f0', 3, 4, 6, 10); rect(g, col, 4, 6, 4, 4); } if (t === 'j') { rect(g, '#14080e', 6, 6, 1, 1); rect(g, '#14080e', 9, 6, 1, 1); } if (t === 's') { rect(g, '#14080e', 7, 6, 2, 3); } }
+    else if (t === 'r') { ell(g, 8, 8, 6, 6, '#14080e'); ell(g, 8, 8, 5, 5, col); for (let i = 0; i < 4; i++) rect(g, '#14080e', 7, 3 + i * 3 - (i > 1 ? 0 : 0), 2, 1); ell(g, 8, 8, 2, 2, '#14080e'); rect(g, '#ffffff', 7, 7, 2, 2); }
+    else { txtIcon(g, t, col); }
+  }); } }
+function txtIcon(g, t, col) { const P5 = { '7': ['11111', '00010', '00100', '01000', '01000'], 'x2': ['10111', '01001', '00110', '01000', '11111'], '?': ['01110', '10001', '00110', '00000', '00100'], '!': ['00100', '00100', '00100', '00000', '00100'], '%': ['11001', '11010', '00100', '01011', '10011'], '*': ['10101', '01110', '11111', '01110', '10101'] }[t] || ['11111', '10001', '10001', '10001', '11111']; for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) if (P5[y][x] === '1') rect(g, col, 3 + x * 2, 3 + y * 2, 2, 2); }
 /* ---------- 도감 ---------- */
 (function dex() {
   const desc = { slime: '통통 튀며 몸으로 부딪칩니다.', bat: '2웨이브부터. 불규칙하게 날며 물고 빠집니다.', skeleton: '다가와 녹슨 검을 휘두릅니다.', archer: '3웨이브부터. 거리를 두고 화살을 쏩니다.', orc: '느리지만 곤봉 내려치기가 아픕니다.', bomber: '4웨이브부터. 달려와 자폭합니다. 원을 피하세요.', mage: '5웨이브부터. 보라색 마법탄을 3갈래로 쏩니다.', king: '5웨이브부터 가끔 등장. 죽으면 슬라임 3마리로 분열합니다.', brute: '6웨이브부터. 잠시 노려본 뒤 돌진합니다.', demon: '4웨이브마다 등장. 내려찍기, 화염탄, 부하 소환.', lich: '8웨이브마다 등장. 마법탄 난사와 궁수 소환.', skylord: '하늘에서 번개를 폭우처럼 내리꽂습니다. 낙뢰 범위를 보고 피하세요. 하늘의 부하들을 거느리고, 처치하면 천공의 파편을 많이 떨어뜨립니다.', frostlord: '얼음 마탄을 부채꼴로 대량 발사합니다.', infernal: '불꽃 고리를 촘촘하게 뿜어내고 돌진합니다. 공격력이 높습니다.', abyssal: '체력이 절반 아래가 되면 망령 사수 다섯을 소환합니다.', titan: '느리지만 거대한 내려찍기로 넓은 범위를 부숩니다. 체력이 가장 높습니다.' };
   const baseKeys = ['slime', 'bat', 'skeleton', 'archer', 'orc', 'bomber', 'mage', 'brute'];
   const tabs = FLOORS.map((p, i) => ({ n: (i + 1) + '층', title: p.n, list: [...new Set(baseKeys.map(k => FLOOR_MAP[i][k] || k)), 'king'], note: (i + 1) + '층 · ' + (i + 5) + '층 · ' + (i + 9) + '층 … 에 나오는 몬스터입니다. (층이 같은 테마로 돌아올 때는 웨이브가 높아 더 강해집니다)' }));
-  tabs.push({ n: '보스', title: '보스', list: ['demon', 'conductor', 'ancientdragon', 'thunderlord', 'forestguardian', 'elemguardian', 'skylord', 'frostlord', 'infernal', 'abyssal', 'titan', 'lich'], note: '4웨이브마다 보스가 나옵니다. 보스 종류는 웨이브에 따라 돌아가며 등장합니다.' });
+  tabs.push({ n: '보스', title: '보스', list: ['demon', 'conductor', 'ancientdragon', 'thunderlord', 'forestguardian', 'elemguardian', 'gamegod', 'skylord', 'frostlord', 'infernal', 'abyssal', 'titan', 'lich'], note: '4웨이브마다 보스가 나옵니다. 보스 종류는 웨이브에 따라 돌아가며 등장합니다.' });
   tabs.push({ n: '천공', title: '천공의 군주 휘하', list: SKY_IDS, note: '천공의 군주가 나오는 웨이브에 함께 등장하며, 군주가 부르기도 합니다. 처치하면 천공의 파편을 떨어뜨립니다.' });
   tabs.push({ n: '악단', title: '타락한 지휘자 휘하', list: MUS_IDS, note: '타락한 지휘자가 나오는 웨이브와 \'악단 습격\' 웨이브에 등장하며, 지휘자가 부르기도 합니다.' });
   tabs.push({ n: '용·뇌전', title: '용족과 뇌전 몬스터', list: ['firedragon', 'stormbat', 'stormmage', 'stormbrute'], note: '화염룡의 둥지와 번개의 신전 웨이브에 주로 등장합니다.' });
   tabs.push({ n: '숲', title: '정령의 숲', list: [...NSN, NSE], note: '정령의 숲 웨이브에 등장합니다. 일반 몬스터 구역 → 정예 구역 → 보스 구역 순서로 나타납니다.' });
+  tabs.push({ n: '카지노', title: '운명의 카지노', list: [...CASN, CASE], note: '운명의 카지노 웨이브에 등장합니다. 일반 몬스터 구역 → 정예 구역 → 보스(도박의 신) 순서로 나타납니다.' });
   tabs.push({ n: '연구소', title: '고대 원소 연구소', list: [...ELN, ELE], note: '고대 원소 연구소 웨이브에 등장합니다. 일반 실험체 구역 → 정예 구역 → 보스 구역 순서로 나타납니다.' });
   tabs.push({ n: '펫', title: '펫 도감', pets: true, note: '철창을 부수고 동료로 만난 펫이 등록됩니다. 진화 단계도 기록됩니다.' });
   const PET_FLOOR = { wolf: 1, fairy: 1, slime: 1, bee: 1, owl: 1, ghost: 2, golem: 2, drake: 3, phoenix: 4 };
@@ -5997,9 +6519,9 @@ HJ.elemeng = { c: '연금술 공학자 Lv75 · 히든 퀘스트 · 원소의 핵
     const g0 = sec('BASE 초보자 (시작)'); const N = CLS.novice;
     g0.appendChild(card(SPK.novice[0], N.n, N.d, 'HP ' + N.hp + ' · MP ' + N.mp, CSK.novice.map((q, i) => q ? [SLOTS[i][1], sname(q)] : null).filter(Boolean), false));
     const g1 = sec('JOB 1 · 1차 전직 (Lv5)');
-    ['warrior', 'mage', 'assassin', 'archer', 'gunner', 'bard', 'lancer', 'engineer'].forEach(k => { const K = CLS[k]; g1.appendChild(card(SPK[k][0], K.n, K.d, 'HP ' + K.hp + ' · MP ' + K.mp + (bonus(K.b) ? ' · ' + bonus(K.b) : ''), CSK[k].map((q, i) => q ? [SLOTS[i][1], sname(q) + ' (Lv' + SLOTS[i][2] + ')'] : null).filter(Boolean), false)); });
-    ['warrior', 'mage', 'assassin', 'archer', 'gunner', 'bard', 'lancer', 'engineer'].forEach(k => {
-      const g = sec('JOB 2 · 2차 전직 (Lv' + (k === 'bard' || k === 'engineer' || k === 'lancer' ? 30 : 25) + ') — ' + CLS[k].n + ' 계열');
+    ['warrior', 'mage', 'assassin', 'archer', 'gunner', 'bard', 'lancer', 'engineer', 'gambler'].forEach(k => { const K = CLS[k]; g1.appendChild(card(SPK[k][0], K.n, K.d, 'HP ' + K.hp + ' · MP ' + K.mp + (bonus(K.b) ? ' · ' + bonus(K.b) : ''), CSK[k].map((q, i) => q ? [SLOTS[i][1], sname(q) + ' (Lv' + SLOTS[i][2] + ')'] : null).filter(Boolean), false)); });
+    ['warrior', 'mage', 'assassin', 'archer', 'gunner', 'bard', 'lancer', 'engineer', 'gambler'].forEach(k => {
+      const g = sec('JOB 2 · 2차 전직 (Lv' + (k === 'bard' || k === 'engineer' || k === 'lancer' || k === 'gunner' ? 30 : k === 'gambler' ? 35 : 25) + ') — ' + CLS[k].n + ' 계열');
       Object.keys(JOB2).filter(j => JOB2[j].cls === k && !JOB2[j].hidden).forEach(j => { const J = JOB2[j]; g.appendChild(card(SPJ[j][0], J.n, J.d, '추가 능력: ' + (bonus(J.b) || '-'), J.sk.map(x => [SLOTS[x[0]][1], x[2].n, x[0] === 9]), true)); });
     });
   };
@@ -6011,6 +6533,25 @@ HJ.elemeng = { c: '연금술 공학자 Lv75 · 히든 퀘스트 · 원소의 핵
 
 /* ---------- 패치노트 ---------- */
 const PATCHES = [
+  { v: '1.98', d: '11/23', t: '저장 슬롯 확장', i: [
+    '보석 상점에 「저장 슬롯 +1」이 추가되었습니다. 보석 110개로 저장 슬롯을 5칸에서 6칸으로 영구히 늘릴 수 있습니다. (1회 구매)',
+  ] },
+  { v: '1.97', d: '11/23', t: '전직 시 기본 무기 지급', i: [
+    '전용 무기가 정해진 직업(거너·음유시인·창기사·엔지니어·도박사 등)으로 전직하면, 장착 중이던 무기를 쓸 수 없는 경우 즉시 해당 직업의 기본 무기로 바뀝니다.',
+    '거너·음유시인·창기사·엔지니어는 모두 레벨 7부터 1차 전직(초보자 상태), 레벨 30부터 2차 전직을 할 수 있습니다.',
+  ] },
+  { v: '1.96', d: '11/23', t: '거너 전직 조건 변경', i: [
+    '거너 1차 전직은 레벨 7부터, 2차 전직(건슬링어·데몰리셔)은 레벨 30부터 할 수 있습니다.',
+  ] },
+  { v: '1.95', d: '11/23', t: '신규 직업 도박사 · 운명의 카지노', i: [
+    '신규 1차 직업 도박사(Lv10)가 추가되었습니다. 주사위·카드·마법 칩 무기를 쓰며 행운의 주사위·황금 카드·더블 업·잭팟·운명의 교환·올인 스킬을 사용합니다.',
+    '행운 게이지가 추가되었습니다. 공격이 적중하면 차오르고 가득 차면 10초간 잭팟 모드(스킬 피해 +25%, 확률 +12%p)가 발동합니다. 화면 위쪽에 게이지가 표시됩니다.',
+    '2차 전직 카드 마스터·룰렛 마스터가 추가되었습니다. 도박사 Lv35부터 선택할 수 있으며 각각 6개의 스킬과 패시브가 있습니다.',
+    '신규 지역 「운명의 카지노」: 카지노 경비병, 마법 카드 병사, 룰렛 골렘, 황금 주사위 괴물, 타락한 도박사가 등장하며 각자 고유한 공격과 드롭을 가집니다.',
+    '신규 신화 보스 「도박의 신」: 운명의 룰렛·신의 주사위·전설의 카드·잭팟 폭발·라스트 베팅 패턴을 사용합니다.',
+    '도박사 전용 장비가 추가되었습니다: 초보자의 주사위, 행운의 카드 덱, 황금 주사위, 마법 칩, 황금 룰렛, 전설의 카드 덱 등.',
+    '확률형 스킬에는 상한(최대 85%)이 있고, 보스에게는 강력한 확률 효과를 연속으로 발동해도 피해와 기절이 단계적으로 줄어듭니다.',
+  ] },
   { v: '1.94', d: '11/22', t: '창기사 전직 조건 변경', i: [
     '창기사도 음유시인·엔지니어처럼 초보자 상태에서 Lv7 이후 1차 전직으로 선택하고, 2차 전직(드래곤 랜서·창의 지배자)은 Lv30부터 할 수 있습니다.',
     '창기사 전직 시험과 다른 직업에서의 창기사 전직은 사라졌습니다. 다른 직업으로 1차 전직한 뒤에는 창기사가 될 수 없습니다.',
